@@ -1,6 +1,6 @@
 // The landing's content, fixed once and read by the landing's presentation.
-// Everything here traces to the AlphaLens material (nanisoft-web ticket 01's
-// snapshot) and is labelled by ticket 08's three-tier honesty model — live /
+// Everything here traces to the AlphaLens material and is labelled by the
+   // three-tier honesty model — live /
 // approved / designed / research direction. Nothing on this page claims a
 // backtester, a discovery engine, a validation harness, or any product UI,
 // because none of those exist.

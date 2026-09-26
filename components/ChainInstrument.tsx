@@ -5,7 +5,7 @@
 // implied volatility, and a rose reticle sitting on ATM. A minute-scan sweeps
 // the panel, one pass per capture minute's worth of patience.
 //
-// Template law (nanisoft-web ticket 09): the visual slot's height must be
+// Template law: the visual slot's height must be
 // definite in every context. The host carries min-height in CSS and the canvas
 // only ever reads the host's box — it never writes height back, so there is no
 // ResizeObserver feedback loop.

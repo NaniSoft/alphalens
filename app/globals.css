@@ -3,8 +3,8 @@
  *
  * prism-ui owns the SiteHeader/SiteFooter chrome and the display width axis;
  * this sheet owns everything app-level: the Instrument Bench landing, the docs
- * shell (prism-ui ships DocsShell/BlogLayout structure but no styles — nanisoft-web
- * ticket 09's finding, resolved per-site by ticket 16's interim), the blog, and
+ * shell (prism-ui ships DocsShell/BlogLayout structure but no styles, so each
+   * site resolves that shell in its own sheet), the blog, and
  * About.
  *
  * Colour always comes from the pre-baked prism-rose-<mode> variable rulesets —
