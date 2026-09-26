@@ -1,0 +1,55 @@
+---
+title: The contract
+description: 2026-09-19 — the approved design that turns a capture platform into a research feed.
+---
+
+<Note status="Approved, not yet implemented">The contract design is approved.
+The external collectors that populate its new tables are not running.</Note>
+
+## The sequencing decision
+
+The agents were not wired first. That is the decision this page records.
+
+Wiring TradingAgents before deciding the data contract would have frozen the
+prompt format against whatever happened to be in the database — and then every
+schema change would have been a prompt change, silently, across every agent.
+Instead the requirements were written down first
+([TradingAgents anatomy](/docs/research-pipeline/anatomy)), the sources were
+picked and costed ([external sources](/docs/data-contract/external-sources)),
+and only then was the read path approved.
+
+## What was approved, and what was rejected
+
+**Approach B won: keep the Fyers tables, add external tables, unify with a
+view.** The alternative — normalize everything into a new schema — was rejected
+on blast radius: it would have migrated a live production store, rewritten the
+archive pipeline, and broken schema-identity with the .NET port, all to arrive
+at the same queryable shape.
+
+Alongside it, four specific decisions:
+
+| Decision | Choice |
+|---|---|
+| Conflict semantics | **fixed-upsert** — the most recent poll wins for fundamentals and macro, because an EOD snapshot may refine within the same minute window |
+| Timestamp | **one canonical `ts_utc`**, IST converted at ingest; no IST column survives |
+| Symbol form | **Fyers token** (`NSE:RELIANCE`) everywhere, normalized at ingest |
+| Read path | **live-only view**; no daily snapshot tables for agents |
+| Error posture | **never block Fyers ingest; never fail-closed to agents** |
+
+## Why the column list is the contract
+
+The `data_feed_view` column list is what agent prompts are written against. A
+column that gets renamed does not break a build in any obvious way — it breaks
+a prompt six weeks later, in a way that looks like a model regression.
+
+So the plan pins the list with a **contract-stability test**: any future
+`ALTER` that drops or renames a view column fails the build. "Contract" is
+enforced by CI, which is the only place a contract is actually enforced.
+
+## What it leaves open
+
+The contract deliberately does **not** fix refresh cadence — that schedules
+collectors and can change without touching the shape agents read. And it
+explicitly defers two things: building the unpulled Fyers streams, and wiring
+TradingAgents' `route_to_vendor()` to read `data_feed_view`. Both are later
+effort, and both are labelled as such rather than implied.

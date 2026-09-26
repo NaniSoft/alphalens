@@ -1,0 +1,68 @@
+---
+title: Glossary
+description: The terms this site uses, defined once.
+---
+
+**ATM±25 · chain scope** — the option-chain endpoint returns strikes around
+at-the-money rather than requiring an enumerated list; `strikecount` is the
+config knob that sets how far out.
+
+**`candles_runs`** — one marker per candle-backfill run in `summary.db`. After
+the 2026-09-16 scope reduction these are pure status records, not resume state.
+
+**Contract-stability test** — the planned test that pins the `data_feed_view`
+column list. Any `ALTER` that drops or renames a column fails the build.
+
+**data_feed_view** — the unified `UNION ALL` view over the Fyers tables and the
+six external tables. The one surface agents read. Approved, not yet
+implemented.
+
+**Discover and validate market opportunities** — a description of AlphaLens's
+**destination**, not a shipped capability. This site uses the phrase only
+inside research-direction framing.
+
+**EOD summary** — computed locally at 15:31 IST from captured rows: spot and
+VIX OHLC, PCR, max-OI strikes, total CE/PE OI. No API call.
+
+**Fyers token form** — the canonical symbol spelling: `NSE:RELIANCE`. Every
+other source's form is normalized to it at ingest.
+
+**Fixed-upsert** — the conflict strategy for snapshot-style tables
+(`fundamentals`, `macro_indicators`): the most recent poll of the same
+`(symbol, ts_utc, source)` wins.
+
+**Greeks** — delta, gamma, theta and vega, delivered per option leg by Fyers
+with `greeks=1`. AlphaLens captures them raw and does no local Black-Scholes.
+
+**Live / approved / designed / research direction** — the four status labels
+this site uses. See [the three tiers](/docs/).
+
+**Minute grid** — the strict per-minute capture schedule (`:00`, `:01`, …).
+**Skip-on-overrun** means a missed minute is logged as missing, never shifted.
+
+**Never-fail-closed** — the error posture: an external outage degrades to
+silence, never to a fabricated value, and never blocks the Fyers minute.
+
+**Nifty 500 universe** — the quote-universe feature in the .NET port: cash
+level-1 for all 500 constituents plus member futures, no option chains, behind
+`quote_universe.enabled`.
+
+**OI (open interest)** — the number of outstanding derivative contracts.
+Available per option leg from the chain; **not** available for futures from
+`/data/quotes`.
+
+**PCR** — put-call ratio. Computed at EOD from captured OI, not per minute.
+
+**Skip-on-overrun** — see minute grid.
+
+**TradingAgents** — the open multi-agent LLM trading-research framework
+assessed for NSE portability. AlphaLens's research pipeline design is based on
+its anatomy. Not wired.
+
+**`ts_utc`** — the single canonical UTC timestamp on every contract row. No IST
+column survives into the contract.
+
+**Unmatched symbols** — the log table where a symbol that matched no
+`symbol_map` entry lands, rather than being dropped silently.
+
+**xz archive** — the daily compressed archive of a trading day's database.

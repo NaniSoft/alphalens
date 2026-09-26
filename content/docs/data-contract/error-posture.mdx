@@ -1,0 +1,68 @@
+---
+title: The never-fail-closed posture
+description: An external outage degrades to silence, never to a poisoned value — and it never blocks the Fyers minute.
+---
+
+<Note status="Approved, not yet implemented">The posture is part of the
+approved contract design; the collectors that exercise it are not running
+yet.</Note>
+
+## The one rule
+
+**An external source's failure never blocks Fyers minute ingest, and never
+feeds an agent a wrong value.**
+
+The collectors are independent processes with no cross-source lock
+dependencies. When an external source dies, the Fyers snapshot for that minute
+still lands complete.
+
+## The failure table
+
+| Failure | Behaviour |
+|---|---|
+| External HTTP error | 3× exponential backoff, skip that poll, recover next cycle |
+| Partial batch | write what arrived, log the skipped symbols |
+| SQLite lock contention | `busy_timeout = 30000`; the writer retries once, then defers — never deadlocks |
+| Unknown symbol | → `unmatched_symbols` table, dropped from the feed |
+| Duplicate `(symbol, ts_utc, source)` | fixed-upsert wins — the most recent poll |
+
+## Silence, not zero
+
+Agent-visible degradation works through the view's `LEFT JOIN` semantics: a
+query for a category with no rows at a given minute yields nothing, and the
+documented reading is **"category silent this minute."**
+
+That is the deliberate half of the rule. The dangerous alternative is a stale
+fundamentals row that still answers confidently in month three, or a zero
+standing in for an unknown — a value that *looks* like data and poisons every
+downstream computation. AlphaLens treats absence as absence. The existing
+`NO_DATA_AVAILABLE:` / `DATA_UNAVAILABLE:` sentinels and the
+`NoMarketDataError` fallback chains carry the same principle into the agent
+layer and are unchanged by the contract.
+
+## Idempotency
+
+Every table upserts on the natural key `(symbol, ts_utc, source)`:
+
+- **Append-only** tables (`news_items`, `sentiment_posts`, `insider_deals`,
+  `corporate_actions`) use `INSERT … ON CONFLICT DO NOTHING` against a
+  natural-key `UNIQUE` constraint — a re-poll of the same headline is a no-op.
+- **Snapshot-style** tables (`fundamentals`, `macro_indicators`) use
+  `ON CONFLICT UPDATE` — **fixed-upsert**, so the most recent poll of the same
+  key wins. This is deliberate: an EOD snapshot may legitimately refine within
+  the same minute window.
+
+## How it is tested
+
+The plan's test suite pins the posture, not just the happy path:
+
+- normalizers turn yfinance / StockTwits / NSE-CSV spellings into the canonical form;
+- timestamp alignment converts the IST minute to UTC on every ingest path;
+- the same key twice produces one row with the newer value winning;
+- a news row carries `oi = NULL` and `ltp = NULL`, a quote row carries
+  `headline = NULL` — sparse columns stay sparse;
+- `data_feed_view WHERE symbol = 'NSE:NIFTY'` for a minute with a news item
+  returns **both** rows;
+- a fundamentals-only symbol returns rows with the market columns null;
+- the archive sweep leaves the read path intact;
+- and the contract-stability test pins the view's column list.

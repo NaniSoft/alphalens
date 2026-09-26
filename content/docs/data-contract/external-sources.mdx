@@ -1,0 +1,73 @@
+---
+title: External sources
+description: What each external collector reads, how often, and why that source won its slot.
+---
+
+<Note status="Approved, not yet implemented">
+Source picks are decided and costed. The collectors themselves are deferred to
+the implementation plan and are **not running today**.
+</Note>
+
+Fyers has no endpoint for any of the six categories below — verified against
+the Fyers-authored API reference, the live API docs, and the Fyers support KB.
+These are structural gaps, not missing integration work, so they are filled
+from outside.
+
+## The picks
+
+| Category | Source | Fallback | Cost | Nifty-500 coverage | Cadence |
+|---|---|---|---|---|---|
+| Fundamentals & financials | NSE Python libraries (`nselib`, `nse-xbrl`) | yfinance `.NS` | Free, no key | High (exchange XBRL) | weekly full-scan |
+| News | Economic Times RSS | MoneyControl RSS | Free | High | 30 min (plus yfinance news at 5 min) |
+| Social sentiment | StockTwits public stream | Reddit (OAuth) | Free | Medium (large caps) | 15 min, watchlist only |
+| Indian macro | RBI DBIE + eSankhyiki (MoSPI) | Trading Economics | Free primary | Exhaustive | weekly poll |
+| Insider / bulk / block deals | NSE official CSV | TIGZIG Vigil | Free | High | daily ~21:00 post-close |
+| Corporate actions | NSE official corporate-actions CSV | BSE official CSV | Free | High | daily ~21:00 post-close |
+| Prediction markets | **None** | Polymarket, global only | — | **None** | — |
+
+## Why those picks
+
+**Fundamentals** come from NSE's own filings, parsed with XBRL for integrated
+statements — the authoritative source, free, and aligned with the collector's
+existing Python/Windows shape. Alpha Vantage was rejected here on coverage: it
+accepts international symbols, but NSE coverage is sparse or absent.
+
+**News** comes from Economic Times RSS because it is an official Indian-market
+feed with dedicated markets and stocks endpoints, and it needs no key.
+yfinance news was rejected as primary — it has been unreliable for NSE symbols.
+
+**Sentiment** is the narrowest pick and is scoped deliberately: StockTwits'
+public stream carries native bullish/bearish tags and no key, but Indian
+coverage is effectively large-cap only via the `$SYM.NSE` form. It is polled on
+a watchlist, not the whole universe.
+
+**Macro** is split between the RBI's Database on Indian Economy (exhaustive,
+manual CSV) and eSankhyiki for programmatic access to 500+ statistical
+indicators. FRED — the source TradingAgents uses natively — carries no Indian
+macro series at all.
+
+**Prediction markets** are an accepted zero: Polymarket has no India-specific
+contracts. Nothing is substituted, because nothing exists to substitute.
+
+## Refresh cadence, and why it is not part of the contract
+
+Cadence schedules the collectors; it is not a property of the contract itself.
+That separation is what lets a poll frequency change — sentiment 15 minutes to
+10, news 30 to 20 — without touching the shape an agent reads.
+
+| Source | Cadence |
+|---|---|
+| Fyers quotes / options / candles | per-minute, live session |
+| Fundamentals | weekly full-scan, per-symbol on re-pull |
+| News | ET RSS 30 min; yfinance news 5 min |
+| Sentiment | StockTwits 15 min, watchlist |
+| Macro | weekly poll |
+| Insider / corporate actions | daily ~21:00 |
+| Constituents | weekly + rebalance diff |
+
+## The compliance line
+
+NSE's terms prohibit automated scraping and redistribution of exchange data
+without written permission. The design therefore prefers the **official CSV
+download** route for insider deals and corporate actions, and does not
+re-package exchange data into a commercial feed.

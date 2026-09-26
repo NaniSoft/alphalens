@@ -1,0 +1,40 @@
+---
+title: Discovery
+description: Searching the space of candidate strategies — a direction that only makes sense above a backtester.
+---
+
+<Note status="Research direction">No strategy discovery machinery exists in
+AlphaLens.</Note>
+
+Discovery means generating and screening candidate strategies rather than
+hand-crafting one. It is the direction where the multi-agent design does the
+most work: the same analyst-team pattern that reads one symbol can be pointed
+at many, and the candidates it produces need exactly the structured, timestamped
+feed the contract defines.
+
+## What it would draw on
+
+| Capability | Status |
+|---|---|
+| A structured, category-based feed an agent can query | **approved** — `data_feed_view` |
+| The Nifty 500 quote universe | **live** in the .NET port, cash level-1 plus member futures |
+| Nifty 50 / Nifty Bank constituent lists | **live**, refreshed from NSE CSV |
+| Per-analyst data requirements mapped for the Indian market | **designed** |
+| The multi-agent pipeline | **designed, not built** |
+| A search or generation loop | **does not exist** |
+| Compute budget | unaddressed — discovery multiplies the per-run LLM cost across a universe |
+
+## The cost reality
+
+A single TradingAgents run is on the order of **4–6 LLM calls per ticker**.
+Scaling that to a 500-name universe is roughly **2,000–3,000 calls per day**
+before any discovery loop multiplies it further. Any discovery design has to
+answer that budget first; the per-analyst data requirements are the cheap part.
+
+## Why it is last, not first
+
+Discovery without a [validator](/docs/research-directions/validation) is a
+machine for manufacturing overfit strategies, and neither is any use without a
+[backtester](/docs/research-directions/backtesting) underneath them. The
+ordering is not caution for its own sake — each layer is what makes the next
+one's output mean something.

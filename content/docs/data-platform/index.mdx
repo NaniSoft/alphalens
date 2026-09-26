@@ -1,0 +1,35 @@
+---
+title: Data platform
+description: The live market-data layer — what the collector captures, where it lands, how it is operated, and the .NET 10 port.
+---
+
+<Note status="Live">Everything in this section runs in production today. The
+collector has been live since **2026-08-26** and on **Kubernetes/Helm since
+2026-09-08**.</Note>
+
+AlphaLens's foundation is a single-process market-data collector that
+authenticates to the **Fyers v3 API** and, every market minute, captures a
+complete snapshot for **NIFTY** and **BANKNIFTY**: the full option chain (all
+selected strikes, CE and PE, with OI, volume, bid/ask, IV and Greeks), the
+index futures, the index spot, and **India VIX** — written append-only to
+SQLite.
+
+Alongside the minute-tick capture it runs three supporting jobs:
+
+- a broker-independent **yfinance pre-market global-cues** collector, before
+  the open;
+- a local **EOD daily-summary** computation at 15:31 IST (PCR, max-OI strikes,
+  OHLC) — no API call, computed from the rows already captured;
+- a **post-close 1-minute candle backfill** at 17:00 IST, into the same day's
+  database.
+
+## Pages in this section
+
+- **[What the collector captures](/docs/data-platform/capture)** — the
+  instrument grid, per minute, and what it costs to produce.
+- **[Storage & archives](/docs/data-platform/storage)** — SQLite + WAL, one
+  database per day, xz-compressed archives.
+- **[Operations](/docs/data-platform/operations)** — Kubernetes and Helm, the
+  token service, alerts, and backups.
+- **[The .NET 10 port](/docs/data-platform/dotnet-port)** — the second
+  implementation, schema-identical by design.

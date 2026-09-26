@@ -1,0 +1,38 @@
+---
+title: Engineering story
+description: The decision trail — a spike, then production, then a port, then a contract.
+---
+
+AlphaLens did not start as a platform. It started as a question about whether
+one API call pattern could carry a whole option chain every sixty seconds — and
+each stage since has been a decision with a recorded reason. This section is
+that trail.
+
+The material here contains no secrets and no live data. It is the reasoning,
+which is the part worth keeping.
+
+## Four stages
+
+1. **[The spike](/docs/engineering-story/spike)** — 2026-08-26. One live test
+   of whether a full per-minute chain is even feasible. Verdict: yes, with 16×
+   rate headroom.
+2. **[Production](/docs/engineering-story/production)** — the hardening that
+   turned a working script into an unattended system: the strict minute grid,
+   the atomic write, the daily token, alerts, backups, then Kubernetes.
+3. **[The port](/docs/engineering-story/port)** — 2026-09-15. A second
+   implementation, schema-identical on purpose, with the Nifty 500 universe
+   built in.
+4. **[The contract](/docs/engineering-story/contract)** — 2026-09-19. The
+   approved design that turns a capture platform into a research feed.
+
+## The pattern across them
+
+Each stage **narrowed the blast radius of the next one**. Keeping Fyers tables
+untouched made the external tables an addition rather than a migration. Making
+the .NET port schema-identical made Python a cold standby instead of a
+dependency. Approving the contract before wiring agents meant the agents'
+requirements were written down while the data layer could still change cheaply.
+
+That is the actual engineering discipline here, and it is why the
+[honesty labels](/docs/) are trustworthy: what is live is live because it was
+proven at small scale first.

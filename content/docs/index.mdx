@@ -1,0 +1,52 @@
+---
+title: Introduction
+description: What AlphaLens is today, what it is designed to become, and which of those two things is which.
+---
+
+AlphaLens is Nanisoft's quantitative research platform for the Indian (NSE/BSE)
+market. It exists to put agents in front of a market they can actually read —
+one coherent, timestamped, research-ready feed instead of a pile of vendor
+exports.
+
+Today that means one thing above all: **the live data layer**. A production
+collector has captured the full NIFTY and BANKNIFTY option chain every market
+minute since 2026-08-26, and has run on Kubernetes since 2026-09-08. An
+approved data contract defines how that capture merges with the sources Fyers
+structurally cannot provide. A multi-agent research pipeline is designed on top
+of both and is not yet built.
+
+<Note status="Status">
+In active development. Everything on this site is labelled by one of three
+tiers — **live**, **designed, not built**, or **research direction** — and the
+labels are load-bearing. Read them.
+</Note>
+
+## The three tiers
+
+| Tier | Meaning | What sits there |
+|---|---|---|
+| **Live** | Running in production now, stated in the present tense. | The market-data collector, its storage and archives, its operations, the .NET 10 port Phase 1. |
+| **Approved / designed** | Approved and specified, not yet running. Always labelled. | The unified data contract (`data_feed_view`); the TradingAgents multi-agent wiring; the k3s VPS endgame. |
+| **Research direction** | The trajectory the infrastructure points toward. Never presented as a feature. | Strategy backtesting, strategy discovery, strategy validation. |
+
+This is deliberate. AlphaLens is not a trading platform, and it does not ship a
+backtester, a strategy generator, or a validation harness today. Claiming any
+of those would make the rest of the site untrustworthy — and the interesting
+engineering here is real enough not to need inflation.
+
+## What to read first
+
+- **[What the collector captures](/docs/data-platform/capture)** — the live
+  instrument grid, per minute, with the cost of producing it.
+- **[The `data_feed_view` anatomy](/docs/data-contract/data-feed-view)** — the
+  one queryable surface agents will read.
+- **[TradingAgents anatomy](/docs/research-pipeline/anatomy)** — the research
+  pipeline, as designed.
+- **[Research directions](/docs/research-directions)** — where the
+  infrastructure goes next, stated as direction.
+
+## What you will not find here
+
+No strategy advice. No signals. No backtest results. No performance claims.
+AlphaLens is market-data infrastructure and a research design; the site
+documents both, and nothing else.

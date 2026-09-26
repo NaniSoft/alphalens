@@ -1,0 +1,52 @@
+---
+title: Canonical timestamps & symbol form
+description: The two normalizations that make a Fyers quote and an RSS headline joinable — ts_utc and NSE:SYMBOL.
+---
+
+<Note status="Approved, not yet implemented">Both normalizations run **at
+ingest, not at query** — the view never converts anything.</Note>
+
+## One canonical `ts_utc`
+
+Every view row carries a single canonical **`ts_utc`**. No IST column survives
+into the contract; Indian-market wall-clock time is a presentation concern,
+converted where it is displayed, not stored alongside UTC for agents to guess
+between.
+
+| Source | Raw timestamp | Conversion |
+|---|---|---|
+| Fyers quotes / candles / option chain | `ist_minute` int, e.g. `202609190915` | parse IST → minus 5:30 → UTC |
+| Fyers depth / OI | same UTC epoch as the snapshot | same rule |
+| Fundamentals | filing / report date | `00:00 UTC` of the report date |
+| News (Economic Times RSS) | `<pubDate>`, RFC-822 | parse → UTC, the exact publish minute |
+| Sentiment (StockTwits) | message `created_at` | parse → UTC |
+| Macro (RBI / eSankhyiki) | indicator date | first-of-period UTC midnight |
+| Insider deals / corporate actions | NSE `trade_date` / `record_date` | midnight UTC |
+
+The invariant: **an analyst filtering `WHERE ts_utc BETWEEN A AND B` gets a
+coherent cross-source slice.** A Fyers quote at 09:15 IST and a news item at
+09:15 IST are joinable, because both are `03:45Z`.
+
+Sources that publish at a coarser grain than a minute are pinned to a
+deterministic instant — a report date becomes midnight UTC of that date, a
+monthly indicator becomes the first of the period — so the row still has an
+exact `ts_utc` and still sorts and ranges correctly.
+
+## One symbol form
+
+All tables and the view use the **Fyers token form** (`NSE:NIFTY`,
+`NSE:RELIANCE`). Every other source's spelling is normalized on the way in:
+
+| Source | Raw form | Normalizer |
+|---|---|---|
+| Fyers | `NSE:RELIANCE` | passthrough |
+| yfinance | `RELIANCE.NS` | strip `.NS`, prefix `NSE:` |
+| StockTwits | `$RELIANCE.NSE` | strip `$`, strip `.NSE`, prefix `NSE:` |
+| NSE CSV / ET / RBI | `RELIANCE`, `NIFTY 50` | `symbol_map` + alias table in config |
+
+## The escape hatch for unknown names
+
+The `symbol_map` lives in `config.example.yaml`, so a mapping error is a config
+tweak rather than a code change. Symbols that match nothing are **not dropped
+silently** — they route to an `unmatched_symbols` log table, which is how a
+stale alias is discovered instead of becoming a permanent hole in the feed.

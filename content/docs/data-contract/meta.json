@@ -1,0 +1,4 @@
+{
+  "title": "Unified data contract (approved)",
+  "pages": ["index", "data-feed-view", "timestamps-and-symbols", "external-sources", "error-posture", "known-gaps"]
+}

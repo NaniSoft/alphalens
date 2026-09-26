@@ -1,0 +1,62 @@
+---
+title: Known gaps
+description: What the feed does not have — the unpulled Fyers streams and the accepted structural gaps.
+---
+
+<Note status="Stated plainly">
+A data platform that hides its holes is worse than useless for research. This
+page is the list of what is missing, and it is maintained like any other page.
+</Note>
+
+## Streams Fyers exposes that AlphaLens does not yet pull
+
+| Stream | Endpoint | Why it matters | Status |
+|---|---|---|---|
+| L2 five-level order book for NIFTY/BANKNIFTY futures | `/data/depth` | order-book imbalance, execution quality, depth beyond top-of-book | unpulled — only USDINR, EURINR and MIDCPNIFTY futures are depth-polled today |
+| Per-symbol futures OI and OI time series | `/data/depth` | futures positioning, roll analysis, build-up/unwind | unpulled — the quotes batch carries no OI for futures |
+| Higher-timeframe candles (5m / 15m / 1h / daily) | `/data/history` | swing context, volatility regimes, any question above one minute | unpulled — 1m only; aggregate on read today |
+| Sectoral index futures (FINNIFTY, MIDCPNIFTY) | `/data/quotes`, `/data/depth` | sector rotation, hedging | MIDCPNIFTY captured; FINNIFTY unpulled |
+| Tick-level trade tape | WebSocket `SymbolUpdate` | microstructure, tape reading | unpulled — no REST equivalent, needs a WebSocket client |
+| Realized-volatility series | derived from `/data/history` | volatility regime detection | not persisted today |
+| Intraday PCR and IV term structure | derived from the option chain | sentiment gauge, volatility surface, skew | per-leg IV is captured; the derived series is not persisted |
+
+## Streams no Fyers endpoint can provide
+
+These are structural — verified against the Fyers-authored API reference and
+the support KB, not merely unplanned:
+
+1. Corporate actions — dividends, splits, bonuses, rights, mergers.
+2. Fundamentals — P/E, P/B, EPS, ROE, debt, book value, any valuation ratio.
+3. Financial statements — balance sheet, cash flow, income statement.
+4. News.
+5. Insider transactions, bulk deals, block deals.
+6. FII/DII flows.
+7. Indian macro indicators — RBI rates, CPI, GDP, IIP, forex reserves.
+8. Social sentiment.
+9. Prediction markets.
+10. Index composition change events.
+11. The Nifty 500 constituent list (an NSE CSV, not a Fyers endpoint).
+
+Categories 1–5 and 7–9 are exactly what the
+[unified data contract](/docs/data-contract/index) fills from external sources.
+
+## Gaps accepted, not filled
+
+| Gap | Why it is accepted |
+|---|---|
+| Tick-level trade tape | No REST endpoint exists; a WebSocket client is a new transport layer, out of the minimum viable build. |
+| Expired F&O contract history | Fyers does not serve expired contracts from `/data/history`; the official answer is a paid third-party vendor. A **hard** gap for long-horizon option backtesting. |
+| FII/DII flows | No Fyers source; the NSE daily reports are the substitute. |
+| Sentiment for small and mid caps | StockTwits' Indian coverage is large-cap; filling it needs paid vendors. |
+| Prediction markets | Polymarket has no India-specific contracts. Nothing to substitute. |
+
+## Two caveats that are easy to get wrong
+
+**Futures OI is not in the quotes batch.** Fyers `/data/quotes` returns no
+`oi` key for futures — confirmed by raw response inspection. Every other
+futures field populates. Reading a missing futures OI as zero would be a bug,
+not a simplification.
+
+**Index volume is synthetic and recent.** Index volume is available only from
+01 July 2025, and only for seven F&O-enabled indices, as the sum of traded
+volume across current constituents — not exchange volume for the index itself.

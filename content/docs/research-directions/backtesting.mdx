@@ -1,0 +1,46 @@
+---
+title: Backtesting
+description: What replaying history honestly would require — and what the live data layer already provides toward it.
+---
+
+<Note status="Research direction">No backtesting engine exists in
+AlphaLens.</Note>
+
+Backtesting means replaying historical market state through a strategy's rules
+and measuring the result. For an options-and-index universe, the interesting
+version needs **the full chain at each point in time** — not closes, and not a
+single expiry — because the strategy's inputs and its achievable fills both
+depend on the whole surface.
+
+## What AlphaLens already has toward it
+
+| Requirement | Status |
+|---|---|
+| Full NIFTY + BANKNIFTY chain, every strike, per minute | **live** since 2026-08-26 |
+| IV and Greeks attached per leg, no local re-pricing | **live** |
+| One-minute OHLCV for spot, VIX, futures and every captured leg | **live**, post-close backfill |
+| A timestamp an analyst can range over across sources | **approved** — the contract's `ts_utc` |
+| EOD summaries (PCR, max-OI strikes, OHLC) | **live** |
+
+The per-minute snapshot is the asset. It is append-only, transaction-atomic,
+and keyed on a strict minute grid, which is what a replay needs to reconstruct
+the same market state twice.
+
+## What is missing
+
+- **History depth.** The collector went live in August 2026; the archive grows
+  one trading day at a time. There is no vendor history behind it.
+- **Expired F&O contract history.** Fyers does not serve expired contracts from
+  `/data/history`; the official answer is a paid third-party vendor. This is
+  the **hard** gap for long-horizon option backtesting, and it is not solved.
+- **Higher-timeframe candles.** Stored 1-minute rows can be aggregated on read,
+  but no native 5m/15m/1h/daily series is persisted.
+- **Execution modelling.** Nothing in the platform models fills, slippage, or
+  impact. Captured bid/ask is a start, not an answer.
+- **A replay engine.** There is none.
+
+## The honest summary
+
+The data a backtester would consume is being captured today, and its shape was
+chosen with replay in mind. The backtester itself is future work, and its
+results would carry a start-date caveat for years.

@@ -1,0 +1,65 @@
+---
+title: Storage & archives
+description: SQLite with WAL, one database per trading day, xz-compressed into daily archives.
+---
+
+<Note status="Live">The storage layout described here is the one in production.</Note>
+
+## One database per day
+
+Capture lands in a per-day SQLite database. Each day's file answers both the
+snapshot questions and the candle questions for that day:
+
+```
+snapshots-YYYY-MM-DD.db     SQLite, WAL — that day's only raw store
+  option_chain              one row per (minute, expiry, strike, CE/PE)
+  quotes                    one row per (minute, symbol) for futures/spot/VIX
+  candles_1m                one row per (symbol, minute) — post-close backfill
+  snapshot_runs             one row per minute (provenance/health)
+  daily_summary             one row per (day, underlying) — EOD computed
+  premarket_cues            yfinance global-cues snapshots
+  holidays                  NSE holiday list
+
+summary.db                  cumulative facts, carried across days
+  candles_runs              one marker per backfill run (status record)
+```
+
+`summary.db` is the only file the next day reads: it carries the cumulative
+facts and the `candles_runs` markers, and it is deliberately preserved when a
+day is cleaned up.
+
+## Write discipline
+
+Per-minute writes are a **single SQLite transaction** — atomic, so a partial
+minute rolls back rather than landing half-written. The database runs in WAL
+mode with a `busy_timeout`, which is what lets the EOD computation, the candle
+backfill, and the archive sweep coexist with the live minute tick without
+deadlocking the writer.
+
+The post-close candle backfill upserts on `UNIQUE(symbol, ts_utc)`: re-runs
+never duplicate rows, and a symbol that already has rows for the day is not
+re-fetched.
+
+## Size and archive
+
+| | |
+|---|---|
+| Per-minute volume | ~2,070 option-chain rows + ~7 quote rows |
+| Raw size | **~4.5 MB/day**, roughly 1 GB/year |
+| Archive | xz-compressed daily archive, swept on retention |
+| Backfill cost | one `/data/history` call per symbol, ~18,000 symbols in a production day, ~96 minutes at the 190/min cap |
+
+There is no materialized higher-timeframe store. The 1-minute table is the
+source of truth; questions at coarser intervals are answered by aggregating on
+read.
+
+<Note status="Designed, not built">Higher-timeframe candles (5m / 15m / 1h /
+daily) pulled natively from `/data/history` are a designed addition, not a
+stored series today — see [Known gaps](/docs/data-contract/known-gaps).</Note>
+
+## Schema-identical by intent
+
+The .NET port writes **the same DDL into the same per-day file layout** and
+produces the same xz archive layout, so the Python and .NET implementations are
+interchangeable against one history. See [The .NET 10
+port](/docs/data-platform/dotnet-port).

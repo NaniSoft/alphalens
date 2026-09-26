@@ -1,0 +1,62 @@
+---
+title: What the collector captures
+description: The per-minute instrument grid — option chain, futures, spot, India VIX, and the supporting jobs.
+---
+
+<Note status="Live">Captured every market minute, live since 2026-08-26.</Note>
+
+## The per-minute snapshot
+
+Each minute of the 09:15–15:30 IST session produces one snapshot. It is one
+transaction, written atomically — a partial minute rolls back and is never
+half-written.
+
+| Instrument | Source call | Fields |
+|---|---|---|
+| Option chain (CE/PE, all selected strikes × selected expiries) | `/data/options-chain-v3` (`greeks=1`) | ltp, ltpch, ltpchp, bid, ask, **oi, oich, oichp, prev_oi, volume**, **iv, delta, gamma, theta, vega** |
+| Index futures (current + next month) | `/data/quotes` (batched) | ltp, bid, ask, volume, prev_close, open, high, low, ch, chp, spread, atp |
+| Index spot | `/data/quotes` | ltp, OHLC, ch, chp |
+| India VIX | `/data/quotes` | ltp, OHLC, ch, chp |
+| Snapshot health | (local) | n_legs, fetch_ms, errors |
+
+## Selected expiries
+
+Expiry selection is config-driven, not hard-coded:
+
+- **NIFTY (7):** the nearest two weeklies, three monthlies, and the
+  current-year and next-year December contracts.
+- **BANKNIFTY (4):** three monthlies plus current-year December — no weeklies,
+  per the SEBI rule.
+- **Futures:** current-month and next-month per underlying.
+
+The option-chain endpoint returns strikes around ATM rather than requiring an
+enumerated list, so the chain scope is a single `strikecount` knob.
+
+## The other capture jobs
+
+| Job | When | What it does |
+|---|---|---|
+| Pre-market global cues | 08:45 and 10:00 IST | yfinance snapshots of the overnight board: ^GSPC, ^IXIC, ^DJI, ^VIX, CL=F, GC=F, USDINR=X, DX-Y.NYB, ^HSI, ^N225. |
+| EOD daily summary | 15:31 IST | Computed locally from the day's captured rows: spot/VIX OHLC, PCR, max-OI strikes, total CE/PE OI. |
+| Post-close candle backfill | 17:00 IST | True 1-minute OHLCV from `/data/history` for every symbol captured that day, written into that day's database. |
+
+## What the snapshot deliberately is not
+
+- **Candles are trade-based.** A leg that did not trade in a minute has no
+  candle for that minute. Treat gaps as unknown, not zero. The per-minute
+  snapshots, by contrast, are the complete every-leg grid.
+- **No derived signals per minute.** PCR and max-OI are computed once at EOD,
+  not on the tick. There is no local Black-Scholes — the chain arrives with
+  IV and Greeks already attached.
+- **No futures OI from the quotes batch.** Fyers `/data/quotes` does not
+  return open interest for futures. Futures OI requires the `/data/depth`
+  endpoint and is a documented extension, not a silent absence — see
+  [Known gaps](/docs/data-contract/known-gaps).
+
+## What it costs
+
+A full snapshot cycle is **11 option-chain calls + 1 batched quotes call**,
+about **2.5 seconds**. That is **12 calls/min against a 200/min Fyers cap** —
+roughly 16× headroom. The live feasibility spike measured ~202 legs per index
+per expiry at the configured chain scope, and a first production minute of
+1,839 option legs plus 7 quote rows.

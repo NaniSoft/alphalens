@@ -1,0 +1,62 @@
+---
+title: NSE portability
+description: What breaks when a US-centric multi-agent framework meets Indian tickers — and what is accepted rather than fixed.
+---
+
+<Note status="Designed, not built">An assessment, not a feature. It fixes the
+data requirements; it does not claim a working pipeline.</Note>
+
+## What works out of the box
+
+**yfinance handles `.NS` symbols** — OHLCV, fundamentals and news are available
+for NSE tickers, and the framework relies on exactly that international
+coverage. Benchmark mapping is already configured in the framework's defaults:
+`.NS → ^NSEI` (Nifty 50) and `.BO → ^BSESN` (Sensex), so alpha-versus-Nifty-50
+works for NSE stocks without modification.
+
+No India-specific fork or adapter exists in the reference repository or its
+issues. The framework was never ported; it simply leans on Yahoo's coverage.
+
+## What breaks
+
+| Source | Problem with NSE tickers |
+|---|---|
+| FRED | US-only macro data — policy rates, Treasury yields, CPI. **No Indian macro series at all.** |
+| Alpha Vantage | Fundamentals and news are US-focused; international symbols are accepted, but NSE coverage is sparse or missing. |
+| Reddit / StockTwits | Dominated by US-centric subreddits and tickers; Indian-stock chatter is limited and noisy. |
+| Polymarket | No India-specific contracts. |
+
+## How AlphaLens answers each
+
+The design does not patch the framework's sources — it **re-points the same
+agent interfaces at the unified feed**:
+
+| TradingAgents source | AlphaLens substitute |
+|---|---|
+| FRED macro | RBI DBIE + eSankhyiki, through `macro_indicators` |
+| Alpha Vantage fundamentals | NSE `nselib` / `nse-xbrl`, through `fundamentals` |
+| yfinance / Alpha Vantage news | Economic Times RSS, through `news_items` |
+| Reddit / StockTwits sentiment | StockTwits public stream on a large-cap watchlist, through `sentiment_posts` |
+| — (nothing) | NSE insider-deal and corporate-action CSVs, through `insider_deals` and `corporate_actions` |
+| Fyers price data | the live collector, already the primary pipe |
+
+That mapping is the whole reason the
+[data contract](/docs/data-contract/index) specifies a *category* column rather
+than nine separate tables: an agent asks for the news category for a symbol at
+a minute, and does not care which collector filled it.
+
+## Accepted gaps, carried into the pipeline
+
+From the [portability assessment](/docs/research-pipeline/nse-portability) and
+the [known gaps](/docs/data-contract/known-gaps), carried forward rather than
+quietly dropped:
+
+- **Prediction markets: zero for India.** No substitute exists.
+- **Small/mid-cap sentiment is thin.** The watchlist is large-cap by design.
+- **Expired F&O history is unavailable** from Fyers without a paid vendor.
+- **Macro is monthly or quarterly**, not intraday — the Indian statistical
+  sources release on official schedules.
+
+An agent whose prompt expects a daily macro print needs to know that. The
+contract's `ts_utc` convention makes the coarser grain visible in the data
+itself rather than hiding it behind a synthetic daily row.

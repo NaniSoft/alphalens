@@ -1,0 +1,62 @@
+---
+title: Production
+description: From a working script to an unattended system — scheduling, atomic writes, the daily token, alerts, backups, Kubernetes.
+---
+
+<Note status="Live">Live since 2026-08-26; Kubernetes/Helm since 2026-09-08.</Note>
+
+The spike proved one minute could be captured. Production is the seventeen
+decisions that made it happen **reliably, unattended, every trading day**. The
+ones that shaped everything else:
+
+## The strict minute grid
+
+Snapshots land on `:00`, `:01`, `:02` — not "roughly once a minute". The
+scheduler sleeps to the next grid mark and dispatches on time of day:
+pre-market cues at 08:45 and 10:00, capture from 09:15 to 15:30, the EOD
+summary at 15:31, the candle backfill at 17:00.
+
+**Skip-on-overrun** is the rule that keeps the grid honest: a minute that
+cannot be captured in time is logged as missing and skipped, never drifted into
+the next slot. A gap in the archive means "we missed a minute", which is
+knowable; a shifted grid would mean every timestamp is a lie.
+
+## One transaction per minute
+
+Each snapshot is a single SQLite transaction. A partial minute rolls back and
+is never half-written, so any reader — the EOD computation, a future replay —
+never sees a chain with half its legs.
+
+## The daily token, and the honest choice about it
+
+Fyers access tokens are daily, and refresh tokens are not reliably available
+for this flow. Two options were storing a PIN (rejected — a credential that
+valuable should not sit on disk for a convenience) and one short interaction per
+morning (chosen, at roughly 30 seconds).
+
+The auth flow uses a **local HTTP callback** — Fyers redirects to
+`http://127.0.0.1:8001`, the local server captures the authorization code and
+exchanges it for the day's token. Nothing is pasted into a chat, nothing is
+committed, and a 401 mid-session **fails loud**: the scheduler stops and asks
+for a re-login instead of spinning on a dead credential.
+
+## From host to Kubernetes
+
+The first deployment was cron over WSL with a watchdog. On **2026-09-08** it
+moved to **Kubernetes on Docker Desktop via Helm** — two always-on containers
+(`collector` and the `token` OAuth callback service) over one shared PVC, with
+the morning login as a one-click Telegram flow. The cron path was retired the
+same day.
+
+The move bought a real answer to "what restarts it": a supervised container
+with a persistent volume, rather than a cron entry and a PID file.
+
+## Then everything else
+
+The remaining decisions are the unglamorous ones that keep a system alive:
+rotating logs, a market calendar from a config list plus a built-in list,
+intraday rclone backups to Google Drive every 30 minutes through the session,
+an EOD backup, and a morning belt-and-suspenders liveness ping.
+
+Each is small. Together they are the difference between a system that ran once
+and a system that has been running.

@@ -1,0 +1,68 @@
+---
+title: Operations
+description: How the collector runs unattended — Kubernetes and Helm, the token service, Telegram alerts, and backups.
+---
+
+<Note status="Live">The Kubernetes/Helm deployment is the primary path, live since 2026-09-08.</Note>
+
+## Kubernetes on Helm
+
+Since 2026-09-08 the collector runs as two always-on containers over one shared
+persistent volume:
+
+- **`collector`** — the minute-tick scheduler: pre-market cues, the per-minute
+  snapshot loop, the EOD summary, the post-close candle backfill.
+- **`token`** — the OAuth callback service that holds the Fyers redirect
+  endpoint and exchanges the daily authorization code.
+
+One shared PVC means both containers see the same token file and the same
+capture volume. A Helm chart packages the pair; a `values-vps.yaml` profile is
+kept ready for a future move off the local cluster.
+
+The earlier WSL/cron path is **retired** (crontab entries disabled on
+2026-09-08), and the bare-metal instructions survive only as reference for that
+future VPS move.
+
+## The daily token, and why it shapes everything
+
+Fyers access tokens are **daily**. A refresh token is not reliably available
+for this flow, so the design accepts one short interaction per morning rather
+than storing a PIN. The token service prompts at **~06:30 IST** through a
+one-click Telegram flow; the collector captures the authorization code through
+a **local callback** (`http://127.0.0.1:8001`), so no secret is ever pasted
+into a chat or committed to the repository.
+
+Secrets live only in a gitignored `.env` and the gitignored same-day token
+file. If the token expires mid-run the scheduler **stops and asks for a
+re-login** rather than spinning on a dead credential.
+
+## Alerts
+
+Telegram carries the operational signal: the morning auth prompt, an hourly
+rollup, errors, and the EOD result. A morning belt-and-suspenders check pings
+if the collector is not alive at 08:00.
+
+## Backups
+
+| Path | Cadence | What it moves |
+|---|---|---|
+| Intraday backup | every 30 minutes through the session | rclone push of the day's database to Google Drive |
+| EOD backup | 15:35 IST | final database + `summary.db` upload |
+| Nightly (port) | 23:15 IST | `wal_checkpoint(TRUNCATE)`, zip the day db + `summary.db` + symbol master into a per-day Drive folder, **verify remote size == local size before deleting local** |
+
+The nightly flow is the one with an invariant worth stating plainly: the local
+day database is deleted only after the remote copy is verified byte-for-byte on
+size, and `summary.db` is always preserved.
+
+## Market calendar
+
+Weekends and NSE holidays are skipped, from a config-driven list plus a
+built-in list in the market-calendar module. The scheduler dispatches on a
+strict minute grid — `:00`, `:01`, and so on — with **skip-on-overrun**: a
+minute that cannot be captured in time is logged and skipped, never drifted
+into the next slot.
+
+<Note status="Designed, not built">The deployment endgame — a VPS running k3s
+with ArgoCD, a second non-trading Fyers app, and a four-repo split with
+GHCR-hosted images — is approved and designed. The VPS does not exist
+yet.</Note>

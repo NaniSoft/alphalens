@@ -1,0 +1,71 @@
+---
+title: Unified data contract
+description: How Fyers rows and external rows merge into one queryable surface — the contract the agents will read.
+---
+
+<Note status="Approved, not yet implemented">
+The contract design was **approved 2026-09-19** (Section 1: Architecture &
+Components). The tables and the `data_feed_view` it specifies are designed and
+pinned by a contract-stability test in the plan; the external collectors that
+populate the new tables are **deferred to the implementation plan** and are not
+running today.
+</Note>
+
+## The problem
+
+TradingAgents-style agents consume formatted text reports, not rigid
+DataFrames. Fyers provides price, quotes, option chain, candles and depth — and
+**no** fundamentals, news, sentiment, macro, corporate actions or insider
+deals. Something has to decide how Fyers rows and external rows merge into the
+one interface the Market, Sentiment, News and Fundamentals analysts read.
+
+The standing preference that shaped the answer: **Fyers is primary**; external
+sources fill only what Fyers structurally cannot provide, and free/public
+Indian endpoints come first.
+
+## Approach B — keep, add, unify
+
+The approved approach keeps the existing Fyers tables untouched, adds six
+external tables, and unifies the read path with a SQL view.
+
+```
+Fyers (unchanged)                 quotes / option_chain / candles_1m
+                                        │
+External collectors (new)         fundamentals · news_items · sentiment_posts
+                                  macro_indicators · insider_deals · corporate_actions
+                                        │
+                                        ▼
+                              data_feed_view  (UNION ALL)
+```
+
+**Why this shape:** it minimizes blast radius against a normalize-and-rewrite,
+it preserves the existing SQLite + WAL + xz pipeline, and it lets the .NET port
+stay schema-identical — the Fyers half of the contract needs no migration at
+all.
+
+## The six new tables
+
+| Table | Grain | Conflict strategy |
+|---|---|---|
+| `fundamentals` | `symbol, report_date, revenue, net_profit, debt_equity, roce, quarter` | fixed-upsert — the most recent poll wins |
+| `news_items` | `symbol, pub_date_ts, headline, content, source, url` | append-only |
+| `sentiment_posts` | `symbol, post_ts, message, sentiment, likes` | append-only |
+| `macro_indicators` | `indicator_name, value_ts, value, unit, frequency` | fixed-upsert |
+| `insider_deals` | `symbol, deal_type, trade_date, price, quantity, party_type` | append-only |
+| `corporate_actions` | `symbol, action_type, record_date, ex_date, details` | append-only |
+
+The existing `constituents` table is reused unchanged. Every table upserts on
+the natural key **`(symbol, ts_utc, source)`**, so re-runs are idempotent.
+
+## Read this next
+
+- **[`data_feed_view` anatomy](/docs/data-contract/data-feed-view)** — the
+  column list, and why it is pinned by a test.
+- **[Canonical timestamps & symbols](/docs/data-contract/timestamps-and-symbols)**
+  — the two normalizations that make cross-source rows joinable.
+- **[External sources](/docs/data-contract/external-sources)** — the source
+  picks, and what each one covers.
+- **[The never-fail-closed posture](/docs/data-contract/error-posture)** — how
+  an outage degrades.
+- **[Known gaps](/docs/data-contract/known-gaps)** — what the feed does not
+  have, stated plainly.

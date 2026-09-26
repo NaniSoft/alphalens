@@ -1,0 +1,43 @@
+---
+title: Research directions
+description: Backtesting, discovery, validation — the trajectory the infrastructure points toward, stated as direction.
+---
+
+<Note status="Research direction">
+**Nothing on this page exists.** There is no backtesting engine, no strategy
+discovery machinery, no validation harness, and no product UI. These are the
+questions the infrastructure is being built to make answerable — written here
+as direction, never as feature.
+</Note>
+
+AlphaLens is described publicly as quantitative trading research. That phrase
+names the destination. The live data layer is the part that has to exist first,
+and it is the part that is built.
+
+## Why the order matters
+
+A backtester over a broken or partial feed produces confident nonsense. Every
+decisions so far — the strict minute grid, the atomic per-minute transaction,
+the canonical `ts_utc`, the never-fail-closed posture, the pinned view shape —
+is a prerequisite for research results anyone could reproduce. The
+infrastructure is not a detour on the way to backtesting; it is what would make
+a backtest mean anything.
+
+## The three directions
+
+- **[Backtesting](/docs/research-directions/backtesting)** — replay history
+  through a strategy and measure it honestly.
+- **[Discovery](/docs/research-directions/discovery)** — search the space of
+  candidate strategies without fooling yourself.
+- **[Validation](/docs/research-directions/validation)** — decide whether a
+  survivor deserves capital.
+
+Each page states what the direction needs, and what AlphaLens already has or
+does not have toward it.
+
+## What this site will not do
+
+It will not publish backtest results, performance figures, or strategy
+recommendations, and it will not describe a backtesting or discovery engine as
+though one were shipped. When these directions turn into running software, the
+labels on this page change — and not before.

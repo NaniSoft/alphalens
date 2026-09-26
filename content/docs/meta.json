@@ -1,0 +1,18 @@
+{
+  "title": "AlphaLens docs",
+  "pages": [
+    "index",
+    "---Data platform (live)---",
+    "data-platform",
+    "---Unified data contract (approved)---",
+    "data-contract",
+    "---Research pipeline (designed)---",
+    "research-pipeline",
+    "---Research directions---",
+    "research-directions",
+    "---Engineering story---",
+    "engineering-story",
+    "---Reference---",
+    "reference"
+  ]
+}

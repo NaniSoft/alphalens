@@ -1,0 +1,41 @@
+---
+title: Research pipeline
+description: The multi-agent research design — TradingAgents' anatomy, assessed for the Indian market.
+---
+
+<Note status="Designed, not built">
+The pipeline is assessed, mapped and designed. **Wiring the agents is later
+effort** — nothing in this section runs today, and no research output exists
+yet.
+</Note>
+
+This is the layer the data platform exists to serve. It is documented here
+because the design is finished and because it fixes the data requirements the
+[unified data contract](/docs/data-contract/index) is built to satisfy — not
+because it works.
+
+## The shape in one paragraph
+
+A team of analyst agents — **Market**, **Sentiment/Social**, **News** and
+**Fundamentals** — each consume their own slice of market data through tools.
+They debate insights, and the refined context passes to a **Trader** that makes
+a decision. A **Risk Management** team oversees the trade, and a **Reflector**
+computes realized return against a benchmark index afterwards, storing the
+outcome in a memory log that future runs read.
+
+## What is designed, and what is not
+
+| | Status |
+|---|---|
+| The pipeline anatomy, and which agent consumes which data | **designed** |
+| The NSE portability assessment — what works, what breaks, what is accepted | **designed** (assessed) |
+| Per-analyst data requirements mapped onto the collector | **designed** |
+| The agent wiring itself | **not built** |
+| Any research output, signal, or report from the pipeline | **does not exist** |
+
+## Pages in this section
+
+- **[TradingAgents anatomy](/docs/research-pipeline/anatomy)** — the agents,
+  their tools, and what a run costs.
+- **[NSE portability](/docs/research-pipeline/nse-portability)** — what breaks
+  when the US-centric sources meet Indian tickers.

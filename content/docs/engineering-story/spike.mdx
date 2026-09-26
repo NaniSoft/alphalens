@@ -1,0 +1,61 @@
+---
+title: The spike
+description: 2026-08-26 — one live test that dissolved the feasibility crux.
+---
+
+## The question
+
+Capturing a **full** option chain, for both index underlyings, **every market
+minute**, looked expensive. The assumption going in was that per-minute full
+chain capture would need a streaming connection, careful strike enumeration,
+and a rate budget with no room in it.
+
+## What the research found
+
+Reading the Fyers v3 API surface before writing any code turned the assumption
+inside out:
+
+- **REST `/data/options-chain-v3` delivers the whole per-minute snapshot per
+  index in about two calls** — per-leg OI, OI change, IV, Greeks, LTP, bid/ask
+  and volume, plus aggregate call/put OI, the expiry list, and India VIX inline.
+- **The WebSocket carries no OI, IV or Greeks.** The transport that looked
+  mandatory is the one that cannot serve the fields that matter. It stays
+  pluggable behind a `data_provider` interface for later tick data, and is
+  unused.
+- **The rate cap is generous at this scale.** The per-minute budget fits inside
+  a fraction of the 200/minute REST limit.
+
+## What the live test measured
+
+Ran against the live market on **2026-08-26**:
+
+| Measurement | Result |
+|---|---|
+| ATM legs | real OI, IV and Greeks — not placeholders |
+| Chain scope at the configured `strikecount` | ~202 legs per index per expiry |
+| Full cycle | 12 calls in **3.46 s**, against a 60-second budget |
+| Rate headroom | 12 calls/min against a 200/min cap — **~16×** |
+| Response shape | option chain under `body["data"]`, quotes under `body["d"]`, Greeks under `leg["greeks"]` |
+
+## What the spike decided
+
+Three decisions settled in the spike and never reopened:
+
+1. **REST-only transport.** The WebSocket is optional, not foundational.
+2. **`strikecount` as the chain-scope knob** — the endpoint returns strikes
+   around ATM, so no strike enumeration is needed at all.
+3. **Capture raw fields, derive nothing per minute.** IV and Greeks arrive
+   attached; PCR and max-OI are computed once at EOD. No local Black-Scholes.
+
+## What it also found, and was recorded
+
+Two empirical wrinkles surfaced during the build, both the kind that would
+otherwise be rediscovered as bugs:
+
+- **Futures OI is absent from `/data/quotes`** — no `oi` key at all for
+  futures, confirmed by raw inspection. Every other futures field populates.
+  Futures OI would need `/data/depth`, and is documented as an extension.
+- **India VIX is richer from the quotes batch than from the chain's inline
+  block.** The quotes-batch VIX carries full OHLC and volume; the inline block
+  carries only LTP and change. The quotes batch is primary, the inline block a
+  fallback.

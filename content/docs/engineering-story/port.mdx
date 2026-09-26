@@ -1,0 +1,79 @@
+---
+title: The port
+description: 2026-09-15 — why a second implementation, and why schema-identical was the whole point.
+---
+
+<Note status="Approved 2026-09-15; Phase 1 live. Phases 2–3 designed."></Note>
+
+## The decision that looks wasteful
+
+The Python collector works. It is 4,426 lines across 15 modules with 167 tests,
+and it is live. The decision of 2026-09-15 was to port it to **.NET 10**
+anyway, with **no further Python feature work** — Python becomes a cold standby
+after cutover.
+
+Two features did not fit the existing implementation, and one of them was
+urgent:
+
+- **The Nifty 500 quote universe** — cash level-1 for all 500 constituents plus
+  member futures, which widens the captured universe by two orders of magnitude
+  without adding chains.
+- **A runtime that can leave the laptop** — the deployment endgame is a VPS
+  running k3s, and the port is what makes that a packaging question rather than
+  a rewrite.
+
+## Schema-identical, not merely similar
+
+The rule that made the port safe: **the same DDL, the same per-day file names,
+the same archive layout.**
+
+| | Python | .NET |
+|---|---|---|
+| Per-day database | `snapshots-YYYY-MM-DD.db` | identical |
+| Cumulative facts | `summary.db` (incl. `candles_runs`) | identical DDL |
+| Archive | xz daily archive | identical layout |
+| Rate limiter | 8/s pacing + strict 190/min | exact same sliding windows |
+
+The rate limiter is worth calling out, because it is where a port would
+quietly diverge: the whole design depends on staying 429-free, and Fyers blocks
+an account for the rest of the day after three per-minute breaches. The .NET
+limiter ports the windows exactly, and parity tests pin them.
+
+Same Fyers app, same `http://127.0.0.1:8001/callback` redirect. One app means
+one quota pool, so after cutover exactly one capturer runs — the port does not
+double the rate budget.
+
+## What was deliberately not ported
+
+**Healing logic.** Amendment, 2026-09-16: candles pull **today only** — no
+lookback window, no probe gate, no archive resurrection, no pending-resume. A
+separate data-integrity service owns repair. The collector captures the day and
+zips it.
+
+The consequence is that `candles_runs` markers become pure status records
+rather than resume state, which is a simpler contract to reason about than a
+scheduler that silently rewrites history.
+
+The legacy headless-login module was dropped entirely.
+
+## The nightly invariant
+
+The ported backup flow runs at 23:15 IST: `PRAGMA wal_checkpoint(TRUNCATE)` on
+the day database, then zip the day db with `summary.db` and the symbol master
+into a per-day Drive folder, then — and only then — clean up locally.
+
+The invariant is **verify-then-delete**: the remote size must equal the local
+size before anything local is removed. `summary.db` is always preserved, since
+it is the only file the next day reads.
+
+## Two verified surprises
+
+The macro-universe amendment (2026-09-16) was checked live against Fyers that
+morning rather than assumed:
+
+- **Commodity futures carry no OI anywhere** — `quotes` returns none, depth
+  always reports `oi=0`, history returns `no_data`. Excluded from depth polling
+  rather than captured as zeros.
+- **Sectoral index futures do not exist on NSE.** The design captures
+  cash-market index spots instead — IT, AUTO, PHARMA, METAL, FMCG, REALTY,
+  MIDCPNIFTY, SMLCAP100 — all verified live.

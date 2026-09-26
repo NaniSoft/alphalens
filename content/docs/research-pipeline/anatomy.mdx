@@ -1,0 +1,63 @@
+---
+title: TradingAgents anatomy
+description: The agents, the tools each one calls, and what a run costs.
+---
+
+<Note status="Designed, not built">A description of the framework's design and
+its data requirements. No agents are wired.</Note>
+
+## The graph
+
+```
+Market ─┐                                       ┌─ Risk team ─┐
+Sentiment ─┤─ debate ─► Trader ─► decision ──────┤             ├─► Reflector ─► memory
+News ────┤                                       └─ discussion ┘
+Fundamentals ─┘
+```
+
+Each analyst node may call its tools more than once per ticker per run — the
+Market Analyst typically calls `get_stock_data` and `get_indicators`
+separately. The debate and reflection loops add further LLM calls: the default
+configuration is one debate round and one risk-discussion round.
+
+## What each agent consumes
+
+| Data category | Source in the reference framework | Consuming agent |
+|---|---|---|
+| Core price / OHLCV | yfinance (primary), Alpha Vantage (fallback) | Market Analyst — `get_stock_data` |
+| Technical indicators | derived from OHLCV (stockstats) | Market Analyst — `get_indicators` |
+| Fundamentals (overview, balance sheet, cash flow, income statement) | yfinance (primary), Alpha Vantage (fallback) | Fundamentals Analyst |
+| News and insider transactions | yfinance news, Alpha Vantage news | News Analyst |
+| Global / macro news | yfinance Search | News Analyst — `get_global_news` |
+| Macro-economic indicators | FRED (requires `FRED_API_KEY`) | News Analyst — `get_macro_indicators` |
+| Prediction markets | Polymarket public Gamma API, no key | News Analyst — `get_prediction_markets` |
+| Reddit sentiment | Reddit public RSS/JSON, no key | Sentiment Analyst — internal fetch, not a vendor tool |
+| StockTwits sentiment | StockTwits public stream, no key | Sentiment Analyst — internal fetch |
+
+Two things worth noticing: the Fundamentals, News and Sentiment agents read
+exactly the categories Fyers cannot provide, which is why the
+[unified data contract](/docs/data-contract/index) exists; and the reference
+framework's own macro and prediction-market sources are US-only, which is why
+the [portability assessment](/docs/research-pipeline/nse-portability) exists.
+
+## Configuration surface
+
+A run is configured through the CLI: LLM provider, model, temperature, backend
+URL, output language, debate and risk round counts, news article limits, global
+news lookback and query count, vendor selection (`data_vendors` and
+`tool_vendors`), and a benchmark ticker override. The user selects the
+ticker(s), the trade date, and the analyst subset.
+
+Results are written to `results_dir/<ticker>/TradingAgentsStrategy_logs/full_states_log_<date>.json`
+plus markdown reports under a per-timestamp directory.
+
+## What a run costs
+
+Roughly **4–6 LLM calls per ticker per run** — analysts, trader, risk,
+reflection. At 500 tickers a day that is on the order of **2,000–3,000 LLM
+calls per day**, with the total driven by LLM pricing. Debate and risk round
+counts are the knobs that move it.
+
+Only `FRED_API_KEY` is required for data (and only for macro); provider keys
+are needed for the LLM. yfinance, Alpha Vantage, Polymarket, Reddit and
+StockTwits are public endpoints.

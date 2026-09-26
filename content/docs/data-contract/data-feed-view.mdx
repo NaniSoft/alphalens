@@ -1,0 +1,62 @@
+---
+title: The data_feed_view anatomy
+description: One view, one canonical timestamp, sparse columns where a source has nothing to say.
+---
+
+<Note status="Approved, not yet implemented">
+The view is specified and its column list is pinned by a contract-stability
+test in the implementation plan — any future `ALTER` that drops or renames a
+view column breaks the build, because agent prompts depend on the shape.
+</Note>
+
+## One row shape for nine kinds of fact
+
+`data_feed_view` is a `UNION ALL` across the Fyers tables and the six external
+tables. Every row carries the same columns; a source that has nothing to say in
+a column writes `NULL` there.
+
+```
+ts_utc · symbol · category · source · underlying · instrument_type
+expiry_epoch · ltp · bid · ask · volume · oi
+report_date · headline · message · indicator_name · action_type
+```
+
+A Fyers quote row fills the price columns and leaves `headline` and
+`indicator_name` null. A news row fills `headline` and leaves `ltp` and `oi`
+null. An agent filtering `WHERE category = 'news'` and one reading raw price
+action are reading the same shape.
+
+## Why a view and not tables-for-agents
+
+Three reasons, all from the approved design:
+
+1. **The read path is live-only.** No daily snapshot tables for agents to
+   reason about; the view reads what is there.
+2. **Shape stability is the contract.** Prompts are written against the column
+   list. The test that pins it is what makes "contract" mean something.
+3. **Categories, not tables.** An analyst asks for a *category* of fact at a
+   *minute*; the view is that query, already normalised.
+
+## An example slice
+
+One minute, one symbol, every source that has anything to say about it:
+
+```sql
+SELECT category, source, ltp, oi, headline, indicator_name
+FROM data_feed_view
+WHERE symbol = 'NSE:NIFTY'
+  AND ts_utc BETWEEN '2026-09-19T03:45:00Z' AND '2026-09-19T03:46:00Z';
+```
+
+A Fyers quote at 09:15 IST and a news item published at 09:15 IST both resolve
+to `03:45Z` and land in the same slice. That is the whole point of the
+canonical timestamp — see
+[Canonical timestamps & symbols](/docs/data-contract/timestamps-and-symbols).
+
+## Where a category is silent
+
+An analyst querying a category with no rows at a given minute gets an empty
+result, not an error and not a fabricated value. The documented reading is
+**"category silent this minute."** The existing `NO_DATA_AVAILABLE:` /
+`DATA_UNAVAILABLE:` sentinels and their fallback chains are unchanged by the
+contract — see [The never-fail-closed posture](/docs/data-contract/error-posture).

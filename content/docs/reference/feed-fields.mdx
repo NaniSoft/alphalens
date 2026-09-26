@@ -1,0 +1,83 @@
+---
+title: Feed field reference
+description: Every data_feed_view column — type, which sources populate it, and what a null means.
+---
+
+<Note status="Approved, not yet implemented">
+The column list below is the approved contract. It is pinned by a
+contract-stability test in the implementation plan.
+</Note>
+
+## Columns
+
+| Column | Populated by | Null when | Notes |
+|---|---|---|---|
+| `ts_utc` | **every row** | never | The single canonical timestamp. IST converted at ingest. |
+| `symbol` | **every row** | never | Fyers token form — `NSE:NIFTY`, `NSE:RELIANCE`. |
+| `category` | **every row** | never | The fact's kind — price, option chain, candle, fundamentals, news, sentiment, macro, insider deal, corporate action. |
+| `source` | **every row** | never | Which collector produced the row. Part of the upsert key. |
+| `underlying` | option chain, futures | not applicable | The underlying instrument for a derivative row. |
+| `instrument_type` | option chain, futures | not applicable | CE, PE, future, spot, index, VIX. |
+| `expiry_epoch` | option chain, futures | not applicable | Contract expiry as an epoch. |
+| `ltp` | Fyers quotes, candles, option chain | non-price rows | Last traded price. |
+| `bid` | Fyers quotes, option chain | non-price rows | Best bid at capture. |
+| `ask` | Fyers quotes, option chain | non-price rows | Best ask at capture. |
+| `volume` | Fyers quotes, candles, option chain | non-price rows | Traded volume. Index volume is synthetic (sum of constituents) and only from 01 Jul 2025. |
+| `oi` | option chain; futures via `/data/depth` only | quotes batch, all external rows | **Absent from `/data/quotes` for futures** — confirmed by raw inspection. Not zero: null. |
+| `report_date` | fundamentals | everything else | The filing or report date. |
+| `headline` | news | everything else | The headline. |
+| `message` | news, sentiment | everything else | Body text or post text. |
+| `indicator_name` | macro | everything else | Which indicator a value belongs to. |
+| `action_type` | insider deals, corporate actions | everything else | Deal or action kind. |
+
+## Per-source field detail
+
+### Option chain (live)
+
+Per leg, per minute: `ltp`, `ltpch`, `ltpchp`, `bid`, `ask`, `oi`, `oich`,
+`oichp`, `prev_oi`, `volume`, `iv`, `delta`, `gamma`, `theta`, `vega`. Captured
+raw from Fyers with `greeks=1` — no local re-pricing.
+
+### Fyers quotes (live)
+
+`ltp`, `bid`, `ask`, `volume`, `prev_close`, `open`, `high`, `low`, `ch`,
+`chp`, `spread`, `atp` (VWAP). The `atp` field is present on the commodity and
+currency rows captured by the .NET port.
+
+### Fundamentals (approved)
+
+`symbol`, `report_date`, `revenue`, `net_profit`, `debt_equity`, `roce`,
+`quarter` — latest-quarter upsert, one row per symbol and quarter.
+
+### News (approved)
+
+`symbol`, `pub_date_ts`, `headline`, `content`, `source`, `url` — append-only.
+
+### Sentiment (approved)
+
+`symbol`, `post_ts`, `message`, `sentiment`, `likes` — append-only. Large-cap
+watchlist only.
+
+### Macro (approved)
+
+`indicator_name`, `value_ts`, `value`, `unit`, `frequency` — latest-value
+upsert.
+
+### Insider deals (approved)
+
+`symbol`, `deal_type`, `trade_date`, `price`, `quantity`, `party_type` —
+append-only.
+
+### Corporate actions (approved)
+
+`symbol`, `action_type`, `record_date`, `ex_date`, `details` — append-only.
+
+### Pre-market global cues (live)
+
+Captured separately from the view, at 08:45 and 10:00 IST: ^GSPC, ^IXIC, ^DJI,
+^VIX, CL=F, GC=F, USDINR=X, DX-Y.NYB, ^HSI, ^N225.
+
+### EOD daily summary (live)
+
+Computed at 15:31 IST from captured rows — spot and VIX OHLC, PCR, max-OI
+strikes, total CE and PE OI.
