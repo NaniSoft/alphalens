@@ -1,5 +1,4 @@
-// The honesty guard — the test form of two user-locked laws (nanisoft-web
-// tickets 01 and 08):
+// The honesty guard — the test form of two user-locked laws:
 //
 //   1. The three-tier honesty model. Backtesting, strategy discovery and
 //      strategy validation are RESEARCH DIRECTION, never shipped features. The
