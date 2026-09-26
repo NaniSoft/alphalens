@@ -1,0 +1,109 @@
+---
+title: Porting a market-data platform to .NET
+description: Schema-identical storage, the Nifty 500 universe, and the two verified surprises the macro amendment turned up.
+date: '2026-09-21'
+tags: ['.net', 'port', 'storage']
+---
+
+The Python collector was working. It is 4,426 lines across 15 modules with 167
+tests, live in production, capturing the full NIFTY and BANKNIFTY chain every
+market minute.
+
+On 15 September 2026 the decision was made to port it to **.NET 10** anyway —
+with no further Python feature work. Python becomes a cold standby after
+cutover.
+
+This post is about the one rule that made that sane, the feature that justified
+it, and two surprises that only showed up because the amendment was verified
+live instead of assumed.
+
+## The rule: schema-identical, not merely similar
+
+**Same DDL. Same per-day file names. Same archive layout.**
+
+| | Python | .NET |
+|---|---|---|
+| Per-day database | `snapshots-YYYY-MM-DD.db` | identical |
+| Cumulative facts | `summary.db`, incl. `candles_runs` | identical DDL |
+| Archive | xz daily archive | identical layout |
+| Rate limiter | 8/s pacing + strict 190/min | exact same sliding windows |
+
+Without that rule, a port forks the history: two implementations writing two
+incompatible shapes, and every reader downstream forced to care which one wrote
+a given day. With it, Python and .NET are interchangeable against a single
+archive, and "cold standby" is a real option rather than a hope.
+
+The rate limiter deserves its own sentence, because it is where a port would
+quietly diverge. The entire design depends on staying 429-free — Fyers blocks
+an account for the rest of the day after three per-minute breaches — so the
+.NET limiter ports the sliding windows exactly, with parity tests pinning them.
+
+One Fyers app also means one quota pool: after cutover, exactly one capturer
+runs. The port does not double the rate budget.
+
+## The feature that justified it
+
+The **Nifty 500 quote universe**, behind `quote_universe.enabled`:
+
+- cash level-1 quotes for **all 500 constituents**, the universe taken from the
+  official NSE `ind_nifty500list.csv` with auto-refresh;
+- the **two nearest monthly futures** for members present in the F&O instrument
+  master;
+- **no option chains** for the extended universe — chains stay on the two
+  indices, where they are affordable.
+
+The budget, which is what makes it admissible at all: roughly **140 calls/min
+worst case against the 190 cap**, about **77k calls/day against the 100k cap**,
+and roughly **+2.5% storage**. Two orders of magnitude more names, for a
+rounding error.
+
+## What was deliberately left out
+
+**Healing logic.** Amendment, 16 September: candles pull **today only**. No
+lookback window, no probe gate, no archive resurrection, no pending-resume. A
+separate data-integrity service owns repair.
+
+The consequence is that `candles_runs` markers become pure status records
+instead of resume state. That is a simpler contract — a scheduler that silently
+rewrites history is much harder to reason about than one that reports what it
+did.
+
+## The nightly invariant
+
+The ported backup flow runs at 23:15 IST:
+
+1. `PRAGMA wal_checkpoint(TRUNCATE)` the day database
+2. zip the day db with `summary.db` and the symbol master into a per-day Drive
+   folder
+3. **verify remote size == local size**, then clean up locally
+
+`summary.db` is always preserved — it is the only file the next day reads. The
+verify-then-delete step is the difference between a backup and a coin flip.
+
+## Two surprises, both found live
+
+The macro-universe amendment was checked against Fyers **that morning** rather
+than designed on paper. Two things would otherwise have shipped as bugs:
+
+**Commodity futures have no OI anywhere.** `quotes` returns none, depth always
+reports `oi=0`, history returns `no_data`. GOLD, SILVER, CRUDEOIL and
+NATURALGAS are captured with OHLCV and VWAP — and excluded from depth polling,
+because polling a field that is always zero is how a feed starts lying.
+
+**Sectoral index futures do not exist on NSE.** The design captures cash-market
+index spots instead — IT, AUTO, PHARMA, METAL, FMCG, REALTY, MIDCPNIFTY,
+SMLCAP100 — all verified live the same morning. Currency futures (USDINR,
+EURINR) do carry live depth OI, and MIDCPNIFTY futures do too; both verified.
+
+## Where it stands
+
+**Phase 1 is live.** Host processes, a fresh data directory, the core
+(config, limiter, client, instrument master, calendar), the token service, the
+capture loop, storage, the Nifty 500 universe, and EOD.
+
+**Phases 2 and 3 are designed, not built**: candles and Drive backup, the full
+167-test parity port, containers and Helm `local`/`vps` profiles, then the repo
+split, GHCR images, ArgoCD and a VPS running k3s.
+
+Same vocabulary as everywhere else on this site. The port is real; the
+endgame is a plan.

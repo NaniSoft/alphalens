@@ -1,0 +1,93 @@
+---
+title: Every minute, the whole chain
+description: What live full-chain capture at index scale actually takes — the spike, then production, then Kubernetes.
+date: '2026-09-21'
+tags: ['market-data', 'collector', 'kubernetes']
+---
+
+The claim sounds like a feature: *the full NIFTY and BANKNIFTY option chain,
+every market minute*. Every strike, CE and PE, with OI, IV and Greeks attached,
+plus index futures, index spot and India VIX, in the same sixty-second window.
+
+It is not a feature. It is a measurement with a timestamp on it — 26 August
+2026 — and it started as a suspicion that the claim was impossible.
+
+## The assumption that was backwards
+
+Going in, full-chain-per-minute looked like a streaming problem. A WebSocket
+connection, a careful enumeration of strikes, a rate budget with no slack in
+it.
+
+Reading the Fyers v3 API surface before writing code reversed all three:
+
+- **REST `/data/options-chain-v3` returns the entire per-minute snapshot per
+  index in about two calls** — per-leg OI, OI change, IV, Greeks, LTP, bid/ask
+  and volume, plus aggregate call/put OI and the expiry list.
+- **The WebSocket carries no OI, IV or Greeks.** The transport that looked
+  mandatory is the one that cannot serve the fields that matter. It stays
+  pluggable behind a `data_provider` interface, and is unused.
+- **`strikecount` is the whole chain-scope story.** The endpoint returns
+  strikes around ATM, so there is no strike enumeration to write.
+
+## What the live spike said
+
+Ran against the live market, one afternoon:
+
+| Measurement | Result |
+|---|---|
+| Full cycle | 12 calls in **3.46 s**, against a 60 s budget |
+| Rate budget | 12 calls/min against a 200/min cap — **~16× headroom** |
+| Chain scope | ~202 legs per index per expiry at the configured `strikecount` |
+| ATM legs | real OI, IV and Greeks — not placeholders |
+
+Feasible, with room to spare. That verdict is why the collector exists; before
+it, the whole idea was speculative.
+
+## Production is a different problem
+
+The spike proved one minute. Production had to answer a different question:
+what happens on the 4,000th minute, when nobody is watching.
+
+Four decisions carry most of the weight:
+
+**A strict minute grid.** Snapshots land on `:00`, `:01`, `:02` — never
+"roughly once a minute". A minute that cannot be captured in time is logged as
+missing and skipped. That is the difference between a gap you can see and a
+timestamp you cannot trust.
+
+**One transaction per minute.** Each snapshot is a single SQLite transaction,
+so a partial minute rolls back. No reader ever sees a chain with half its legs.
+
+**Failing loud about the token.** Fyers access tokens are daily and refresh
+tokens are not reliably available. Rather than store a PIN, the design accepts
+one ~30-second login each morning through a local callback — and if the token
+expires mid-session, the scheduler **stops and asks** rather than spinning on a
+dead credential.
+
+**Deriving nothing per minute.** IV and Greeks arrive attached. PCR and max-OI
+are computed once at EOD. Capture raw; derive separately.
+
+## Then Kubernetes
+
+On 8 September the collector moved from cron-over-WSL with a watchdog to
+**Kubernetes on Docker Desktop via Helm**: two always-on containers — the
+collector and the token OAuth callback service — over one shared persistent
+volume.
+
+What the move actually bought was an answer to "what restarts it". A supervised
+container with a persistent volume beats a cron entry and a PID file, and the
+morning login became a one-click Telegram prompt at 06:30 instead of a terminal
+you had to remember to open.
+
+## What it costs, and what it weighs
+
+A full snapshot is **11 option-chain calls plus 1 batched quotes call, about
+2.5 seconds** — 12 calls a minute, a fraction of the cap. Roughly **2,070
+option-chain rows and 7 quote rows per minute**, compressing to about **4.5 MB
+a day**, roughly a gigabyte a year, archived as xz one day at a time.
+
+That ratio — an entire index option chain a minute, for the price of a photo a
+day — is the reason this is the foundation layer of everything else AlphaLens
+intends to build. A backtester over a feed this complete is a different
+proposition from a backtester over daily closes. The backtester does not exist
+yet. The feed does.

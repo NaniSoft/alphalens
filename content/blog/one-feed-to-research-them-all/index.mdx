@@ -1,0 +1,102 @@
+---
+title: One feed to research them all
+description: The unified data contract — canonical timestamps, never-fail-closed, and why agents need one view rather than nine tables.
+date: '2026-09-21'
+tags: ['data-contract', 'agents', 'architecture']
+---
+
+An agent that reads market data does not want nine tables. It wants an answer
+to "what was true about this symbol at this minute" — and it wants that answer
+in the same shape every time, no matter which collector produced it.
+
+AlphaLens's answer, approved on 19 September 2026, is `data_feed_view`: one
+`UNION ALL` view over the Fyers tables and six new external tables. This post
+is about the three decisions inside it that were not obvious.
+
+## Decision one: don't migrate anything
+
+The obvious design is a normalized store — everything re-shaped into one clean
+schema, all sources writing the same way. It was rejected.
+
+**Approach B instead: keep the Fyers tables, add external tables, unify with a
+view.**
+
+Three reasons, in the order they mattered:
+
+1. **Blast radius.** Fyers capture is live and in production. Migrating a live
+   store to make a read path prettier is a bet with a real downside.
+2. **The pipeline survives.** SQLite + WAL + the xz daily archives stay exactly
+   as they are.
+3. **The .NET port stays schema-identical.** This one is easy to miss: a
+   normalize-and-rewrite would have invalidated the port's central property —
+   that a day written by Python and a day written by .NET are the same shape.
+
+The view is the whole integration. Nothing underneath it moves.
+
+## Decision two: one timestamp, and no IST column
+
+Every view row carries a single canonical **`ts_utc`**. There is no IST column
+in the contract — that is deliberate, and it is the decision people argue about
+most.
+
+The argument for keeping both is convenience. The argument against is that a
+row with two timestamps is a row with a guess in it: which one does this query
+mean? Agents do not resolve that ambiguity well, and a market-data feed where
+timestamp semantics vary by source is worse than one that makes you convert at
+the edge.
+
+So conversion happens **at ingest, per source**:
+
+| Source | Raw | Rule |
+|---|---|---|
+| Fyers quotes / candles / chain | `ist_minute` int, e.g. `202609190915` | parse IST → minus 5:30 → UTC |
+| News (ET RSS) | `<pubDate>`, RFC-822 | parse → UTC, exact minute |
+| Fundamentals | report date | `00:00 UTC` of that date |
+| Macro (RBI / eSankhyiki) | indicator date | first-of-period UTC midnight |
+| Insider deals / corporate actions | NSE `trade_date` | midnight UTC |
+
+The payoff is an invariant worth writing on a wall: **an analyst filtering
+`WHERE ts_utc BETWEEN A AND B` gets a coherent cross-source slice.** A Fyers
+quote at 09:15 IST and a news item published at 09:15 IST are both `03:45Z` and
+land in the same slice. Coarser sources get pinned to a deterministic instant
+rather than a fuzzy one, so the row still sorts and ranges correctly — and the
+coarse grain stays visible in the data instead of being papered over with a
+synthetic daily row.
+
+## Decision three: never fail closed
+
+The error posture is the part that will matter most in practice:
+
+**An external source's failure never blocks Fyers minute ingest, and never
+feeds an agent a wrong value.**
+
+Collectors are independent, with no cross-source lock dependencies. An HTTP
+error gets 3× exponential backoff and skips that poll. A partial batch writes
+what arrived and logs the rest. Lock contention uses a 30-second busy timeout
+and retries once, then defers.
+
+The second half is the important half. An agent querying a category with no
+rows at a given minute gets **nothing** — and the documented reading is
+"category silent this minute". The alternative is a stale fundamentals row that
+answers confidently three months later, or a zero standing in for an unknown.
+That is how research produces confident nonsense: not by missing data, but by
+data that looks present and is wrong.
+
+## The part that makes it a contract
+
+None of this survives contact with reality unless the shape is enforced. So the
+plan pins the `data_feed_view` column list with a **contract-stability test**:
+any future `ALTER` that drops or renames a view column fails the build.
+
+That is not bureaucracy. A renamed column does not break anything obviously —
+it breaks an agent prompt six weeks later, in a way that looks like a model
+regression. A contract nobody enforces is a naming convention.
+
+## What it does not do
+
+The contract does not fix refresh cadence — that schedules collectors and can
+change without touching the shape agents read. And it explicitly defers the
+external collectors themselves, plus wiring TradingAgents to read the view.
+Both are later effort, and both are labelled as such.
+
+Approved is not built. The distinction is the point.

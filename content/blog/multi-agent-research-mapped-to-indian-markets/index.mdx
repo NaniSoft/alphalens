@@ -1,0 +1,114 @@
+---
+title: Multi-agent research, mapped to Indian markets
+description: The TradingAgents portability assessment — what each analyst needs, what breaks, and what is accepted rather than fixed.
+date: '2026-09-21'
+tags: ['agents', 'research', 'nse']
+---
+
+TradingAgents orchestrates a team of LLM analysts — Market, Sentiment/Social,
+News, Fundamentals — who each read their own slice of market data through
+tools, debate what they found, and pass the refined context to a Trader. A Risk
+team oversees the trade, and a Reflector computes realized return against a
+benchmark afterwards, writing the outcome to a memory log that future runs
+read.
+
+It was built for US markets. AlphaLens's research pipeline design is based on
+its anatomy — and the assessment behind that mapping is what this post is about.
+
+<Note status="Designed, not built">
+No agents are wired. This is the assessment that fixes the data requirements;
+it is not a working pipeline, and no research output exists.
+</Note>
+
+## What each analyst actually reads
+
+| Agent | Reference source | What it needs |
+|---|---|---|
+| Market | yfinance (primary), Alpha Vantage (fallback) | OHLCV, technical indicators derived from it |
+| Fundamentals | yfinance, Alpha Vantage | overview, balance sheet, cash flow, income statement |
+| News | yfinance news, Alpha Vantage news | company news, global news, insider transactions |
+| Sentiment | Reddit RSS/JSON, StockTwits stream | social posts with a sentiment signal |
+| News (macro) | FRED, Polymarket | macro series, prediction-market probabilities |
+
+Look at the Fundamentals, News and Sentiment rows. **They are exactly the
+categories Fyers cannot provide** — verified against the Fyers-authored API
+reference and support KB, not merely unplanned. That overlap is why the
+[unified data contract](/docs/data-contract/index) exists: the pipeline's
+requirements were written down before the read path was approved.
+
+## What works out of the box
+
+More than expected. **yfinance handles `.NS` symbols** — OHLCV, fundamentals
+and news are all available for NSE tickers, and the framework leans on exactly
+that international coverage. Benchmark mapping is already in the framework's
+defaults: `.NS → ^NSEI` (Nifty 50) and `.BO → ^BSESN` (Sensex), so
+alpha-versus-Nifty-50 works unmodified.
+
+No India-specific fork or adapter exists in the reference repository or its
+issues. Nobody has ported it. It simply works, as far as price data goes.
+
+## What breaks
+
+| Source | Problem with NSE tickers |
+|---|---|
+| FRED | US-only macro. **No Indian macro series at all** — no RBI rates, CPI, GDP, IIP. |
+| Alpha Vantage | US-focused fundamentals and news; NSE coverage sparse or missing. |
+| Reddit / StockTwits | Dominated by US tickers; Indian chatter limited and noisy. |
+| Polymarket | No India-specific contracts. |
+
+## The move: re-point, don't patch
+
+The design does not fork the framework or patch its vendors. It **re-points the
+same agent interfaces at AlphaLens's unified feed**:
+
+| TradingAgents source | AlphaLens substitute |
+|---|---|
+| FRED macro | RBI DBIE + eSankhyiki → `macro_indicators` |
+| Alpha Vantage fundamentals | NSE `nselib` / `nse-xbrl` → `fundamentals` |
+| yfinance / Alpha Vantage news | Economic Times RSS → `news_items` |
+| Reddit / StockTwits sentiment | StockTwits public stream → `sentiment_posts` |
+| — | NSE insider-deal and corporate-action CSVs → `insider_deals`, `corporate_actions` |
+| Any price vendor | the live collector, already the primary pipe |
+
+This is the reason the contract specifies a **`category`** column rather than
+nine bespoke tables. An agent asks for the news category for a symbol at a
+minute. Which collector filled it is not its business — and that indirection is
+what makes swapping a source later a config change instead of a prompt change.
+
+## The gaps that stay gaps
+
+An honest mapping has to name what it is not fixing:
+
+- **Prediction markets: zero for India.** Polymarket has no India-specific
+  contracts. There is nothing to substitute, so nothing is substituted.
+- **Small and mid-cap sentiment is thin.** StockTwits' Indian coverage is
+  effectively large-cap via the `$SYM.NSE` form, so sentiment is polled on a
+  watchlist, not the universe.
+- **Expired F&O history is unavailable** from Fyers without a paid vendor — a
+  hard gap for long-horizon option work.
+- **Macro is monthly or quarterly**, not intraday. Indian statistical sources
+  release on official schedules. The contract's `ts_utc` convention pins those
+  rows to a deterministic instant, so the coarse grain stays visible rather
+  than being hidden behind a synthetic daily row.
+
+An agent whose prompt expects a daily macro print needs to know that. Telling
+it is the design; surprising it is the bug.
+
+## What a run costs
+
+Roughly **4–6 LLM calls per ticker per run** — analysts, trader, risk,
+reflection — with the defaults at one debate round and one risk-discussion
+round. Scaled to a 500-name universe, that is on the order of **2,000–3,000 LLM
+calls a day** before anything multiplies it.
+
+That number is why discovery is a research direction rather than a plan. The
+per-run cost is known; the budget for a search loop is not.
+
+## Where this leaves AlphaLens
+
+Three layers, three labels. **Live:** the collector, capturing the full chain
+every minute since 26 August 2026. **Approved:** the data contract the agents
+will read. **Designed:** this pipeline.
+
+Nothing on that third line runs. When it does, the labels change — and the
+[status page](/docs/) is where they will change first.
