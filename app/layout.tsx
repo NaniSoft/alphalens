@@ -36,11 +36,19 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'AlphaLens — quantitative trading research',
+    default: 'AlphaLens — quantitative trading research for the Indian market',
     template: '%s · AlphaLens',
   },
-  description: 'Quantitative trading research for the Indian market.',
+  description:
+    'AlphaLens captures the full NSE option chain every market minute and conforms it into one research-ready feed. Live data layer, approved contract, designed research pipeline — labelled honestly.',
 };
+
+/** The lean site nav the shared chrome renders between brand and actions. */
+const NAV = [
+  { label: 'Docs', url: '/docs' },
+  { label: 'Blog', url: '/blog' },
+  { label: 'About', url: '/about' },
+] as const;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -51,9 +59,31 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <AntdRegistry>
           <PrismThemeModeProvider pack={DEFAULT_PACK} defaultMode={DEFAULT_MODE}>
-            <SiteHeader site={SITE_ID} />
+            <SiteHeader site={SITE_ID} nav={NAV} />
             <main className="site-main">{children}</main>
-            <SiteFooter site={SITE_ID} />
+            <SiteFooter
+              site={SITE_ID}
+              columns={[
+                {
+                  title: 'Site',
+                  links: [
+                    { label: 'Landing', url: '/' },
+                    { label: 'Docs', url: '/docs' },
+                    { label: 'Blog', url: '/blog' },
+                    { label: 'About', url: '/about' },
+                  ],
+                },
+                {
+                  title: 'Docs',
+                  links: [
+                    { label: 'Introduction', url: '/docs' },
+                    { label: 'Data platform', url: '/docs/data-platform' },
+                    { label: 'Unified data contract', url: '/docs/data-contract' },
+                    { label: 'Research pipeline', url: '/docs/research-pipeline' },
+                  ],
+                },
+              ]}
+            />
           </PrismThemeModeProvider>
         </AntdRegistry>
       </body>

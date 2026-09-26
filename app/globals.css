@@ -1,37 +1,1236 @@
 /*
- * Site styles over prism-ui's shipped ground (fonts, dither patterns, chrome).
- * Colour always comes from the pre-baked prism-<pack>-<mode> variable rulesets
- * — consume var(--prism-*) tokens, never raw hex.
+ * Site styles over prism-ui's shipped ground (fonts, chrome, dither patterns).
+ *
+ * prism-ui owns the SiteHeader/SiteFooter chrome and the display width axis;
+ * this sheet owns everything app-level: the Instrument Bench landing, the docs
+ * shell (prism-ui ships DocsShell/BlogLayout structure but no styles — nanisoft-web
+ * ticket 09's finding, resolved per-site by ticket 16's interim), the blog, and
+ * About.
+ *
+ * Colour always comes from the pre-baked prism-rose-<mode> variable rulesets —
+ * var(--prism-*) tokens, never raw hex. Pastel as atmosphere (ADR-0005): rose
+ * ink is this site's only accent, washes live inside instrument panels, and
+ * hairlines come from the pack's own tint. Motion law ADR-0001: 80/160/280ms
+ * decelerating, transform + opacity only; reduced motion renders everything
+ * settled.
  */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
+  font-family: var(--font-archivo), -apple-system, 'Segoe UI', sans-serif;
   background: var(--prism-color-bg-layout);
   color: var(--prism-color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--prism-color-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--prism-color-primary);
+  outline-offset: 2px;
 }
 
 .site-main {
   min-height: 100dvh;
 }
 
-.placeholder-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  min-height: 100dvh;
-  padding: 48px 24px;
+/* ---------- shared primitives ---------- */
+
+/* Site-level custom properties live on :root so the docs shell, blog, and
+   About resolve them too — they all derive from the pre-baked prism-rose-*
+   rulesets on <html>, so they re-theme with the mode swap for free. */
+:root {
+  --al-ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --al-slow: 280ms;
+  --al-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --al-sans: var(--font-archivo), -apple-system, 'Segoe UI', sans-serif;
+  /* Hairlines come from the pack's own tint — never a neutral grey. */
+  --al-hairline: color-mix(in srgb, var(--prism-color-primary) 16%, transparent);
+  --al-hairline-strong: color-mix(in srgb, var(--prism-color-primary) 30%, transparent);
+  --al-ink: var(--prism-color-primary);
+  --al-panel: color-mix(in srgb, var(--prism-color-bg-container) 55%, transparent);
+  --al-wash: color-mix(in srgb, var(--prism-color-primary) 4%, var(--prism-color-bg-container));
+}
+
+.al {
+  background: var(--prism-color-bg-layout);
+  color: var(--prism-color-text);
+  font-family: var(--al-sans);
+  overflow-x: clip;
+}
+
+.al a {
+  color: inherit;
+}
+
+.al h1 em,
+.al h2 em {
+  font-style: italic;
+  font-family: var(--al-sans);
+}
+
+.al-shell {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 32px;
+}
+
+.al-eyebrow {
+  font-family: var(--al-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.62;
+  margin: 0 0 20px;
+}
+
+.al-display {
+  font-family: var(--al-sans);
+  font-stretch: 115%;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+  line-height: 1.04;
+  font-size: clamp(40px, 5.6vw, 76px);
+  margin: 0;
+  text-wrap: balance;
+}
+
+.al-display--md {
+  font-size: clamp(32px, 4.4vw, 56px);
+}
+
+.al-lede {
+  font-size: clamp(16px, 1.5vw, 19px);
+  line-height: 1.55;
+  opacity: 0.82;
+  max-width: 54ch;
+  margin: 24px 0 32px;
+}
+
+.al-lede--center {
+  margin-inline: auto;
   text-align: center;
 }
 
-.placeholder-kicker {
-  font-family: var(--font-jetbrains), monospace;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.al-cta-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.placeholder-lede {
-  max-width: 560px;
+.al-cta-row--center {
+  justify-content: center;
+}
+
+.al-caption {
+  font-family: var(--al-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+  opacity: 0.6;
+  max-width: 74ch;
+  margin: 28px 0 0;
+}
+
+.al-caption--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.al-caption code {
+  font-family: var(--al-mono);
+  opacity: 1;
+}
+
+.al-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--al-ink);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--al-ink) 60%, transparent);
+  flex: none;
+  display: inline-block;
+}
+
+/* Scroll reveal. */
+.al [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity var(--al-slow) var(--al-ease),
+    transform var(--al-slow) var(--al-ease);
+}
+
+.al [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .al [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---------- hero ---------- */
+
+.al-hero {
+  padding: 88px 0 0;
+}
+
+.al-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+.al-hero__status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--al-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.66;
+  margin: 28px 0 0;
+}
+
+/* The instrument panel — bordered, bar-topped, definite height. */
+.al-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 460px;
+  border: 1px solid var(--al-hairline);
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 0%, color-mix(in srgb, var(--al-ink) 8%, transparent), transparent 65%),
+    var(--al-panel);
+  overflow: hidden;
+}
+
+.al-panel__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--al-hairline);
+  font-family: var(--al-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.al-panel__mode {
+  margin-left: auto;
+  opacity: 0.62;
+  flex: none;
+}
+
+/* Template law: the visual slot's height is definite in every context. The
+   canvas reads this box and never writes height back. */
+.al-instrument {
+  flex: 1;
+  width: 100%;
+  min-height: 320px;
+}
+
+.al-panel__footnote {
+  margin: 0;
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--al-hairline);
+  font-family: var(--al-mono);
+  font-size: 9.5px;
+  line-height: 1.6;
+  letter-spacing: 0.03em;
+  opacity: 0.55;
+}
+
+/* The status ticker — the honesty model as a strip. */
+.al-ticker {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px 32px;
+  flex-wrap: wrap;
+  margin: 44px 0 0;
+  padding: 14px 0;
+  border-block: 1px solid var(--al-hairline);
+  font-family: var(--al-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.68;
+}
+
+/* ---------- numbered hairline sections ---------- */
+
+.al-section {
+  border-top: 1px solid var(--al-hairline);
+  padding: 104px 0;
+  scroll-margin-top: 80px;
+}
+
+.al-section__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.al-section__index {
+  font-family: var(--al-mono);
+  font-size: 12px;
+  color: var(--al-ink);
+}
+
+.al-section__label {
+  font-family: var(--al-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.68;
+  margin: 0;
+}
+
+/* The tier is the load-bearing part of the heading: it says what this section
+   may claim. */
+.al-section__tier {
+  margin-left: auto;
+  font-family: var(--al-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--al-ink);
+  border: 1px solid var(--al-hairline-strong);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.al-section__tier[data-tier='research direction'],
+.al-section__tier[data-tier='designed, not built'] {
+  color: var(--prism-color-text);
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.al-section__tier[data-tier='platform'] {
+  color: var(--prism-color-text);
+  opacity: 0.6;
+}
+
+.al-intro {
+  max-width: 66ch;
+  font-size: 16px;
+  line-height: 1.6;
+  opacity: 0.82;
+  margin: 0 0 40px;
+}
+
+.al-intro code {
+  font-family: var(--al-mono);
+  font-size: 14px;
+  background: var(--prism-color-fill-tertiary);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* Capability cards — mono number, wash. */
+.al-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.al-card {
+  border: 1px solid var(--al-hairline);
+  border-radius: 4px;
+  padding: 24px;
+  background: var(--al-wash);
+}
+
+.al-card__no {
+  font-family: var(--al-mono);
+  font-size: 11px;
+  color: var(--al-ink);
+}
+
+.al-card h3 {
+  margin: 14px 0 10px;
+  font-size: 17px;
+  font-weight: 620;
+  font-variation-settings: 'wdth' 112;
+}
+
+.al-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.78;
+}
+
+/* The conveyor rail — the product's path, with a traveling packet. */
+.al-rail {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 26px 0 22px;
+  border-block: 1px solid var(--al-hairline);
+  overflow: hidden;
+}
+
+.al-rail__packet {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 96px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--al-ink));
+  animation: al-travel 5.6s linear infinite;
+}
+
+@keyframes al-travel {
+  from {
+    transform: translateX(-96px);
+  }
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .al-rail__packet {
+    display: none;
+  }
+}
+
+.al-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.al-stage__no {
+  font-family: var(--al-mono);
+  font-size: 11px;
+  color: var(--al-ink);
+}
+
+.al-stage__name {
+  font-weight: 620;
+  font-size: 16px;
+  font-variation-settings: 'wdth' 112;
+}
+
+.al-stage__caption {
+  font-size: 12.5px;
+  line-height: 1.55;
+  opacity: 0.72;
+}
+
+.al-rail__serving {
+  position: absolute;
+  right: 0;
+  top: 8px;
+  font-family: var(--al-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--al-ink);
+}
+
+/* Hairline feature rows. */
+.al-feats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0 32px;
+  margin-top: 48px;
+}
+
+.al-feats--contract {
+  margin-top: 56px;
+}
+
+.al-feat {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--al-hairline);
+}
+
+.al-feat h4 {
+  margin: 0 0 6px;
+  font-size: 14.5px;
+  font-weight: 620;
+  font-variation-settings: 'wdth' 110;
+}
+
+.al-feat p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  opacity: 0.72;
+}
+
+/* The survey grid — solid for live, dashed for approved-not-collecting. */
+.al-survey {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.al-tile {
+  border: 1px solid var(--al-hairline);
+  border-radius: 4px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: color-mix(in srgb, var(--prism-color-bg-container) 35%, transparent);
+}
+
+.al-tile[data-status='approved'] {
+  border-style: dashed;
+  background: transparent;
+}
+
+.al-tile__status {
+  font-family: var(--al-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--al-ink);
+}
+
+.al-tile[data-status='approved'] .al-tile__status {
+  color: var(--prism-color-text);
+  opacity: 0.55;
+}
+
+.al-tile__name {
+  font-weight: 620;
+  font-size: 14px;
+}
+
+.al-tile__role {
+  font-family: var(--al-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--al-ink);
+  opacity: 0.85;
+}
+
+.al-tile[data-status='approved'] .al-tile__role {
+  color: var(--prism-color-text);
+  opacity: 0.66;
+}
+
+.al-tile__note {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.72;
+}
+
+/* Status ledger — mono uppercase status column, ink for live, muted for not. */
+.al-ledger {
+  border-top: 1px solid var(--al-hairline);
+}
+
+.al-ledger--pipeline {
+  border-top: none;
+}
+
+.al-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 3fr) minmax(0, 2fr) minmax(0, 7fr);
+  gap: 8px 20px;
+  align-items: baseline;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--al-hairline);
+}
+
+.al-row__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  align-self: center;
+  border: 1.5px solid var(--al-ink);
+  opacity: 0.45;
+}
+
+.al-row__name {
+  font-weight: 620;
+  font-size: 18px;
+  font-variation-settings: 'wdth' 112;
+}
+
+.al-row__status {
+  font-family: var(--al-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--al-ink);
+}
+
+.al-row[data-status='direction'] .al-row__status,
+.al-ledger--pipeline .al-row__status {
+  color: var(--prism-color-text);
+  opacity: 0.55;
+}
+
+.al-row__bullets {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  opacity: 0.78;
+}
+
+/* The pipeline ledger drops the dot column — no row is live, so none is lit. */
+.al-ledger--pipeline .al-row {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 3fr) minmax(0, 5fr) minmax(0, 2fr);
+}
+
+.al-row__reads {
+  font-family: var(--al-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.72;
+}
+
+.al-row__note {
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.72;
+}
+
+/* Built on Nexus — three pack-dot cards. */
+.al-bon {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.al-bon__card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--al-hairline);
+  border-radius: 4px;
+  padding: 22px 24px;
+  text-decoration: none;
+  transition: border-color var(--al-slow) var(--al-ease);
+}
+
+.al-bon__card:hover {
+  border-color: var(--al-ink);
+  text-decoration: none;
+}
+
+.al-bon__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  /* Each card sets --al-ink inline to its own pack's ink (packs-as-signal). */
+  background: var(--al-ink);
+}
+
+.al-bon__name {
+  font-weight: 620;
+  font-size: 17px;
+  font-variation-settings: 'wdth' 114;
+}
+
+.al-bon__tagline {
+  font-size: 13px;
+  opacity: 0.72;
+}
+
+/* Closing CTA band. */
+.al-cta {
+  border-top: 1px solid var(--al-hairline);
+  padding: 128px 0 140px;
+  text-align: center;
+}
+
+.al-cta .al-cta-row--center {
+  margin-top: 36px;
+}
+
+/* ---------- about ---------- */
+
+.al-about {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 88px 32px 120px;
+}
+
+.al-about__title {
+  font-family: var(--al-sans);
+  font-stretch: 115%;
+  font-weight: 620;
+  font-size: clamp(34px, 4.6vw, 56px);
+  letter-spacing: -0.015em;
+  line-height: 1.04;
+  margin: 0 0 24px;
+}
+
+.al-about p {
+  font-size: 15.5px;
+  line-height: 1.68;
+  opacity: 0.84;
+}
+
+.al-about h2 {
+  font-variation-settings: 'wdth' 114, 'wght' 600;
+  letter-spacing: -0.01em;
+  font-size: 24px;
+  margin: 48px 0 12px;
+}
+
+.al-about ul {
+  padding-left: 22px;
+  font-size: 15px;
+  line-height: 1.68;
+  opacity: 0.84;
+}
+
+.al-about li {
+  margin: 8px 0;
+}
+
+.al-about__facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 32px;
+  margin: 48px 0 0;
+}
+
+.al-about__fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--al-hairline);
+  align-items: baseline;
+}
+
+.al-about__fact dt {
+  font-family: var(--al-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.al-about__fact dd {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 620;
+  text-align: right;
+}
+
+.al-about__links {
+  margin-top: 40px;
+}
+
+/* ---------- docs / blog shell (prism-ui pages layer styles) ---------- */
+
+.prism-docs-shell__body {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 48px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 24px 96px;
+}
+
+.prism-docs-shell__body:has(~ .prism-docs-shell__toc),
+.prism-docs-shell__body:has(+ .prism-docs-shell__toc) {
+  grid-template-columns: 240px minmax(0, 1fr) 200px;
+}
+
+.prism-docs-shell__nav,
+.prism-docs-shell__toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  display: grid;
+  gap: 6px;
+}
+
+.prism-docs-shell__nav .prism-docs-shell__nav {
+  padding-left: 14px;
+  margin-top: 6px;
+}
+
+.prism-docs-shell__nav a,
+.prism-docs-shell__toc a {
+  color: var(--prism-color-text);
+  opacity: 0.78;
+  text-decoration: none;
+}
+
+.prism-docs-shell__nav a:hover,
+.prism-docs-shell__toc a:hover {
+  opacity: 1;
+  text-decoration: none;
+  color: var(--prism-color-primary);
+}
+
+/* Sidebar group headers — DocsShell renders separators as links without href. */
+.prism-docs-shell__nav a:not([href]) {
+  display: block;
+  margin: 18px 0 4px;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.prism-docs-shell__nav a:not([href]):first-child {
+  margin-top: 0;
+}
+
+.prism-docs-shell__sidebar,
+.prism-docs-shell__toc {
+  position: sticky;
+  top: 84px;
+  align-self: start;
+  max-height: calc(100vh - 108px);
+  overflow: auto;
+}
+
+.prism-docs-shell__toc {
+  display: none;
+}
+
+@media (min-width: 1080px) {
+  .prism-docs-shell__toc {
+    display: block;
+  }
+}
+
+.prism-docs-shell__title {
+  font-variation-settings: 'wdth' 118, 'wght' 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.prism-docs-shell__description {
+  margin: 0 0 8px;
+  opacity: 0.78;
+  line-height: 1.65;
+}
+
+.prism-docs-shell__neighbours {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--prism-color-border-secondary);
+  font-size: 13px;
+}
+
+.prism-docs-shell__neighbours a:last-child {
+  margin-left: auto;
+  text-align: right;
+}
+
+.prism-blog-layout__post {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.prism-blog-layout__title {
+  font-variation-settings: 'wdth' 118, 'wght' 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.prism-blog-layout__description {
+  margin: 0 0 8px;
+  opacity: 0.78;
+  line-height: 1.65;
+}
+
+.prism-blog-layout__meta-info {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0.66;
+}
+
+.prism-blog-layout__tags {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.prism-blog-layout__draft {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- MDX prose ---------- */
+
+.site-prose {
+  line-height: 1.72;
+  font-size: 15px;
+}
+
+.site-prose h2 {
+  font-variation-settings: 'wdth' 114, 'wght' 600;
+  margin: 40px 0 12px;
+  scroll-margin-top: 84px;
+}
+
+.site-prose h3 {
+  font-variation-settings: 'wdth' 110, 'wght' 600;
+  margin: 32px 0 10px;
+  scroll-margin-top: 84px;
+}
+
+.site-prose p {
+  margin: 12px 0;
+  max-width: 72ch;
+}
+
+.site-prose ul,
+.site-prose ol {
+  padding-left: 22px;
+  max-width: 70ch;
+}
+
+.site-prose li {
+  margin: 6px 0;
+}
+
+.site-prose code {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 13px;
+  background: var(--prism-color-fill-tertiary);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.site-prose pre {
+  background: var(--prism-color-bg-container);
+  border: 1px solid var(--prism-color-border-secondary);
+  border-radius: 4px;
+  padding: 14px 16px;
+  overflow: auto;
+}
+
+.site-prose pre code {
+  background: none;
+  padding: 0;
+}
+
+.site-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+  margin: 16px 0;
+}
+
+.site-prose th,
+.site-prose td {
+  border: 1px solid var(--prism-color-border-secondary);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.site-prose th {
+  background: var(--prism-color-fill-tertiary);
+  font-weight: 600;
+}
+
+.site-prose blockquote {
+  margin: 16px 0;
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid var(--al-hairline-strong);
+  opacity: 0.84;
+}
+
+/* The <Note> status device — washed hairline panel + mono ink label. */
+.site-note {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  border: 1px solid var(--al-hairline);
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  opacity: 0.88;
+  background: var(--al-wash);
+  margin: 20px 0 24px;
+}
+
+.site-note__label {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--prism-color-primary);
+  margin-right: 6px;
+  white-space: nowrap;
+  flex: none;
+}
+
+.site-note__body p:first-child {
+  margin-top: 0;
+}
+
+.site-note__body p:last-child {
   margin-bottom: 0;
+}
+
+/* ---------- docs index ---------- */
+
+.site-docs-index__grid {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.site-docs-index__card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  border: 1px solid var(--prism-color-border-secondary);
+  border-radius: 4px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--prism-color-bg-container) 45%, transparent);
+  color: var(--prism-color-text);
+}
+
+.site-docs-index__card:hover {
+  text-decoration: none;
+  border-color: var(--prism-color-primary);
+}
+
+.site-docs-index__title {
+  font-weight: 600;
+  font-variation-settings: 'wdth' 112;
+}
+
+.site-docs-index__description {
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.72;
+}
+
+/* ---------- blog index ---------- */
+
+.site-catalog {
+  padding: 24px 0 96px;
+}
+
+.site-blog-index__title {
+  font-variation-settings: 'wdth' 120, 'wght' 620;
+  letter-spacing: -0.015em;
+  margin: 40px 0 0;
+}
+
+.site-catalog .prism-blog-layout {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.site-blog-index__lede {
+  opacity: 0.75;
+  max-width: 60ch;
+  line-height: 1.65;
+}
+
+.site-blog-index {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+}
+
+.site-blog-index li {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  grid-template-areas:
+    'time title'
+    'time blurb';
+  column-gap: 20px;
+  padding: 18px 0;
+  border-top: 1px solid var(--prism-color-border-secondary);
+}
+
+.site-blog-index time {
+  grid-area: time;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 11px;
+  opacity: 0.6;
+  padding-top: 3px;
+}
+
+.site-blog-index__link {
+  grid-area: title;
+  font-weight: 620;
+  font-size: 17px;
+  font-variation-settings: 'wdth' 112;
+  text-decoration: none;
+  color: var(--prism-color-text);
+}
+
+.site-blog-index__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.site-blog-index__blurb {
+  grid-area: blurb;
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.7;
+}
+
+.site-empty {
+  margin-top: 20px;
+  opacity: 0.72;
+  max-width: 52ch;
+  line-height: 1.7;
+}
+
+/* ---------- narrow screens ---------- */
+
+@media (max-width: 1080px) {
+  .al-survey {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .prism-docs-shell__body {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .al-hero {
+    padding-top: 56px;
+  }
+
+  .al-hero__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .al-panel {
+    min-height: 380px;
+  }
+
+  .al-section {
+    padding: 72px 0;
+  }
+
+  .al-cards,
+  .al-feats,
+  .al-bon {
+    grid-template-columns: 1fr;
+  }
+
+  .al-rail {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 20px;
+  }
+
+  .al-row,
+  .al-ledger--pipeline .al-row {
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+
+  .al-row__bullets,
+  .al-row__reads,
+  .al-row__note {
+    grid-column: 2;
+  }
+
+  .al-row__status {
+    grid-column: 2;
+  }
+
+  .prism-docs-shell__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .prism-docs-shell__sidebar {
+    position: static;
+    max-height: none;
+  }
+
+  .site-docs-index__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .al-about__facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .al-shell {
+    padding-inline: 20px;
+  }
+
+  .al-survey,
+  .al-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .al-ticker {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .al-section__tier {
+    margin-left: 0;
+  }
+
+  .site-blog-index li {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'time'
+      'title'
+      'blurb';
+  }
 }
