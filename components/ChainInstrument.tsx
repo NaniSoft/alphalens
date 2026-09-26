@@ -63,6 +63,13 @@ export function ChainInstrument(): React.ReactElement {
     let width = 0;
     let height = 0;
 
+    const readTokens = () => {
+      styles = getComputedStyle(host);
+      ink = token('--prism-color-primary', ink);
+      text = token('--prism-color-text', text);
+      hairline = token('--prism-color-border-secondary', hairline);
+    };
+
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = host.getBoundingClientRect();
@@ -71,10 +78,7 @@ export function ChainInstrument(): React.ReactElement {
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      styles = getComputedStyle(host);
-      ink = token('--prism-color-primary', ink);
-      text = token('--prism-color-text', text);
-      hairline = token('--prism-color-border-secondary', hairline);
+      readTokens();
     };
 
     const draw = (t: number) => {
@@ -221,11 +225,30 @@ export function ChainInstrument(): React.ReactElement {
 
     // Re-read tokens when the mode class swaps on <html> (the boot script and
     // the toggle both mutate it) so the instrument re-themes without a reload.
-    const mo = new MutationObserver(resize);
+    //
+    // The re-read is deferred two frames. MutationObserver callbacks run in a
+    // microtask, and Chromium has not recalculated style yet at that point: a
+    // token read inside the callback still returns the OUTGOING theme, which
+    // silently re-arms the old palette (ticket 11 measured it by
+    // pixel-sampling; this instrument carried exactly that bug — ticket 17).
+    // Two frames land after the recalc. The redraw covers reduced motion,
+    // whose settled frame has no loop to pick the new palette up.
+    let rethemeRaf = 0;
+    const retheme = () => {
+      cancelAnimationFrame(rethemeRaf);
+      rethemeRaf = requestAnimationFrame(() => {
+        rethemeRaf = requestAnimationFrame(() => {
+          readTokens();
+          draw(performance.now());
+        });
+      });
+    };
+    const mo = new MutationObserver(retheme);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(rethemeRaf);
       ro.disconnect();
       mo.disconnect();
       canvas.remove();
