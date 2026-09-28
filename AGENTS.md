@@ -17,7 +17,11 @@ Compose from the design system's catalogue. There is no local component and no l
 
 ## Theming
 
-Two attributes on `<html>`, and nothing else: `data-pack` for the ground and `class="dark"` for the mode, both from `lib/site.ts`. A blocking `PrismThemeScript` in `<head>` applies a stored choice to them before first paint. There is no provider, no client runtime, no baked stylesheet and no pack class. A page is correct with scripting disabled.
+Two attributes on `<html>`, and nothing else: `data-pack` for the ground and `class="dark"` for the mode, both from `lib/site.ts`. A blocking `PrismThemeScript` in `<head>` applies a stored choice to them before first paint. There is no provider, no baked stylesheet and no pack class. A page is correct with scripting disabled.
+
+**This site has one client component, and the other three sites have none.** `components/RevealRoot.tsx` exists because gate 3 below is a law here and not elsewhere: a CSS-authored hidden state needs an exit, and the exit is a class added when a marked element scrolls into view and withdrawn on every path including `load`. The other three sites ship no hidden state, so they have nothing to exit and no runtime to exit it with. The sentence "no client runtime" is true of the company site, Atlas and Nexus and **false here**, which is why it does not appear in this file. A shared instruction block that states a law is the defect, and a shared block that claims a runtime this site has is a law stated wrongly.
+
+The reveal root is the only `'use client'` line in the tree, and `check:hidden-state` fails if a second one appears, because a second one is a second writer of a state the first one owns.
 
 A pack boundary is an attribute on an element: it repoints that pack's colour **and** its corner radius beneath it, and it wears the mode of the nearest ancestor carrying `.dark`. So a boundary belongs on a fully rounded mark and nowhere else. On this site that is `ProductMark`, and the only regions that carry one are the header's switcher and the platform product rows.
 
