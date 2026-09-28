@@ -35,6 +35,11 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
+      # The gate that holds the site's stylesheet to the design system's base
+      # rules. It reads source rather than the export, so it runs whether or not a
+      # build is needed; the gates that read the export run inside the same job
+      # after the build that produces it.
+      - run: pnpm check
 
   deploy:
     needs: verify

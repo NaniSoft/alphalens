@@ -40,10 +40,19 @@ a:hover {
   text-decoration: underline;
 }
 
-:focus-visible {
-  outline: 2px solid var(--prism-color-primary);
-  outline-offset: 2px;
-}
+/* There is deliberately no :focus rule in this sheet. The site's own
+   :focus-visible { outline: 2px solid var(--prism-color-primary) } read like a
+   sitewide keyboard focus indicator and was not one: prism's `a:focus-visible` is
+   more specific, so a link never saw it, and where nothing more specific applied it
+   drew a 2px outline in the pack's `primary`, which the design system reserves for
+   a fill. The worst of it is what happens when the token it reads stops resolving,
+   which is exactly what moving off the retired line does to every `--prism-*` read
+   in this file: `outline-style` falls back to `none` while `outline-offset`
+   survives, so the rule stops drawing an indicator and starts suppressing one.
+   Measured in a real browser, in both modes. The design system draws its ring on
+   its own Components and a plain anchor keeps the browser's own, and neither can
+   die with a token. `scripts/check-stylesheet-ownership.mjs` and
+   `test/focus-indicator.test.ts` are what hold that. */
 
 .site-main {
   min-height: 100dvh;
