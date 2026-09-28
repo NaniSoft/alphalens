@@ -6,38 +6,50 @@
 
 Part of the five-site Nanisoft web platform (www + nexus + atlas + alphalens + prism), one design language: [Prism](https://prism.nanisoft.com).
 
-## The one rule
-
-Compose from the design system's catalogue. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write.
+## How to build here
 
 - Items come from their own subpath, never the root barrel: `@nanisoft/prism-ui/blocks/<item>`, `/components/<item>`, `/pages/<page>`, and `/theming` for the pack and mode vocabulary.
 - `@nanisoft/prism-ui/styles.css` is imported once, in the root layout, before this site's own sheet. It carries every token, every utility and every base rule.
-- A Block takes data and content as props. If one cannot express something, the answer is upstream.
+- A Block takes data and content as props.
 - A consumer cannot write a Prism utility class: the consumer does not run Tailwind, so a utility exists in the emitted sheet only if a Prism component already uses it. Anything this site needs for itself goes in `app/globals.css` as a site class.
+- Two attributes on `<html>`, from `lib/site.ts`: `data-pack` for the ground and `class="dark"` for the mode. A blocking `PrismThemeScript` in `<head>` applies a stored choice before first paint.
+- A pack boundary is an attribute on an element: it repoints that pack's colour **and** its corner radius beneath it, and it wears the mode of the nearest ancestor carrying `.dark`. On this site that is `ProductMark`, and the only regions that carry one are the header's switcher and the platform product rows.
 
-## Theming
+## This site's one client component
 
-Two attributes on `<html>`, and nothing else: `data-pack` for the ground and `class="dark"` for the mode, both from `lib/site.ts`. A blocking `PrismThemeScript` in `<head>` applies a stored choice to them before first paint. There is no provider, no baked stylesheet and no pack class. A page is correct with scripting disabled.
+`components/RevealRoot.tsx` is the only `'use client'` line in the tree, and it
+exists because this site authors the one CSS-authored hidden state in the family: a
+marked element is hidden until a class is added when it scrolls into view, and the
+class is withdrawn on every path including `load`. `test/no-scripting.test.tsx`
+renders the landing with scripting off and asserts the content is there, because the
+stylesheet half alone would be satisfied by a sheet that hides nothing and a page that
+hides everything.
 
-**This site has one client component, and the other three sites have none.** `components/RevealRoot.tsx` exists because gate 3 below is a law here and not elsewhere: a CSS-authored hidden state needs an exit, and the exit is a class added when a marked element scrolls into view and withdrawn on every path including `load`. The other three sites ship no hidden state, so they have nothing to exit and no runtime to exit it with. The sentence "no client runtime" is true of the company site, Atlas and Nexus and **false here**, which is why it does not appear in this file. A shared instruction block that states a law is the defect, and a shared block that claims a runtime this site has is a law stated wrongly.
+The other three sites ship no hidden state, so they have nothing to exit and no
+runtime to exit it with, which is why the sentence "no client runtime" appears in
+their instructions and not in this one.
 
-The reveal root is the only `'use client'` line in the tree, and `check:hidden-state` fails if a second one appears, because a second one is a second writer of a state the first one owns.
+## What is enforced, and where the words live
 
-A pack boundary is an attribute on an element: it repoints that pack's colour **and** its corner radius beneath it, and it wears the mode of the nearest ancestor carrying `.dark`. So a boundary belongs on a fully rounded mark and nowhere else. On this site that is `ProductMark`, and the only regions that carry one are the header's switcher and the platform product rows.
+The laws are not in this file. They are the failure messages of the gates in
+`@nanisoft/prism-ui/gates`, run by `pnpm check`, so a fix to one reaches this site
+in one release and cannot be declined here. The four repositories that run them
+share the programs and hold none of the wording.
 
-## The three laws this repository enforces rather than describes
+This site's own halves are in `prism-gates.json`: its sheets, its coverage floors,
+the one destination its corpus gets wrong with the reason, and the attribute and
+module names the hidden-state law works in. When a build fails, the law's text is in
+the failing message: read that rather than looking for a rule here.
 
-Each is a program in `scripts/`, and each is run by `pnpm check` in CI.
-
-1. **No trace of the retired line.** `check:antd` reads the manifest, the lockfile as a dependency graph, every import, and every document, and fails on a dependency, an import, the generated variablesheet, its generator, the old theming symbols or a living instruction.
-2. **The site's stylesheet competes with nothing the design system declares.** `check:stylesheet` fails on a bare-element declaration of one of seven properties, on any `:focus` rule, and on a `color-mix()` that takes a `var()` as an operand. The reason each is a failure is in the script's own header, and the failures it prevents are real and measured.
-3. **A CSS-authored hidden state is escapable, and its exit is not a clock.** `check:hidden-state` fails on an unarmed hidden state, on an animation clock, on a missing `(scripting: none)` guard, on a second writer of the arming attribute, and on a missing `load` exit. `test/no-scripting.test.tsx` renders the landing with scripting off and asserts the content is there.
-
-A fourth gate, `check:routes`, exists because this repository has one published document that is deliberately unreachable, and the reason has to live where the route inventory is read rather than in a comment somebody deletes.
+`check:routes` is this repository's own, not the kit's: it exists because one
+published document here is deliberately unreachable, and the reason has to live where
+the route inventory is read rather than in a comment somebody deletes.
 
 ## Wayfinding
 
-This file is this repository's own instructions. `README.md` is what the site is and how it is built and deployed. `CONSISTENCY.md` is the cross-repository law, and the pinned package version is its version.
+This file is this repository's own instructions. `README.md` is what the site is
+and how it is built and deployed. `prism-gates.json` is this site's half of the
+cross-repository contract, and it holds only what this site knows.
 
 ## Stack
 
@@ -50,7 +62,7 @@ This file is this repository's own instructions. `README.md` is what the site is
 - `pnpm dev` — dev server
 - `pnpm build` — static export to `out/`
 - `pnpm lint` / `pnpm typecheck` / `pnpm test`
-- `pnpm check` — the five gates (see README); run it after `pnpm build`
+- `pnpm check` — the routes gate and the consumer gate kit (see README); run it after `pnpm build`, because the kit reads the built export
 - `pnpm deploy` — build + wrangler deploy (local wrangler auth)
 
 <!-- BEGIN:nextjs-agent-rules -->

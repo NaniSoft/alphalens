@@ -21,15 +21,19 @@ import { describe, expect, it } from 'vitest';
 const ROOT = join(__dirname, '..');
 
 /**
- * The roots the gate reads, and the one file it skips.
+ * The roots the gate reads, and the directories it skips.
  *
- * The skip is a *file* rather than a pattern, and it names `antd-vars.css` no longer:
- * that was a generated stylesheet this repository baked on every build, it is gone, and a
- * skip entry naming a file that no longer exists is a rule that quietly stopped matching
- * anything - indistinguishable from a rule that never matched. The retired entry was
- * found by this test, which is the only way a stale skip is ever found: a corpus scan
- * that skips a path nobody can see is a corpus scan with a hole in it whose shape is
- * only in the code.
+ * The skip is a set of directories rather than a set of files, and that was a fix:
+ * this test used to skip one generated stylesheet by name, the file was deleted with
+ * the bake step that produced it, and a skip entry naming a file that no longer exists
+ * is a rule that quietly stopped matching anything, which is indistinguishable from a
+ * rule that never matched. A stale skip is only ever found by something reading the
+ * scan, and the design system's own retired-line gate is what found this one: it
+ * names the artefact, so a comment here recording why it is gone is a historical note
+ * the gate discharges on the surface rather than a live reference.
+ *
+ * A directory stays true as a directory. This set is printed by the design system's
+ * gate on every run, so an exclusion is arguable.
  */
 const CONTENT_DIRS = [join(ROOT, 'content'), join(ROOT, 'lib'), join(ROOT, 'components'), join(ROOT, 'app')];
 

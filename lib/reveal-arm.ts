@@ -30,8 +30,11 @@
  * wrapped because the try is the whole cost of being wrong: a throw in an inline script
  * in the head is an unhandled error on every page.
  *
- * `scripts/check-hidden-state.mjs` fails the build if this is not the only writer, if
- * the module cannot withdraw the attribute, or if the `load` exit is removed.
+ * The design system's `hidden-state` gate fails the build if this is not the only
+ * writer, if the module cannot withdraw the attribute, or if the `load` exit is
+ * removed. It counts a writer by the `setAttribute` call rather than by the name,
+ * because this file names the attribute in a comment that explains the mechanism and
+ * a gate that counted names would read its own documentation as a second writer.
  */
 export const revealArmScript = [
   'try{',

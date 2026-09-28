@@ -21,12 +21,11 @@
     "check:links": "node scripts/check-links.mjs",
     "check:routes": "node scripts/check-routes.mjs",
     "check:both-modes": "node scripts/check-both-modes.mjs",
-    "check:parity": "node scripts/check-content-parity.mjs --baseline \"$PARITY_BASELINE\" --expect scripts/content-parity-expectations.json",
+    "check:prism-gates": "prism-gates",
     "check": "pnpm check:antd && pnpm check:stylesheet && pnpm check:hidden-state && pnpm check:links && pnpm check:routes",
     "check:local": "pnpm check && pnpm check:both-modes"
   },
   "dependencies": {
-    "@nanisoft/prism-tokens": "0.6.0",
     "@nanisoft/prism-ui": "0.7.0",
     "fumadocs-core": "^16.15.12",
     "fumadocs-mdx": "^15.4.2",

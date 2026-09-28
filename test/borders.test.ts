@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -92,14 +93,14 @@ describe('the design system publishes the token the fifteen read', () => {
     // Read from the installed package rather than from this repository, because the claim
     // is about the design system's own emitted stylesheet and a copy of it here would be
     // a second source of truth that stops being true the moment a pack is added.
-    const themes = readFileSync(
-      path.join(ROOT, 'node_modules', '@nanisoft', 'prism-tokens', 'dist', 'themes', 'blush', 'light.css'),
-      'utf8',
-    );
-    const dark = readFileSync(
-      path.join(ROOT, 'node_modules', '@nanisoft', 'prism-tokens', 'dist', 'themes', 'blush', 'dark.css'),
-      'utf8',
-    );
+    //
+    // Resolved through the component package's own manifest, because the token package is the
+    // component package's dependency and this repository does not declare it. A hard path under
+    // `node_modules` is a claim about this repository's hoisting layout, which is not a thing
+    // this repository decides any more.
+    const tokens = createRequire(require.resolve('@nanisoft/prism-ui/package.json'));
+    const themes = readFileSync(tokens.resolve('@nanisoft/prism-tokens/dist/themes/blush/light.css'), 'utf8');
+    const dark = readFileSync(tokens.resolve('@nanisoft/prism-tokens/dist/themes/blush/dark.css'), 'utf8');
     for (const [mode, source] of [
       ['light', themes],
       ['dark', dark],

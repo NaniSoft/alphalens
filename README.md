@@ -7,7 +7,7 @@ Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, on
 - **Live**: https://alphalens.nanisoft.com (Custom Domain, auto-created on deploy)
 - **Pack**: `blush` is the ground, on the document element, and it does not change. Two regions carry a pack that is not the ground: the header's product switcher and the platform product rows, and in both the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape
 - **Stack**: Next 16 static export · fumadocs-mdx · pnpm · TypeScript strict · oxlint · Vitest (jsdom + Testing Library) · Cloudflare Workers
-- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 0.7.0 and [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) 0.6.0, both pinned exactly. The two pins are deliberately different numbers: `prism-ui` requires `prism-tokens` at an exact version, so the pair states two facts. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write
+- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 0.7.0, pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write
 
 ## What ships
 
@@ -41,15 +41,16 @@ component uses it. `mb-12` is safe; a utility Prism happens not to use would do 
 and say nothing. Anything this site needs for itself goes in `app/globals.css` as a site
 class.
 
-**The site stylesheet owns almost nothing, and that is a rule.** It must not declare the
-page ground, the body ink, a focus outline or a hairline colour on a selector with no
-class in it, and it must not carry a `:focus` rule at all: the design system's base layer
-is layered and this sheet is not, so a bare-element rule here wins the cascade whatever
-the cascade then does with it. `scripts/check-stylesheet-ownership.mjs` is why that is
-enforced rather than remembered. The focus case is not hypothetical and it was live here
-— the sheet's own `:focus-visible` rule was outranked on every link and would have become
-a *suppression* the moment its token stopped resolving. The script's header has the
-measurement.
+**The site stylesheet owns almost nothing.** It must not declare the page ground, the
+body ink, a focus outline or a hairline colour on a selector with no class in it, and
+it must not carry a `:focus` rule at all: the design system's base layer is layered
+and this sheet is not, so a bare-element rule here wins the cascade whatever the
+cascade then does with it. The focus case is not hypothetical and it was live here:
+the sheet's own `:focus-visible` rule was outranked on every link and would have become
+a *suppression* the moment its token stopped resolving. That sentence is the reason the
+gate exists rather than the gate's rule; the rule is the failure message, and when
+`pnpm check` is red the message says which of these it was and why it matters. The
+measurement is in the gate kit's own header.
 
 **The border token carries the whole border, not a colour.** The old sheet declared one
 alias and read it from fifteen border declarations, and an alias is a shorthand: with one
@@ -71,33 +72,51 @@ pnpm build        # static export to out/
 pnpm lint         # oxlint
 pnpm typecheck    # next typegen && tsc --noEmit
 pnpm test         # vitest
-pnpm check        # the five gates; run after pnpm build
+pnpm check        # the routes gate and the consumer gate kit; run after pnpm build
 ```
 
-The five gates, and what each holds:
+`pnpm check` runs `prism-gates`, the gate kit in `@nanisoft/prism-ui/gates`, plus
+this site's own routes gate. The laws themselves are not in this repository: they
+are the failure messages of those gates, so a fix to one reaches this site in one
+release and cannot be declined here. The four repositories of the family run the
+same programs and hold none of the wording. What this site holds is its own half,
+in `prism-gates.json`: its sheets, its coverage floors, the one destination its
+corpus gets wrong with the reason, and the attribute and module names the
+hidden-state law works in.
 
-| gate | what it holds |
+What the kit enforces here, by name, so a failure message is findable:
+
+| gate | law |
 | --- | --- |
-| `check:antd` | No trace of the retired line: no dependency, no import, no generated stylesheet, no build step, no living instruction. The lockfile is read as a dependency graph, and both design-system pins must be exact. |
-| `check:stylesheet` | The site's own sheet competes with nothing the design system declares, carries no `:focus` rule, and takes no `var()` as a `color-mix()` operand. |
-| `check:hidden-state` | Every CSS-authored hidden state is armed, guarded by `(scripting: none)`, and has no clock for an exit. The arming has one writer, the module withdraws it, and an inlined `load` listener covers the reader whose scripting started and stopped. |
-| `check:links` | Every internal destination and every in-page fragment resolves to something this site emits. |
-| `check:routes` | Every published document has a route, and the one that does not is written down with its reason. |
+| `pin` | The design system is an exact version, and the token package is the component package's dependency rather than this site's. |
+| `retired-line` | No trace of the retired component library. The lockfile is read as a graph. |
+| `stylesheet-ownership` | This site's sheet owns no surface the design system owns, carries no `:focus` rule, and takes no `var()` as a `color-mix()` operand. |
+| `token-read` | Every custom property this sheet reads is declared. A read that resolves to nothing is not a wrong colour; it is no declaration at all. |
+| `links` | Every internal destination and every in-page fragment resolves to something this site emits. |
+| `hidden-state` | Every CSS-authored hidden state is armed, guarded by `(scripting: none)`, and has no clock for an exit. The arming has one writer, the module withdraws it, and an inlined `load` listener covers the reader whose scripting started and stopped. |
+| `runtime-token-read` | No token is read at runtime, because a read resolves once and a resolved value does not follow the cascade. |
 
-The content-parity comparison is a sixth tool and is not in `pnpm check`, because its
-baseline lives outside the repository and is destroyed at the close of the sweep:
+`pack-boundary` is in the kit and not in this site's list: this site publishes no
+pack map, so there is nothing for it to check.
 
-```bash
-node scripts/check-content-parity.mjs --record <file>            # cut a baseline
-node scripts/check-content-parity.mjs --baseline <file> \
-  --expect scripts/content-parity-expectations.json              # compare
-```
+`check:routes` is this repository's own rather than the kit's: every published
+document has a route, and the one that does not is written down with its reason.
 
-It reads the built export through a document parser, so it sees the copy in `lib/content.ts`
-and in JSX as well as the copy in `content/`, which a digest of the content tree would have
-been blind to. Every difference must be declared in
-`scripts/content-parity-expectations.json` with the reason it is a rendering change and not
-a copy change, and a declaration that matches nothing is itself a finding.
+The kit's limits, which it prints on every run: it reads text rather than resolving
+a cascade, it reads the emitted export rather than a browser, and a stylesheet half
+is not a rendered half, which is why `test/no-scripting.test.tsx` exists here.
+
+The content-parity comparison was a one-time instrument for the migration sweep and
+is gone with its baseline, which lived outside the repository and was destroyed at
+the close of that sweep. What it did is worth recording, because it is the reason
+`links` is the gate that survived: it read the built export through a document parser
+rather than a digest of `content/`, so it saw the copy in `lib/content.ts` and in JSX,
+which a content-tree digest would have been blind to. Every difference had to be
+declared in `scripts/content-parity-expectations.json` with the reason it was a
+rendering change and not a copy change, and a declaration that matched nothing was
+itself a finding. The permanent successor asks a question that is true of every
+future build rather than of one migration: does a reader who follows a link on this
+site arrive somewhere.
 
 ## The two things this site was wrong about
 
@@ -105,14 +124,15 @@ Both were live before the migration and both are now gates, so neither can come 
 unnoticed.
 
 **The focus indicator was the site's, and the site was outranked on every link.** The
-sheet declared `:focus-visible { outline: 2px solid var(--prism-color-primary) }` and
-prism's own `a:focus-visible` is more specific, so no link ever saw it; where nothing more
+sheet declared a two-pixel outline in the retired line's `primary` token, and prism's own
+`a:focus-visible` is more specific, so no link ever saw it; where nothing more
 specific applied it drew a 2px outline in the pack's `primary`, which the design system
 reserves for a fill. And with that token no longer resolving, `outline-style` falls back to
 `none` while `outline-offset` survives, so the rule goes from drawing an indicator to
 suppressing one. The design system draws its ring on its own components and a plain anchor
-keeps the browser's own, and neither can die with a token. `check:stylesheet` and
-`test/focus-indicator.test.ts` hold that.
+keeps the browser's own, and neither can die with a token. The gate kit's
+`stylesheet-ownership` gate and `test/focus-indicator.test.ts` hold that, and the
+measurement is in the gate's own header.
 
 **The landing's content had no exit.** Every `[data-reveal]` element was hidden at
 `opacity: 0` and revealed by an `IntersectionObserver` in a client effect, so a reader
