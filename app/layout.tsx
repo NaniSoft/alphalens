@@ -10,7 +10,7 @@ import { SiteFooter, SiteHeader } from '@nanisoft/prism-ui/blocks';
 import { PrismThemeModeProvider } from '@nanisoft/prism-ui/provider';
 import { prismCssVarKey } from '@nanisoft/prism-tokens';
 
-import { DEFAULT_MODE, DEFAULT_PACK, SITE_ID, themeBootScript } from '@/lib/theme';
+import { DEFAULT_MODE, DEFAULT_PACK, SITE_ID, revealArmScript, themeBootScript } from '@/lib/theme';
 
 // prism-ui's font faces / display width-axis / dither patterns (ADR-0001) —
 // the shared visual ground every Nanisoft site stands on.
@@ -57,6 +57,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Blocking, before paint: applies the stored (or default) theme class —
             the flash-free half of the class-swap recipe. */}
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        {/* The other half of the reveal law, and the only writer of the attribute the
+            landing's hidden state is scoped under. See lib/theme.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: revealArmScript }} />
         <AntdRegistry>
           <PrismThemeModeProvider pack={DEFAULT_PACK} defaultMode={DEFAULT_MODE}>
             <SiteHeader site={SITE_ID} nav={NAV} />

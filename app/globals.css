@@ -176,8 +176,25 @@ a:hover {
   display: inline-block;
 }
 
-/* Scroll reveal. */
-.al [data-reveal] {
+/* Scroll reveal.
+ *
+ * The hidden state is scoped under `html[data-reveal-armed]`, and that attribute is
+ * written by one inlined script in the document head and by nothing else. A reader
+ * with scripting disabled never receives it, so this state does not exist for them:
+ * a condition that is never true is not a wait, which is the whole of the exit. The
+ * rule that used to hide unconditionally had no exit at all - not a slow one, none -
+ * because `is-in` comes from an IntersectionObserver in a client effect, so a reader
+ * without scripting, without that API, or with a script that failed to parse received
+ * `opacity: 0` and the entire landing below the header. The `@media (scripting: none)`
+ * block below is the second half and covers the reader whose scripting failed midway,
+ * because it is a statement about capability and does not care why.
+ *
+ * The transition is not an exit. It says how long the reveal takes once the class
+ * lands; a clock that reveals content is a second mechanism with its own failure
+ * mode, and the measured failure of the old shape was that the fallback timer starts
+ * at first style resolution rather than at scroll, so by the time anything could
+ * cancel it there was nothing left. `scripts/check-hidden-state.mjs` is the gate. */
+html[data-reveal-armed] .al [data-reveal] {
   opacity: 0;
   transform: translateY(12px);
   transition:
@@ -185,13 +202,20 @@ a:hover {
     transform var(--al-slow) var(--al-ease);
 }
 
-.al [data-reveal].is-in {
+html[data-reveal-armed] .al [data-reveal].is-in {
   opacity: 1;
   transform: none;
 }
 
+@media (scripting: none) {
+  html[data-reveal-armed] .al [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .al [data-reveal] {
+  html[data-reveal-armed] .al [data-reveal] {
     opacity: 1;
     transform: none;
     transition: none;
