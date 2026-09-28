@@ -59,8 +59,16 @@ const ROOT = process.cwd();
 /** The stylesheets this gate reads. A list, so a new sheet is a decision. */
 const SHEETS = ['app/globals.css'];
 
-/** How many rules the sheet must hold, or this run read nothing. */
-const MIN_RULES = 40;
+/**
+ * How many rules the sheet must hold, or this run read nothing.
+ *
+ * Lower than the sibling gate's floor on purpose, and for a reason worth naming: this
+ * repository's sheet is a third of the length the retired one was, so a floor written
+ * for the old size would fail a correct sheet. A floor on *declarations* would be
+ * better still, but the number that matters here is rules, because a rule is the unit a
+ * hiding declaration can hide in.
+ */
+const MIN_RULES = 25;
 
 /** A declaration that makes an element not painted. */
 const HIDES = /^\s*(?:opacity\s*:\s*(?:0|0%)\b|visibility\s*:\s*hidden\b|display\s*:\s*none\b)/;

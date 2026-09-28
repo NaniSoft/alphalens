@@ -1,38 +1,19 @@
-import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { Archivo, JetBrains_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-// Chrome via its subpaths — the proven import pattern (prism's own site never
-// pulls components from the root barrel: in Next's RSC graph, root-barrel
-// components resolve to undefined, found while scaffolding, ticket 05).
-import { SiteFooter, SiteHeader } from '@nanisoft/prism-ui/blocks';
-import { PrismThemeModeProvider } from '@nanisoft/prism-ui/provider';
-import { prismCssVarKey } from '@nanisoft/prism-tokens';
+import { SiteFooter } from '@nanisoft/prism-ui/blocks/site-footer';
+import { SiteHeader } from '@nanisoft/prism-ui/blocks/site-header';
+import { PrismThemeScript } from '@nanisoft/prism-ui/provider';
 
-import { DEFAULT_MODE, DEFAULT_PACK, SITE_ID, revealArmScript, themeBootScript } from '@/lib/theme';
+import { DEFAULT_MODE, GROUND_PACK, PRODUCTS, SITE_PRODUCT, THEME_ATTRIBUTES } from '@/lib/site';
+import { revealArmScript } from '@/lib/reveal-arm';
 
-// prism-ui's font faces / display width-axis / dither patterns (ADR-0001) —
-// the shared visual ground every Nanisoft site stands on.
+// The one stylesheet. Every token, every utility and every base rule on this site
+// arrives in this one import: the design system compiles its own source into it, and
+// a consumer adds its own sheet after it and nothing else.
 import '@nanisoft/prism-ui/styles.css';
-// Pre-baked antd variable rulesets for this site's pack in both modes
-// (scripts/bake-antd-css.mjs), keyed by the prism-<pack>-<mode> cssVar class.
-import './antd-vars.css';
 import './globals.css';
-
-const archivo = Archivo({
-  subsets: ['latin'],
-  // The width axis IS the refraction (ADR-0001) — wght comes implicitly.
-  axes: ['wdth'],
-  variable: '--font-archivo',
-  display: 'swap',
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: {
@@ -45,50 +26,94 @@ export const metadata: Metadata = {
 
 /** The lean site nav the shared chrome renders between brand and actions. */
 const NAV = [
-  { label: 'Docs', url: '/docs' },
-  { label: 'Blog', url: '/blog' },
-  { label: 'About', url: '/about' },
+  { label: 'Docs', href: '/docs' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'About', href: '/about' },
 ] as const;
+
+/**
+ * The document: the two theme attributes, two blocking scripts, the chrome, the page.
+ *
+ * **No provider, no client runtime, no baked stylesheet.** The old layout mounted a
+ * theme provider, imported a registry for a component library that no longer exists,
+ * and loaded 126 KB of generated variables to define the sixty custom properties the
+ * site's own CSS read. The theme is now two attributes on the document element and a
+ * blocking script that applies a stored choice to them before first paint, which is
+ * the arrangement the design system documents as the default and the one the whole
+ * page is built for: a server render, no client JavaScript of its own, and a page that
+ * is correct with scripting disabled.
+ *
+ * The second script is the arming half of the reveal law, and it is here for the same
+ * reason the first is: both are the smallest strings that can do a job that has to
+ * happen before the page is parsed. See `lib/reveal-arm.ts` for what the attribute it
+ * writes is and who removes it.
+ *
+ * The switcher moves between the four products of the platform, so four of the five
+ * pastel packs are on every page rather than on one page of one site. `navLabel` is
+ * required by the Block and is this site's own name for the header's destinations,
+ * which is not the switcher's name, so the switcher is given its own.
+ */
+
+// The design system's own first family, and the only file this site loads.
+//
+// `--font-sans` in prism's emitted sheet reads `Inter, ui-sans-serif, system-ui, ...`
+// and 0.7.0 carries no font file, so a site that loads nothing renders in the
+// platform's UI face, which is the one face a design system never means by its first
+// choice. The fallback list prism declares is kept verbatim behind this one, so
+// nothing about the design system's intent changes; the only difference is that its
+// first entry now exists. The migration dropped this site's Archivo and JetBrains Mono
+// and let the display type fall back to the platform face, which is the most visible
+// change the migration made and the wrong one to leave in place.
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={prismCssVarKey(DEFAULT_PACK, DEFAULT_MODE)}>
-      <body className={archivo.variable + ' ' + jetbrains.variable}>
-        {/* Blocking, before paint: applies the stored (or default) theme class —
-            the flash-free half of the class-swap recipe. */}
-        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
-        {/* The other half of the reveal law, and the only writer of the attribute the
-            landing's hidden state is scoped under. See lib/theme.ts. */}
+    <html lang="en" className={inter.variable} {...THEME_ATTRIBUTES} suppressHydrationWarning>
+      <head>
+        {/* Before paint, on the same attributes the server rendered: a stored choice
+            is applied and a stored value that no longer parses is left in place, so
+            nothing a reader chose is ever cleared by this site. */}
+        <PrismThemeScript defaultPack={GROUND_PACK} defaultMode={DEFAULT_MODE} />
+        {/* The arming half of the reveal law, and the only writer of the attribute the
+            landing's hidden state is scoped under. */}
         <script dangerouslySetInnerHTML={{ __html: revealArmScript }} />
-        <AntdRegistry>
-          <PrismThemeModeProvider pack={DEFAULT_PACK} defaultMode={DEFAULT_MODE}>
-            <SiteHeader site={SITE_ID} nav={NAV} />
-            <main className="site-main">{children}</main>
-            <SiteFooter
-              site={SITE_ID}
-              columns={[
-                {
-                  title: 'Site',
-                  links: [
-                    { label: 'Landing', url: '/' },
-                    { label: 'Docs', url: '/docs' },
-                    { label: 'Blog', url: '/blog' },
-                    { label: 'About', url: '/about' },
-                  ],
-                },
-                {
-                  title: 'Docs',
-                  links: [
-                    { label: 'Introduction', url: '/docs' },
-                    { label: 'Data platform', url: '/docs/data-platform' },
-                    { label: 'Unified data contract', url: '/docs/data-contract' },
-                    { label: 'Research pipeline', url: '/docs/research-pipeline' },
-                  ],
-                },
-              ]}
-            />
-          </PrismThemeModeProvider>
-        </AntdRegistry>
+      </head>
+      <body>
+        <SiteHeader
+          product={SITE_PRODUCT}
+          products={PRODUCTS}
+          nav={NAV}
+          navLabel="Sections"
+          productsLabel="Products"
+        />
+        <main className="site-main">{children}</main>
+        <SiteFooter
+          product={SITE_PRODUCT}
+          columns={[
+            {
+              title: 'Site',
+              links: [
+                { label: 'Landing', href: '/' },
+                { label: 'Docs', href: '/docs' },
+                { label: 'Blog', href: '/blog' },
+                { label: 'About', href: '/about' },
+              ],
+            },
+            {
+              title: 'Docs',
+              links: [
+                { label: 'Introduction', href: '/docs' },
+                { label: 'Data platform', href: '/docs/data-platform' },
+                { label: 'Unified data contract', href: '/docs/data-contract' },
+                { label: 'Research pipeline', href: '/docs/research-pipeline' },
+              ],
+            },
+          ]}
+        />
       </body>
     </html>
   );

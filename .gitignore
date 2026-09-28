@@ -7,11 +7,11 @@ node_modules/
 next-env.d.ts
 *.tsbuildinfo
 
-# generated build-time css (scripts/bake-antd-css.mjs)
-/app/antd-vars.css
-
 # wrangler local state
 .wrangler/
+
+# the profile a browser writes when scripts/check-both-modes.mjs runs
+.both-modes-profile/
 
 # local scratch — never committed
 .scratch/

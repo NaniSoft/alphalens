@@ -1,0 +1,29 @@
+{
+  "$comment": [
+    "The site's own facts, as data: which pack is the ground, which mode a reader",
+    "who has never chosen gets, and the set of products the switcher moves between.",
+    "",
+    "A pack identifier is a token, and this file is the one place this site picks one,",
+    "so a renamed or retired pack is a compile error rather than a mark that quietly",
+    "inherits the ground. A mark and a ground are two different axes: the ground is",
+    "stable for the life of the page and comes from `ground` below, and a product's",
+    "mark comes from its own entry in `products`.",
+    "",
+    "The old line called this pack rose and the design system calls it blush. `rose`",
+    "is not a published pack on this line and no emitted rule resolves it, so a mark",
+    "carrying it would have matched nothing and painted the page's own colour while",
+    "claiming a product's. The rename is recorded here rather than in prose so that a",
+    "reader who finds `rose` in a document knows the pack was renamed rather than",
+    "that the document is wrong."
+  ],
+  "siteId": "alphalens",
+  "ground": "blush",
+  "defaultMode": "dark",
+  "products": [
+    { "id": "alphalens", "name": "AlphaLens", "pack": "blush", "href": "/" },
+    { "id": "nexus", "name": "Nexus", "pack": "lavender", "href": "https://nexus.nanisoft.com" },
+    { "id": "atlas", "name": "Atlas", "pack": "mint", "href": "https://atlas.nanisoft.com" },
+    { "id": "www", "name": "NaniSoft", "pack": "sky", "href": "https://www.nanisoft.com" },
+    { "id": "prism", "name": "Prism", "pack": "peach", "href": "https://prism.nanisoft.com" }
+  ]
+}

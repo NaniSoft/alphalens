@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { ReactElement } from 'react';
 import Link from 'next/link';
-import { BlogLayout } from '@nanisoft/prism-ui/pages';
+import { BlogPostPage } from '@nanisoft/prism-ui/pages';
 
 import { getMdxComponents } from '@/lib/mdx-components';
 import { blogSource } from '@/lib/source';
@@ -41,6 +41,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: page.data.title, description: page.data.description };
 }
 
+/**
+ * The index stays this site's own content, and the post becomes the design system's
+ * Page for one.
+ *
+ * The index is a deliberate design rather than a default: the four blog lists in this
+ * family are four designs and the design system deliberately ships no index, so the four
+ * dates, the four titles and the tag runs are composed here in this repository's own
+ * stylesheet.
+ *
+ * The post moved because the frontmatter of a post is a contract and a contract belongs
+ * to something that can be checked. `BlogPostPage` takes the title, the standfirst, the
+ * displayed date and the machine date as separate props, so a field that is not passed
+ * cannot quietly be missing, and it owns the trail to the neighbouring posts rather than
+ * this site deriving it.
+ *
+ * Two words appear on the post that were not there before: the trail says `Previous` and
+ * `Next` beside the titles, where the old markup drew an arrow glyph. A glyph is
+ * punctuation a screen reader reads as punctuation; a word is a label.
+ */
 export default async function BlogPage({ params }: PageProps): Promise<ReactElement> {
   const { slug } = await params;
 
@@ -48,31 +67,34 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
     const posts = published();
     return (
       <div className="site-catalog">
-        <BlogLayout header={<h1 className="site-blog-index__title">Blog</h1>}>
-          <p className="site-blog-index__lede">
-            Notes from building AlphaLens — what a live market-data layer actually takes, and the
-            research design it makes possible. Every post states plainly what is running and what is
-            still design.
+        <p className="site-eyebrow">nanisoft · alphalens · blog</p>
+        <h1 className="site-catalog__title">Blog</h1>
+        <p className="site-catalog__lede">
+          Notes from building AlphaLens — what a live market-data layer actually takes, and the
+          research design it makes possible. Every post states plainly what is running and what is
+          still design.
+        </p>
+        {posts.length === 0 ? (
+          <p className="site-empty">
+            Nothing published yet. Posts land as <code>content/blog/&lt;slug&gt;/index.mdx</code> —
+            folder-per-post, required date, display-only tags.
           </p>
-          {posts.length === 0 ? (
-            <p className="site-empty">
-              Nothing published yet. Posts land as <code>content/blog/&lt;slug&gt;/index.mdx</code> —
-              folder-per-post, required date, display-only tags.
-            </p>
-          ) : (
-            <ul className="site-blog-index">
-              {posts.map((post) => (
-                <li key={post.url}>
+        ) : (
+          <ul className="site-blog-list">
+            {posts.map((post) => (
+              <li key={post.url}>
+                <Link href={post.url} className="site-blog-list__title">
+                  {post.data.title}
+                </Link>
+                <p className="site-blog-list__description">{post.data.description}</p>
+                <p className="site-mono site-blog-list__meta">
                   <time dateTime={post.data.date}>{post.data.date}</time>
-                  <Link href={post.url} className="site-blog-index__link">
-                    {post.data.title}
-                  </Link>
-                  <span className="site-blog-index__blurb">{post.data.description}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </BlogLayout>
+                  {post.data.tags.length > 0 && <span> · {post.data.tags.join(' · ')}</span>}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     );
   }
@@ -89,24 +111,18 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
   const MDX = page.data.body;
 
   return (
-    <div className="site-catalog">
-      <BlogLayout frontmatter={page.data}>
-        <div className="site-prose">
-          <MDX components={getMdxComponents()} />
-        </div>
-        <nav className="prism-docs-shell__neighbours">
-          {previous && (
-            <Link href={previous.url} rel="prev">
-              ← {previous.data.title}
-            </Link>
-          )}
-          {next && (
-            <Link href={next.url} rel="next" style={{ marginLeft: 'auto' }}>
-              {next.data.title} →
-            </Link>
-          )}
-        </nav>
-      </BlogLayout>
-    </div>
+    <BlogPostPage
+      title={page.data.title}
+      description={page.data.description}
+      date={page.data.date}
+      dateTime={page.data.date}
+      tags={page.data.tags.map((tag) => ({ label: tag }))}
+      previous={previous ? { title: previous.data.title, href: previous.url } : undefined}
+      next={next ? { title: next.data.title, href: next.url } : undefined}
+      trailLabels={{ previous: 'Previous', next: 'Next' }}
+      trailLabel="More posts"
+    >
+      <MDX components={getMdxComponents()} />
+    </BlogPostPage>
   );
 }

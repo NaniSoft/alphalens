@@ -1,21 +1,17 @@
-'use client';
+import type { ReactElement } from 'react';
+import { CtaLink } from '@nanisoft/prism-ui/components/cta-link';
+import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
+import { Cta01 } from '@nanisoft/prism-ui/blocks/cta-01';
+import { FeatureGrid01 } from '@nanisoft/prism-ui/blocks/feature-grid-01';
+import { InstrumentPanel01 } from '@nanisoft/prism-ui/blocks/instrument-panel-01';
+import { LogoStrip01 } from '@nanisoft/prism-ui/blocks/logo-strip-01';
+import { NoteGrid01 } from '@nanisoft/prism-ui/blocks/note-grid-01';
+import { ProcessRail01 } from '@nanisoft/prism-ui/blocks/process-rail-01';
+import { ProductGrid01 } from '@nanisoft/prism-ui/blocks/product-grid-01';
+import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
 
-// The AlphaLens landing — ticket 09's "Instrument Bench" template, variant A,
-// executed in the rose pack with ticket 08's content: the live data layer
-// leads, and "discover and validate" is demoted to destination framing inside
-// the research-direction section.
-//
-// Pack law (site-local packs-as-signal): rose is the only accent ink; washes
-// live inside the instrument panels; hairlines come from the pack's own tint.
-// Each numbered section index carries its honesty tier — the numbering encodes
-// the reading order, the label encodes what may be claimed.
-
-import type { CSSProperties, ReactElement, ReactNode } from 'react';
-import { Button } from '@nanisoft/prism-ui/components/button';
-import { prismBrandPacks, type PrismPackId } from '@nanisoft/prism-tokens';
-
-import { ChainInstrument } from '@/components/ChainInstrument';
-import { reveal, useRevealRoot } from '@/components/reveal';
+import { CapturedPathDiagram } from '@/components/CapturedPathDiagram';
+import { RevealRoot } from '@/components/RevealRoot';
 import {
   BUILT_ON_NEXUS,
   CAPTURE_CARDS,
@@ -31,267 +27,279 @@ import {
   PATH_FEATURES,
   PIPELINE_NOTE,
   PIPELINE_ROWS,
+  SECTIONS,
   STATUS_LABEL,
   TICKER,
-  type DirectionStatus,
+  sectionTitle,
 } from '@/lib/content';
+import { GROUND_PACK, PRODUCTS } from '@/lib/site';
 
-/** The tier each section may claim — rendered beside its number. */
-const SECTION_TIERS = {
-  capture: 'live',
-  path: 'live',
-  feed: 'approved',
-  pipeline: 'designed, not built',
-  directions: 'research direction',
-  platform: 'platform',
-} as const;
+/**
+ * The landing, composed from the design system's catalogue.
+ *
+ * The old page was a client subtree: a `'use client'` component, a scroll-reveal
+ * observer, a canvas that drew invented open interest from a sine hash, a packet that
+ * travelled across a rail on a five-second loop, and 11.5 KB of stylesheet. It is now a
+ * server component composed from catalogue items plus the reveal root, which is a small
+ * client component that exists only to add a class when a marked element scrolls into
+ * view and that can withdraw the hidden state's arming on every path.
+ *
+ * **Two fabrications are cut rather than relabelled, and the second is the one that
+ * matters.** The hero's canvas drew a curve of open interest from `Math.sin` under a bar
+ * reading as a live NIFTY feed, with the word "illustrative" in nine-point type
+ * underneath; the panel now holds a `Diagram` of the four documented stages, which are
+ * published facts. And the rail's travelling packet was a decorative animation rather
+ * than state feedback, and the design system cuts those rather than repairing them.
+ *
+ * **The honesty status is a word inside the section's own title, not a badge beside it.**
+ * That is the constraint worth restating, because it is easy to undo by accident: a
+ * section whose title carries a status is a stage of the work and not an independent
+ * topic, so a badge, a count or a collapse control beside it would each say the opposite
+ * - that a reader may treat the six sections as a set to visit in any order. The status
+ * therefore stays inside the title string, nothing is drawn next to it, and the emitted
+ * `<h2>` carries the words, so the page's outline and a screen reader both meet them.
+ * The same rule is why the documentation rail renders a section as a label.
+ *
+ * **The section indices are copy and the ordering is the site's.** Every Block takes its
+ * index as its `eyebrow`, because that is the one slot a Block offers for a machine
+ * annotation above a title. Where a section needed both an index and a status, the
+ * title carries both and the eyebrow carries the index alone, so no Block is asked for
+ * two eyebrows and the number is never doubled.
+ *
+ * It is a server component: no hook beyond the reveal root, no context, no mode, and
+ * nothing read at runtime. Every colour resolves through the cascade rather than by
+ * being read once at mount, which is the class of defect the old page had, where a
+ * light-mode reader was served dark-mode ink on a light ground until hydration.
+ */
 
-function Section({
-  id,
-  index,
-  label,
-  tier,
-  children,
-}: {
-  id: string;
-  index: string;
-  label: string;
-  tier: string;
-  children: ReactNode;
-}): ReactElement {
+/** The pack a product row's mark is drawn in, from the site's own directory. */
+function markPack(productId: string) {
+  return PRODUCTS.find((entry) => entry.id === productId)?.pack ?? GROUND_PACK;
+}
+
+/**
+ * 03, the approved contract's eight external sources, as a survey.
+ *
+ * This is a site component rather than the catalogue's `StackGrid01`, and the reason is a
+ * shape the catalogue does not have: **a survey whose tiles each carry a status.** The
+ * retired page drew exactly that, and the status is the whole of it - a tile is solid
+ * because it is running and dashed because it is approved and not yet collecting, and a
+ * reader deciding whether a source exists reads the status before the note. `StackGrid01`
+ * takes a name and a role per part and has nowhere to put a third, and `FeatureGrid01`'s
+ * bare variant takes a title and a body, which would say the status in prose and turn a
+ * per-tile state back into a per-tile sentence.
+ *
+ * Rather than pass a destination to a control that ignores it, or render a status in nine
+ * point type under a label that reads as settled, the tile is drawn here: a bordered card
+ * whose status is its own word, whose border is dashed while the source is approved and
+ * not collecting, and whose note says what the source is for. Every word is the word the
+ * content module published.
+ *
+ * The catalogue gap is filed rather than worked around silently: a survey grid that can
+ * carry a per-item state. `StackGrid01` is the right block for a set of parts and it is
+ * one field short of this one.
+ */
+function FeedSources(): ReactElement {
   return (
-    <section className="al-section" id={id}>
-      <div className="al-shell">
-        <div className="al-section__head" {...reveal()}>
-          <span className="al-section__index">{index}</span>
-          <h2 className="al-section__label">{label}</h2>
-          <span className="al-section__tier" data-tier={tier}>
-            {tier}
-          </span>
-        </div>
-        {children}
-      </div>
-    </section>
+    <Section>
+      <SectionHeading
+        as="h2"
+        align="left"
+        className="mb-12"
+        eyebrow={SECTIONS[2].index}
+        title={sectionTitle(2)}
+        description="The approved unified data contract merges Fyers with the sources Fyers structurally cannot provide into one queryable view — data_feed_view — with a single canonical timestamp, one symbol form, and a column list pinned by test."
+      />
+      <ul className="site-sources">
+        {FEED_SOURCES.map((source) => (
+          <li className="site-source" key={source.name} data-status={source.status}>
+            <span className="site-source__status">{source.status === 'live' ? 'live' : 'approved'}</span>
+            <span className="site-source__name">{source.name}</span>
+            <span className="site-source__role">{source.role}</span>
+            <span className="site-source__note">{source.note}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="site-caption">{FEED_NOTE}</p>
+    </Section>
   );
 }
 
-export function Landing(): ReactElement {
-  const root = useRevealRoot();
+/**
+ * The four rail steps, as the tuple the Block's own type demands.
+ *
+ * `ProcessRail01` declares `steps` as a union of two-, three- and four-element tuples, so
+ * the four-stage rail is written out rather than mapped. That is the point of the type: a
+ * fifth stage would be a compile error and not a fifth column, because a rail that
+ * quietly dropped a stage to fit a width would be a diagram of a process that is not the
+ * process. A `map` over a four-element array is `T[]`, which is assignable to no arm of
+ * the union, so the array cannot quietly become a five-element one either.
+ *
+ * The `step` field the content module carries is not passed: the Block renders the
+ * ordinal from the position, because a list carrying its own numbers is a list whose
+ * numbers can disagree with their order. `01` to `04` are what it renders.
+ */
+const DATA_PATH_STEPS = [
+  { name: DATA_PATH[0].title, description: DATA_PATH[0].body },
+  { name: DATA_PATH[1].title, description: DATA_PATH[1].body },
+  { name: DATA_PATH[2].title, description: DATA_PATH[2].body },
+  { name: DATA_PATH[3].title, description: DATA_PATH[3].body },
+] as const;
 
+export function Landing(): ReactElement {
   return (
-    <div ref={root} className="al">
-      {/* Hero — copy left, the chain in its instrument panel right. */}
-      <section className="al-hero">
-        <div className="al-shell al-hero__grid">
-          <div className="al-hero__copy">
-            <p className="al-eyebrow" {...reveal()}>
-              {HERO.eyebrow}
-            </p>
-            <h1 className="al-display" {...reveal(60)}>
-              {HERO.h1Leading}
-              <em>{HERO.h1Em}</em>
-              {HERO.h1Trailing}
-            </h1>
-            <p className="al-lede" {...reveal(120)}>
-              {HERO.sub}
-            </p>
-            <div className="al-cta-row" {...reveal(180)}>
-              <Button type="primary" size="large" href={HERO.primaryCta.href}>
+    <RevealRoot>
+      {/* Hero: the thesis as the page's h1, then the panel that carries the one diagram
+          on the page. The panel is the catalogue's own, so the bar, the state dot, the
+          frame's edge and the footnote are its rules rather than this site's, and that
+          frame's edge is one of the fifteen that used to vanish. */}
+      <Section>
+        <div className="site-hero">
+          <div className="site-hero__copy">
+            <SectionHeading
+              as="h1"
+              align="left"
+              className="site-display"
+              eyebrow={HERO.eyebrow}
+              title={
+                <>
+                  {HERO.h1Leading}
+                  <em>{HERO.h1Em}</em>
+                  {HERO.h1Trailing}
+                </>
+              }
+              description={HERO.sub}
+            />
+            <div className="site-cta-row">
+              {/* Both actions are anchors. The old page passed a destination to a
+                  component that rendered a button, so the page's primary action was
+                  announced as a command that navigated nothing; that is the one
+                  rendered change the whole migration exists to make. */}
+              <CtaLink href={HERO.primaryCta.href} size="lg">
                 {HERO.primaryCta.label}
-              </Button>
-              <Button size="large" href={HERO.secondaryCta.href}>
+              </CtaLink>
+              <CtaLink href={HERO.secondaryCta.href} size="lg" variant="outline">
                 {HERO.secondaryCta.label}
-              </Button>
+              </CtaLink>
             </div>
-            <p className="al-hero__status" {...reveal(220)}>
-              <span className="al-live-dot" aria-hidden />
+            <p className="site-status">
+              <span className="site-live-dot" aria-hidden />
               {HERO.status}
             </p>
           </div>
 
-          {/* The instrument panel — definite height in every context. */}
-          <div className="al-panel" {...reveal(120)}>
-            <div className="al-panel__bar">
-              <span className="al-live-dot" aria-hidden />
-              <span className="al-panel__label">{HERO_PANEL.label}</span>
-              <span className="al-panel__mode">{HERO_PANEL.mode}</span>
-            </div>
-            <ChainInstrument />
-            <p className="al-panel__footnote">{HERO_PANEL.footnote}</p>
-          </div>
-        </div>
-
-        <div className="al-shell">
-          <div className="al-ticker" {...reveal(240)}>
-            {TICKER.map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 01 — what it captures (live). */}
-      <Section id="capture" index="01" label="What it captures" tier={SECTION_TIERS.capture}>
-        <p className="al-intro" {...reveal()}>
-          One process, one minute, the whole surface: the collector has run live since 26 August 2026
-          and on Kubernetes since 8 September. This is the part of AlphaLens that is simply true.
-        </p>
-        <div className="al-cards">
-          {CAPTURE_CARDS.map((card, i) => (
-            <div className="al-card" key={card.title} {...reveal(i * 60)}>
-              <span className="al-card__no">{String(i + 1).padStart(2, '0')}</span>
-              <h3>{card.title}</h3>
-              <p>{card.body}</p>
-            </div>
-          ))}
+          <InstrumentPanel01
+            label={HERO_PANEL.label}
+            state="neutral"
+            stateLabel={HERO_PANEL.mode}
+            footnote={HERO_PANEL.footnote}
+            caption="The four stages the AlphaLens collector runs each market minute."
+          >
+            <CapturedPathDiagram />
+          </InstrumentPanel01>
         </div>
       </Section>
 
-      {/* 02 — the live data path: conveyor rail, then hairline rows. */}
-      <Section id="path" index="02" label="The data path" tier={SECTION_TIERS.path}>
-        <div className="al-rail" {...reveal()}>
-          <div className="al-rail__packet" aria-hidden />
-          {DATA_PATH.map((stage, i) => (
-            <div className="al-stage" key={stage.title}>
-              <span className="al-stage__no">{stage.step}</span>
-              <span className="al-stage__name">{stage.title}</span>
-              <span className="al-stage__caption">{stage.body}</span>
-              {i === DATA_PATH.length - 1 && <span className="al-rail__serving">verified</span>}
-            </div>
-          ))}
-        </div>
-        <div className="al-feats">
-          {PATH_FEATURES.map((feature, i) => (
-            <div className="al-feat" key={feature.title} {...reveal(i * 40)}>
-              <h4>{feature.title}</h4>
-              <p>{feature.body}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
+      {/* The honesty model as a strip, which is the transition band between the hero
+          and the first numbered section. */}
+      <LogoStrip01 items={[...TICKER]} label="What is running and what is design" />
 
-      {/* 03 — one feed for research (approved): survey grid + contract rows. */}
-      <Section id="feed" index="03" label="One feed for research" tier={SECTION_TIERS.feed}>
-        <p className="al-intro" {...reveal()}>
-          The approved unified data contract merges Fyers with the sources Fyers structurally cannot
-          provide into one queryable view — <code>data_feed_view</code> — with a single canonical
-          timestamp, one symbol form, and a column list pinned by test.
-        </p>
-        <div className="al-survey">
-          {FEED_SOURCES.map((source, i) => (
-            <div className="al-tile" key={source.name} data-status={source.status} {...reveal(Math.min(i, 8) * 30)}>
-              <span className="al-tile__status">{source.status === 'live' ? 'live' : 'approved'}</span>
-              <span className="al-tile__name">{source.name}</span>
-              <span className="al-tile__role">{source.role}</span>
-              <span className="al-tile__note">{source.note}</span>
-            </div>
-          ))}
-        </div>
-        <p className="al-caption" {...reveal()}>
-          {FEED_NOTE}
-        </p>
-        <div className="al-feats al-feats--contract">
-          {CONTRACT_FEATURES.map((feature, i) => (
-            <div className="al-feat" key={feature.title} {...reveal(i * 40)}>
-              <h4>{feature.title}</h4>
-              <p>{feature.body}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
+      {/* 01, what it captures. Live, and the only part of this page that is simply
+          true. Three capture points, each a title and a sentence, which is what the
+          bare feature grid is for: a grid of features with a tile and an icon reads as
+          an argument rather than a description. */}
+      <FeatureGrid01
+        eyebrow={SECTIONS[0].index}
+        title={sectionTitle(0)}
+        description="One process, one minute, the whole surface: the collector has run live since 26 August 2026 and on Kubernetes since 8 September. This is the part of AlphaLens that is simply true."
+        variant="bare"
+        numbered
+        features={CAPTURE_CARDS.map((card) => ({ title: card.title, body: card.body }))}
+      />
 
-      {/* 04 — the research pipeline (designed). */}
-      <Section id="pipeline" index="04" label="The research pipeline" tier={SECTION_TIERS.pipeline}>
-        <p className="al-intro" {...reveal()}>
-          TradingAgents’ anatomy — analysts debating into a trader, overseen by risk, with a reflector
-          keeping the memory — assessed against Indian markets and mapped onto the feed. This is the
-          layer the data platform exists to serve, and it is documented as design because it is design.
-        </p>
-        <div className="al-ledger al-ledger--pipeline">
-          {PIPELINE_ROWS.map((row, i) => (
-            <div className="al-row" key={row.agent} data-status="designed" {...reveal(i * 50)}>
-              <span className="al-row__name">{row.agent}</span>
-              <span className="al-row__reads">{row.reads}</span>
-              <span className="al-row__note">{row.note}</span>
-              <span className="al-row__status">designed</span>
-            </div>
-          ))}
-        </div>
-        <p className="al-caption" {...reveal()}>
-          {PIPELINE_NOTE}
-        </p>
-      </Section>
+      {/* 02, the live data path. Four stages, which is exactly what the catalogue's
+          process rail admits: `steps` is a tuple of two, three or four and a fifth is a
+          compile error rather than a fifth column, because a rail that quietly dropped a
+          stage to fit a width would be a diagram of a process that is not the process.
+          The travelling packet that used to cross this rail is gone. */}
+      <ProcessRail01
+        eyebrow={SECTIONS[1].index}
+        title={sectionTitle(1)}
+        steps={DATA_PATH_STEPS}
+        finalLabel="verified"
+      />
+      <NoteGrid01
+        notes={PATH_FEATURES.map((feature) => ({ title: feature.title, body: feature.body }))}
+      />
 
-      {/* 05 — where it's going (research direction): the status ledger. */}
-      <Section id="directions" index="05" label="Where it’s going" tier={SECTION_TIERS.directions}>
-        <p className="al-intro" {...reveal()}>
-          Quantitative trading research is the destination. The data layer has to exist first, because
-          a backtester over a broken feed produces confident nonsense. What follows is the trajectory —
-          plainly labelled.
-        </p>
-        <div className="al-ledger">
-          {DIRECTIONS.map((direction, i) => (
-            <div className="al-row" key={direction.title} data-status={direction.status} {...reveal(i * 60)}>
-              <span className="al-row__dot" aria-hidden />
-              <span className="al-row__name">{direction.title}</span>
-              <span className="al-row__status">{STATUS_LABEL[direction.status as DirectionStatus]}</span>
-              <ul className="al-row__bullets">
-                {direction.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <p className="al-caption" {...reveal()}>
-          {DIRECTIONS_MORE}
-        </p>
-      </Section>
+      {/* 03, the approved contract. Eight sources, each a name and a role, which is
+          what the stack grid draws: a survey is a claim that a set of parts is
+          sufficient, and both halves of that claim are the caller's. The grid's `own`
+          arm is not passed, because this site asserts nothing about which of these it
+          built itself and an empty group would make the Block throw for a claim it does
+          not make. */}
+      <FeedSources />
+      <NoteGrid01 notes={CONTRACT_FEATURES.map((feature) => ({ title: feature.title, body: feature.body }))} />
 
-      {/* 06 — built on Nexus: the platform story, packs as signal. */}
-      <Section id="platform" index="06" label="Built on Nexus" tier={SECTION_TIERS.platform}>
-        <p className="al-intro" {...reveal()}>
-          {BUILT_ON_NEXUS.lede}
-        </p>
-        <div className="al-bon">
-          {BUILT_ON_NEXUS.products.map((product, i) => {
-            const ink = prismBrandPacks[product.pack as PrismPackId].ink.dark;
-            return (
-              <a
-                className="al-bon__card"
-                key={product.id}
-                href={product.url}
-                {...reveal(i * 60)}
-                style={{ '--al-ink': ink } as CSSProperties}
-              >
-                <span className="al-bon__dot" aria-hidden />
-                <span className="al-bon__name">{product.name}</span>
-                <span className="al-bon__tagline">{product.tagline}</span>
-              </a>
-            );
-          })}
-        </div>
-        <p className="al-caption" {...reveal()}>
-          {BUILT_ON_NEXUS.body}
-        </p>
-      </Section>
+      {/* 04, the designed pipeline. Six rows, and this is the place the catalogue's
+          four-stage rail does not reach: six is a compile error there rather than a
+          six-column rail, which is the design system refusing the wrong shape rather
+          than a gap this site is working around quietly. So it is a ledger, whose row
+          shape carries a name, a state and a detail line, and the words are unchanged. */}
+      <StatusLedger01
+        eyebrow={SECTIONS[3].index}
+        title={sectionTitle(3)}
+        description="TradingAgents’ anatomy — analysts debating into a trader, overseen by risk, with a reflector keeping the memory — assessed against Indian markets and mapped onto the feed. This is the layer the data platform exists to serve, and it is documented as design because it is design."
+        rows={PIPELINE_ROWS.map((row) => ({
+          name: row.agent,
+          status: 'designed',
+          statusLabel: 'designed',
+          detail: row.reads,
+          bullets: [row.note],
+        }))}
+        caption={PIPELINE_NOTE}
+      />
 
-      {/* Closing CTA band. */}
-      <section className="al-cta">
-        <div className="al-shell" {...reveal()}>
-          <h2 className="al-display al-display--md">{FINAL_CTA.h2}</h2>
-          <p className="al-lede al-lede--center">{FINAL_CTA.body}</p>
-          <div className="al-cta-row al-cta-row--center">
-            <Button type="primary" size="large" href={FINAL_CTA.primary.href}>
-              {FINAL_CTA.primary.label}
-            </Button>
-            <Button size="large" href={FINAL_CTA.secondary.href}>
-              {FINAL_CTA.secondary.label}
-            </Button>
-          </div>
-          <p className="al-caption al-caption--center">{FINAL_CTA.footnote}</p>
-        </div>
-      </section>
-    </div>
+      {/* 05, where it goes. The same ledger with the `direction` tier, which is one of
+          its four, and the bullets the rows carry. */}
+      <StatusLedger01
+        eyebrow={SECTIONS[4].index}
+        title={sectionTitle(4)}
+        description="Quantitative trading research is the destination. The data layer has to exist first, because a backtester over a broken feed produces confident nonsense. What follows is the trajectory — plainly labelled."
+        rows={DIRECTIONS.map((direction) => ({
+          name: direction.title,
+          status: 'direction' as const,
+          statusLabel: STATUS_LABEL[direction.status],
+          bullets: [...direction.bullets],
+        }))}
+        caption={DIRECTIONS_MORE}
+      />
+
+      {/* 06, the platform story. One of the two regions that carry a pack: each row's
+          mark is its own product's boundary, and a mark is a fully rounded disc, so the
+          boundary moves nothing about its shape. */}
+      <ProductGrid01
+        eyebrow={SECTIONS[5].index}
+        title={sectionTitle(5)}
+        description={BUILT_ON_NEXUS.lede}
+        products={BUILT_ON_NEXUS.products.map((product) => ({
+          id: product.id,
+          name: product.name,
+          pack: markPack(product.id),
+          tagline: product.tagline,
+          href: product.url,
+        }))}
+        caption={BUILT_ON_NEXUS.body}
+      />
+
+      <Cta01
+        headingLevel="h2"
+        title={FINAL_CTA.h2}
+        description={FINAL_CTA.body}
+        action={FINAL_CTA.primary}
+        secondaryAction={FINAL_CTA.secondary}
+        note={FINAL_CTA.footnote}
+      />
+    </RevealRoot>
   );
 }

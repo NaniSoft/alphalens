@@ -1,1269 +1,523 @@
 /*
- * Site styles over prism-ui's shipped ground (fonts, chrome, dither patterns).
+ * This site's own stylesheet, and it is almost nothing.
  *
- * prism-ui owns the SiteHeader/SiteFooter chrome and the display width axis;
- * this sheet owns everything app-level: the Instrument Bench landing, the docs
- * shell (prism-ui ships DocsShell/BlogLayout structure but no styles, so each
-   * site resolves that shell in its own sheet), the blog, and
- * About.
+ * The old sheet was 1,236 lines over prism-ui's shipped ground. It restated the page
+ * ground, the body ink, a link colour, a focus ring and a hairline colour that the
+ * design system already owns; defined six custom properties, four of which were
+ * `color-mix()` over a `var()`; and carried a whole documentation shell's styles for a
+ * shell that has since moved into the design system. Of those 1,236 lines, the ones
+ * below survive, and the reason is worth stating for the three sites that copy this
+ * file:
  *
- * Colour always comes from the pre-baked prism-rose-<mode> variable rulesets —
- * var(--prism-*) tokens, never raw hex. Pastel as atmosphere (ADR-0005): rose
- * ink is this site's only accent, washes live inside instrument panels, and
- * hairlines come from the pack's own tint. Motion law ADR-0001: 80/160/280ms
- * decelerating, transform + opacity only; reduced motion renders everything
- * settled.
+ *   - A site stylesheet must not declare, on a selector with no class in it, any of
+ *     `background`, `background-color`, `color`, `font-family`, `outline`,
+ *     `outline-style` or `border-color`, and must not carry a `:focus` or
+ *     `:focus-visible` rule at all. Those are the properties prism's own base layer
+ *     declares, prism's base is layered and this sheet is not, so a bare-element
+ *     declaration here always wins the cascade and silently replaces a rule the
+ *     design system chose. `scripts/check-stylesheet-ownership.mjs` fails the build on
+ *     one, because the alternative is a screenshot of a page that looks plausible with
+ *     a black hairline and no focus indicator.
+ *   - The sheet is the only place a consumer can express anything the catalogue does
+ *     not ship, because the consumer does not run Tailwind: a utility exists in the
+ *     emitted stylesheet only if a Prism component uses it. A site class is a
+ *     declaration the site owns, which is exactly what these are.
+ *   - Colour is a token, never a raw value, and never a `color-mix()` over a
+ *     `var()`: a shorthand with one dead operand erases the declaration instead of
+ *     repainting it, and a live one computes away under an unlayered rule.
+ *
+ * The fifteen boxes whose edges this sheet draws are named one by one below, because
+ * that count is a contract rather than a coincidence. See the border token's own note.
+ *
+ * What is left is the site's own chrome: a documentation section index, the blog list
+ * (which the catalogue deliberately does not ship, because the four blog lists in this
+ * family are four deliberate designs), the prose device the corpus marks its claims
+ * with, and the status note the docs index opens on.
  */
 
-* {
-  box-sizing: border-box;
+/*
+ * The one thing this sheet declares that is not a site class: the design system's
+ * first family, supplied.
+ *
+ * prism's emitted sheet declares `--font-sans: Inter, ui-sans-serif, system-ui, ...`
+ * and 0.7.0 ships no font file, so the first entry is a name nothing resolves to and
+ * every page on the site renders in the platform's UI face. This supplies the file the
+ * token already names and repeats prism's own fallback list verbatim behind it, so the
+ * design system's intent is unchanged and only its first entry becomes real.
+ *
+ * It is a custom property rather than a `font-family` on a bare element on purpose: a
+ * site stylesheet must not declare `font-family` on a selector with no class in it,
+ * because prism's base is layered and this sheet is not. A token is not that.
+ */
+
+:root {
+  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --site-mono: var(--font-mono);
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/*
+ * The border token, and the fifteen boxes it draws.
+ *
+ * The old sheet declared `--al-hairline: color-mix(in srgb, var(--prism-color-primary)
+ * 16%, transparent)` and read it from fifteen border declarations. That is a shorthand
+ * with one operand the site does not own, and the consequence is not a wrong colour: a
+ * `border` shorthand with one dead operand is invalid at computed-value time, so every
+ * `border` longhand falls back to its initial value, `border-style` becomes `none`, and
+ * the box loses its **geometry** rather than its colour. Measured in a real browser
+ * before the migration, on the deployed site, in both modes: the fifteen read
+ * `border-top-width: 1px; border-top-style: solid` while the alias resolved, and
+ * `0px / none` the instant it did not. Fifteen boxes lose their edges, the hero's
+ * entire right column becomes an empty rounded box, and a screenshot sees none of it,
+ * because unstyled body text is a plausible design.
+ *
+ * So the token is purpose-built and it carries the whole border, not a colour:
+ * `--site-border` is the width, the style and the colour together. One value replaces a
+ * colour mix, the width is the same measured one pixel it has always been (read off the
+ * computed value before the migration rather than chosen), and the only operand is
+ * prism's own `--border`, which is defined for every pack and both modes. A token
+ * whose one operand is the design system's own contract cannot die the way one over a
+ * generated alias did.
+ *
+ * `--site-hairline-strong` is the same thing for the two places that wanted more
+ * presence: the quoted line in a document and the section's own tier chip.
+ */
 
-body {
-  margin: 0;
-  font-family: var(--font-archivo), -apple-system, 'Segoe UI', sans-serif;
-  background: var(--prism-color-bg-layout);
-  color: var(--prism-color-text);
-  -webkit-font-smoothing: antialiased;
+:root {
+  --site-border: 1px solid var(--border);
+  --site-hairline-strong: 2px solid var(--border);
 }
-
-a {
-  color: var(--prism-color-link);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-/* There is deliberately no :focus rule in this sheet. The site's own
-   :focus-visible { outline: 2px solid var(--prism-color-primary) } read like a
-   sitewide keyboard focus indicator and was not one: prism's `a:focus-visible` is
-   more specific, so a link never saw it, and where nothing more specific applied it
-   drew a 2px outline in the pack's `primary`, which the design system reserves for
-   a fill. The worst of it is what happens when the token it reads stops resolving,
-   which is exactly what moving off the retired line does to every `--prism-*` read
-   in this file: `outline-style` falls back to `none` while `outline-offset`
-   survives, so the rule stops drawing an indicator and starts suppressing one.
-   Measured in a real browser, in both modes. The design system draws its ring on
-   its own Components and a plain anchor keeps the browser's own, and neither can
-   die with a token. `scripts/check-stylesheet-ownership.mjs` and
-   `test/focus-indicator.test.ts` are what hold that. */
 
 .site-main {
+  /* Keeps the footer below the fold on a short page. Layout, so it is a class rule
+     and not a bare-element one, and it competes with nothing prism declares. */
   min-height: 100dvh;
 }
 
-/* ---------- shared primitives ---------- */
+/* ---------- the site's own document chrome ---------- */
 
-/* Site-level custom properties live on :root so the docs shell, blog, and
-   About resolve them too — they all derive from the pre-baked prism-rose-*
-   rulesets on <html>, so they re-theme with the mode swap for free. */
-:root {
-  --al-ease: cubic-bezier(0.25, 1, 0.5, 1);
-  --al-slow: 280ms;
-  --al-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
-  --al-sans: var(--font-archivo), -apple-system, 'Segoe UI', sans-serif;
-  /* Hairlines come from the pack's own tint — never a neutral grey. */
-  --al-hairline: color-mix(in srgb, var(--prism-color-primary) 16%, transparent);
-  --al-hairline-strong: color-mix(in srgb, var(--prism-color-primary) 30%, transparent);
-  --al-ink: var(--prism-color-primary);
-  --al-panel: color-mix(in srgb, var(--prism-color-bg-container) 55%, transparent);
-  --al-wash: color-mix(in srgb, var(--prism-color-primary) 4%, var(--prism-color-bg-container));
-}
-
-.al {
-  background: var(--prism-color-bg-layout);
-  color: var(--prism-color-text);
-  font-family: var(--al-sans);
-  overflow-x: clip;
-}
-
-.al a {
-  color: inherit;
-}
-
-.al h1 em,
-.al h2 em {
-  font-style: italic;
-  font-family: var(--al-sans);
-}
-
-.al-shell {
-  max-width: 1200px;
-  margin-inline: auto;
-  padding-inline: 32px;
-}
-
-.al-eyebrow {
-  font-family: var(--al-mono);
-  font-size: 11px;
+.site-eyebrow {
+  color: var(--muted-foreground);
+  font-family: var(--site-mono);
+  font-size: 0.6875rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  opacity: 0.62;
-  margin: 0 0 20px;
 }
 
-.al-display {
-  font-family: var(--al-sans);
-  font-stretch: 115%;
-  font-weight: 620;
-  letter-spacing: -0.015em;
-  line-height: 1.04;
-  font-size: clamp(40px, 5.6vw, 76px);
-  margin: 0;
-  text-wrap: balance;
-}
-
-.al-display--md {
-  font-size: clamp(32px, 4.4vw, 56px);
-}
-
-.al-lede {
-  font-size: clamp(16px, 1.5vw, 19px);
-  line-height: 1.55;
-  opacity: 0.82;
-  max-width: 54ch;
-  margin: 24px 0 32px;
-}
-
-.al-lede--center {
-  margin-inline: auto;
-  text-align: center;
-}
-
-.al-cta-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.al-cta-row--center {
-  justify-content: center;
-}
-
-.al-caption {
-  font-family: var(--al-mono);
-  font-size: 11px;
+.site-mono {
+  font-family: var(--site-mono);
+  font-size: 0.6875rem;
   letter-spacing: 0.04em;
-  line-height: 1.7;
-  opacity: 0.6;
-  max-width: 74ch;
-  margin: 28px 0 0;
 }
 
-.al-caption--center {
-  margin-inline: auto;
-  text-align: center;
+.site-caption {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.429;
+  text-wrap: pretty;
 }
 
-.al-caption code {
-  font-family: var(--al-mono);
-  opacity: 1;
-}
-
-.al-live-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--al-ink);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--al-ink) 60%, transparent);
-  flex: none;
-  display: inline-block;
-}
-
-/* Scroll reveal.
+/*
+ * The scroll reveal.
  *
  * The hidden state is scoped under `html[data-reveal-armed]`, and that attribute is
- * written by one inlined script in the document head and by nothing else. A reader
- * with scripting disabled never receives it, so this state does not exist for them:
- * a condition that is never true is not a wait, which is the whole of the exit. The
- * rule that used to hide unconditionally had no exit at all - not a slow one, none -
- * because `is-in` comes from an IntersectionObserver in a client effect, so a reader
- * without scripting, without that API, or with a script that failed to parse received
+ * written by one inlined script in the document head and by nothing else. A reader with
+ * scripting disabled never receives it, so this state does not exist for them: a
+ * condition that is never true is not a wait, which is the whole of the exit. The rule
+ * that used to hide unconditionally had no exit at all - not a slow one, none - because
+ * `is-in` comes from an IntersectionObserver in a client effect, so a reader without
+ * scripting, without that API, or with a script that failed to parse received
  * `opacity: 0` and the entire landing below the header. The `@media (scripting: none)`
  * block below is the second half and covers the reader whose scripting failed midway,
  * because it is a statement about capability and does not care why.
  *
- * The transition is not an exit. It says how long the reveal takes once the class
- * lands; a clock that reveals content is a second mechanism with its own failure
- * mode, and the measured failure of the old shape was that the fallback timer starts
- * at first style resolution rather than at scroll, so by the time anything could
- * cancel it there was nothing left. `scripts/check-hidden-state.mjs` is the gate. */
-html[data-reveal-armed] .al [data-reveal] {
+ * The transition is not an exit. It says how long the reveal takes once the class lands;
+ * a clock that reveals content is a second mechanism with its own failure mode, and the
+ * measured failure of the old shape was that the fallback timer starts at first style
+ * resolution rather than at scroll, so by the time anything could cancel it there was
+ * nothing left. `scripts/check-hidden-state.mjs` is the gate.
+ */
+html[data-reveal-armed] [data-reveal] {
   opacity: 0;
   transform: translateY(12px);
   transition:
-    opacity var(--al-slow) var(--al-ease),
-    transform var(--al-slow) var(--al-ease);
+    opacity 280ms cubic-bezier(0.25, 1, 0.5, 1),
+    transform 280ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-html[data-reveal-armed] .al [data-reveal].is-in {
+html[data-reveal-armed] [data-reveal].is-in {
   opacity: 1;
   transform: none;
 }
 
 @media (scripting: none) {
-  html[data-reveal-armed] .al [data-reveal] {
+  html[data-reveal-armed] [data-reveal] {
     opacity: 1;
     transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-reveal-armed] .al [data-reveal] {
+  html[data-reveal-armed] [data-reveal] {
     opacity: 1;
     transform: none;
     transition: none;
   }
 }
 
-/* ---------- hero ---------- */
+/* ---------- the documentation section index ---------- */
 
-.al-hero {
-  padding: 88px 0 0;
-}
+/* ---------- the fifteen box edges ---------- */
 
-.al-hero__grid {
+/*
+ * The hero's split, the panel's own frame is the catalogue's, and this is the copy
+ * beside it. Two columns on a wide screen and one below, because a copy column beside an
+ * instrument column is a reading column and a picture column, and a reading column
+ * narrower than about thirty characters stops being readable.
+ */
+.site-hero {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: clamp(32px, 5vw, 72px);
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
 }
 
-.al-hero__status {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-family: var(--al-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.66;
-  margin: 28px 0 0;
+@media (min-width: 64rem) {
+  .site-hero {
+    gap: clamp(2rem, 4vw, 4.5rem);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
 }
 
-/* The instrument panel — bordered, bar-topped, definite height. */
-.al-panel {
+/* The display scale, which the catalogue's `Heading` does not reach: this is a landing
+   page's own display step, and it is the one thing on the page that is not a size in the
+   design system's type scale. `text-wrap: balance` because a four-word headline broken
+   three-one reads as two headlines. */
+.site-display {
+  font-size: clamp(2.5rem, 5.6vw, 4.75rem);
+  font-weight: 600;
+  letter-spacing: -0.025rem;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+/* The eight external sources, and the per-tile state that is the whole of this survey.
+ *
+ * The border is dashed while a source is approved and not yet collecting, and solid once
+ * it is running. That is a shape property rather than a colour one, so it survives a mode
+ * change and a pack boundary and does not depend on a reader being able to separate two
+ * tints of the same neutral - which is the same reason `StatusLedger01` draws a ring around
+ * a fill rather than a filled dot.
+ *
+ * The status is a word, in the mono face, above the name. Not a badge, and not a coloured
+ * dot alone: this site labels every claim in words because a reader who cannot see the
+ * colour still has to be told which sources exist and which do not yet.
+ */
+.site-sources {
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-source {
+  border: var(--site-border);
+  border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
-  min-height: 460px;
-  border: 1px solid var(--al-hairline);
-  border-radius: 4px;
-  background:
-    radial-gradient(ellipse 80% 60% at 70% 0%, color-mix(in srgb, var(--al-ink) 8%, transparent), transparent 65%),
-    var(--al-panel);
-  overflow: hidden;
+  gap: 0.25rem;
+  height: 100%;
+  padding: 0.875rem 1rem;
 }
 
-.al-panel__bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--al-hairline);
-  font-family: var(--al-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.78;
-}
-
-.al-panel__mode {
-  margin-left: auto;
-  opacity: 0.62;
-  flex: none;
-}
-
-/* Template law: the visual slot's height is definite in every context. The
-   canvas reads this box and never writes height back. */
-.al-instrument {
-  flex: 1;
-  width: 100%;
-  min-height: 320px;
-}
-
-.al-panel__footnote {
-  margin: 0;
-  padding: 10px 16px 12px;
-  border-top: 1px solid var(--al-hairline);
-  font-family: var(--al-mono);
-  font-size: 9.5px;
-  line-height: 1.6;
-  letter-spacing: 0.03em;
-  opacity: 0.55;
-}
-
-/* The status ticker — the honesty model as a strip. */
-.al-ticker {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px 32px;
-  flex-wrap: wrap;
-  margin: 44px 0 0;
-  padding: 14px 0;
-  border-block: 1px solid var(--al-hairline);
-  font-family: var(--al-mono);
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  opacity: 0.68;
-}
-
-/* ---------- numbered hairline sections ---------- */
-
-.al-section {
-  border-top: 1px solid var(--al-hairline);
-  padding: 104px 0;
-  scroll-margin-top: 80px;
-}
-
-.al-section__head {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-bottom: 48px;
-  flex-wrap: wrap;
-}
-
-.al-section__index {
-  font-family: var(--al-mono);
-  font-size: 12px;
-  color: var(--al-ink);
-}
-
-.al-section__label {
-  font-family: var(--al-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0.68;
-  margin: 0;
-}
-
-/* The tier is the load-bearing part of the heading: it says what this section
-   may claim. */
-.al-section__tier {
-  margin-left: auto;
-  font-family: var(--al-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--al-ink);
-  border: 1px solid var(--al-hairline-strong);
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-
-.al-section__tier[data-tier='research direction'],
-.al-section__tier[data-tier='designed, not built'] {
-  color: var(--prism-color-text);
-  opacity: 0.6;
+.site-source[data-status='approved'] {
   border-style: dashed;
 }
 
-.al-section__tier[data-tier='platform'] {
-  color: var(--prism-color-text);
-  opacity: 0.6;
-}
-
-.al-intro {
-  max-width: 66ch;
-  font-size: 16px;
-  line-height: 1.6;
-  opacity: 0.82;
-  margin: 0 0 40px;
-}
-
-.al-intro code {
-  font-family: var(--al-mono);
-  font-size: 14px;
-  background: var(--prism-color-fill-tertiary);
-  border-radius: 4px;
-  padding: 2px 6px;
-}
-
-/* Capability cards — mono number, wash. */
-.al-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.al-card {
-  border: 1px solid var(--al-hairline);
-  border-radius: 4px;
-  padding: 24px;
-  background: var(--al-wash);
-}
-
-.al-card__no {
-  font-family: var(--al-mono);
-  font-size: 11px;
-  color: var(--al-ink);
-}
-
-.al-card h3 {
-  margin: 14px 0 10px;
-  font-size: 17px;
-  font-weight: 620;
-  font-variation-settings: 'wdth' 112;
-}
-
-.al-card p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  opacity: 0.78;
-}
-
-/* The conveyor rail — the product's path, with a traveling packet. */
-.al-rail {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  padding: 26px 0 22px;
-  border-block: 1px solid var(--al-hairline);
-  overflow: hidden;
-}
-
-.al-rail__packet {
-  position: absolute;
-  top: -1px;
-  left: 0;
-  width: 96px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--al-ink));
-  animation: al-travel 5.6s linear infinite;
-}
-
-@keyframes al-travel {
-  from {
-    transform: translateX(-96px);
-  }
-  to {
-    transform: translateX(100vw);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .al-rail__packet {
-    display: none;
-  }
-}
-
-.al-stage {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.al-stage__no {
-  font-family: var(--al-mono);
-  font-size: 11px;
-  color: var(--al-ink);
-}
-
-.al-stage__name {
-  font-weight: 620;
-  font-size: 16px;
-  font-variation-settings: 'wdth' 112;
-}
-
-.al-stage__caption {
-  font-size: 12.5px;
-  line-height: 1.55;
-  opacity: 0.72;
-}
-
-.al-rail__serving {
-  position: absolute;
-  right: 0;
-  top: 8px;
-  font-family: var(--al-mono);
-  font-size: 10px;
+.site-source__status {
+  color: var(--success);
+  font-family: var(--site-mono);
+  font-size: 0.625rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--al-ink);
 }
 
-/* Hairline feature rows. */
-.al-feats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0 32px;
-  margin-top: 48px;
+.site-source[data-status='approved'] .site-source__status {
+  color: var(--muted-foreground);
 }
 
-.al-feats--contract {
-  margin-top: 56px;
+.site-source__name {
+  font-weight: 600;
+  letter-spacing: -0.025rem;
 }
 
-.al-feat {
-  padding: 18px 0;
-  border-bottom: 1px solid var(--al-hairline);
-}
-
-.al-feat h4 {
-  margin: 0 0 6px;
-  font-size: 14.5px;
-  font-weight: 620;
-  font-variation-settings: 'wdth' 110;
-}
-
-.al-feat p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
-  opacity: 0.72;
-}
-
-/* The survey grid — solid for live, dashed for approved-not-collecting. */
-.al-survey {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.al-tile {
-  border: 1px solid var(--al-hairline);
-  border-radius: 4px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: color-mix(in srgb, var(--prism-color-bg-container) 35%, transparent);
-}
-
-.al-tile[data-status='approved'] {
-  border-style: dashed;
-  background: transparent;
-}
-
-.al-tile__status {
-  font-family: var(--al-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--al-ink);
-}
-
-.al-tile[data-status='approved'] .al-tile__status {
-  color: var(--prism-color-text);
-  opacity: 0.55;
-}
-
-.al-tile__name {
-  font-weight: 620;
-  font-size: 14px;
-}
-
-.al-tile__role {
-  font-family: var(--al-mono);
-  font-size: 10px;
+.site-source__role {
+  color: var(--muted-foreground);
+  font-family: var(--site-mono);
+  font-size: 0.625rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--al-ink);
-  opacity: 0.85;
 }
 
-.al-tile[data-status='approved'] .al-tile__role {
-  color: var(--prism-color-text);
-  opacity: 0.66;
-}
-
-.al-tile__note {
-  font-size: 12px;
+.site-source__note {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
   line-height: 1.5;
-  opacity: 0.72;
+  text-wrap: pretty;
 }
 
-/* Status ledger — mono uppercase status column, ink for live, muted for not. */
-.al-ledger {
-  border-top: 1px solid var(--al-hairline);
-}
-
-.al-ledger--pipeline {
-  border-top: none;
-}
-
-.al-row {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 3fr) minmax(0, 2fr) minmax(0, 7fr);
-  gap: 8px 20px;
-  align-items: baseline;
-  padding: 24px 0;
-  border-bottom: 1px solid var(--al-hairline);
-}
-
-.al-row__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  align-self: center;
-  border: 1.5px solid var(--al-ink);
-  opacity: 0.45;
-}
-
-.al-row__name {
-  font-weight: 620;
-  font-size: 18px;
-  font-variation-settings: 'wdth' 112;
-}
-
-.al-row__status {
-  font-family: var(--al-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--al-ink);
-}
-
-.al-row[data-status='direction'] .al-row__status,
-.al-ledger--pipeline .al-row__status {
-  color: var(--prism-color-text);
-  opacity: 0.55;
-}
-
-.al-row__bullets {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 13.5px;
-  line-height: 1.6;
-  opacity: 0.78;
-}
-
-/* The pipeline ledger drops the dot column — no row is live, so none is lit. */
-.al-ledger--pipeline .al-row {
-  grid-template-columns: minmax(0, 3fr) minmax(0, 3fr) minmax(0, 5fr) minmax(0, 2fr);
-}
-
-.al-row__reads {
-  font-family: var(--al-mono);
-  font-size: 12px;
-  line-height: 1.5;
-  opacity: 0.72;
-}
-
-.al-row__note {
-  font-size: 13px;
-  line-height: 1.6;
-  opacity: 0.72;
-}
-
-/* Built on Nexus — three pack-dot cards. */
-.al-bon {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.al-bon__card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border: 1px solid var(--al-hairline);
-  border-radius: 4px;
-  padding: 22px 24px;
-  text-decoration: none;
-  transition: border-color var(--al-slow) var(--al-ease);
-}
-
-.al-bon__card:hover {
-  border-color: var(--al-ink);
-  text-decoration: none;
-}
-
-.al-bon__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  /* Each card sets --al-ink inline to its own pack's ink (packs-as-signal). */
-  background: var(--al-ink);
-}
-
-.al-bon__name {
-  font-weight: 620;
-  font-size: 17px;
-  font-variation-settings: 'wdth' 114;
-}
-
-.al-bon__tagline {
-  font-size: 13px;
-  opacity: 0.72;
-}
-
-/* Closing CTA band. */
-.al-cta {
-  border-top: 1px solid var(--al-hairline);
-  padding: 128px 0 140px;
-  text-align: center;
-}
-
-.al-cta .al-cta-row--center {
-  margin-top: 36px;
-}
-
-/* ---------- about ---------- */
-
-.al-about {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 88px 32px 120px;
-}
-
-.al-about__title {
-  font-family: var(--al-sans);
-  font-stretch: 115%;
-  font-weight: 620;
-  font-size: clamp(34px, 4.6vw, 56px);
-  letter-spacing: -0.015em;
-  line-height: 1.04;
-  margin: 0 0 24px;
-}
-
-.al-about p {
-  font-size: 15.5px;
-  line-height: 1.68;
-  opacity: 0.84;
-}
-
-.al-about h2 {
-  font-variation-settings: 'wdth' 114, 'wght' 600;
-  letter-spacing: -0.01em;
-  font-size: 24px;
-  margin: 48px 0 12px;
-}
-
-.al-about ul {
-  padding-left: 22px;
-  font-size: 15px;
-  line-height: 1.68;
-  opacity: 0.84;
-}
-
-.al-about li {
-  margin: 8px 0;
-}
-
-.al-about__facts {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0 32px;
-  margin: 48px 0 0;
-}
-
-.al-about__fact {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--al-hairline);
-  align-items: baseline;
-}
-
-.al-about__fact dt {
-  font-family: var(--al-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.62;
-}
-
-.al-about__fact dd {
-  margin: 0;
-  font-size: 13.5px;
-  font-weight: 620;
-  text-align: right;
-}
-
-.al-about__links {
-  margin-top: 40px;
-}
-
-/* ---------- docs / blog shell (prism-ui pages layer styles) ---------- */
-
-.prism-docs-shell__body {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 48px;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 40px 24px 96px;
-}
-
-.prism-docs-shell__body:has(~ .prism-docs-shell__toc),
-.prism-docs-shell__body:has(+ .prism-docs-shell__toc) {
-  grid-template-columns: 240px minmax(0, 1fr) 200px;
-}
-
-.prism-docs-shell__nav,
-.prism-docs-shell__toc ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 13px;
-  display: grid;
-  gap: 6px;
-}
-
-.prism-docs-shell__nav .prism-docs-shell__nav {
-  padding-left: 14px;
-  margin-top: 6px;
-}
-
-.prism-docs-shell__nav a,
-.prism-docs-shell__toc a {
-  color: var(--prism-color-text);
-  opacity: 0.78;
-  text-decoration: none;
-}
-
-.prism-docs-shell__nav a:hover,
-.prism-docs-shell__toc a:hover {
-  opacity: 1;
-  text-decoration: none;
-  color: var(--prism-color-primary);
-}
-
-/* Sidebar group headers — DocsShell renders separators as links without href. */
-.prism-docs-shell__nav a:not([href]) {
-  display: block;
-  margin: 18px 0 4px;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.prism-docs-shell__nav a:not([href]):first-child {
-  margin-top: 0;
-}
-
-.prism-docs-shell__sidebar,
-.prism-docs-shell__toc {
-  position: sticky;
-  top: 84px;
-  align-self: start;
-  max-height: calc(100vh - 108px);
-  overflow: auto;
-}
-
-.prism-docs-shell__toc {
-  display: none;
-}
-
-@media (min-width: 1080px) {
-  .prism-docs-shell__toc {
-    display: block;
+@media (max-width: 64rem) {
+  .site-sources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.prism-docs-shell__title {
-  font-variation-settings: 'wdth' 118, 'wght' 600;
-  letter-spacing: -0.01em;
-  margin-bottom: 4px;
+@media (max-width: 40rem) {
+  .site-sources {
+    grid-template-columns: 1fr;
+  }
 }
 
-.prism-docs-shell__description {
-  margin: 0 0 8px;
-  opacity: 0.78;
-  line-height: 1.65;
+.site-display em {
+  font-style: italic;
 }
 
-.prism-docs-shell__neighbours {
+.site-cta-row {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 56px;
-  padding-top: 20px;
-  border-top: 1px solid var(--prism-color-border-secondary);
-  font-size: 13px;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
 }
 
-.prism-docs-shell__neighbours a:last-child {
-  margin-left: auto;
-  text-align: right;
-}
-
-.prism-blog-layout__post {
-  max-width: 780px;
-  margin: 0 auto;
-}
-
-.prism-blog-layout__title {
-  font-variation-settings: 'wdth' 118, 'wght' 600;
-  letter-spacing: -0.01em;
-  margin-bottom: 6px;
-}
-
-.prism-blog-layout__description {
-  margin: 0 0 8px;
-  opacity: 0.78;
-  line-height: 1.65;
-}
-
-.prism-blog-layout__meta-info {
+.site-status {
+  align-items: center;
+  color: var(--muted-foreground);
   display: flex;
-  gap: 12px;
-  align-items: baseline;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  opacity: 0.66;
-}
-
-.prism-blog-layout__tags {
-  display: flex;
-  gap: 8px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.prism-blog-layout__draft {
+  font-family: var(--site-mono);
+  font-size: 0.75rem;
+  gap: 0.5625rem;
+  letter-spacing: 0.08em;
+  margin: 1.75rem 0 0;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
-/* ---------- MDX prose ---------- */
-
-.site-prose {
-  line-height: 1.72;
-  font-size: 15px;
-}
-
-.site-prose h2 {
-  font-variation-settings: 'wdth' 114, 'wght' 600;
-  margin: 40px 0 12px;
-  scroll-margin-top: 84px;
-}
-
-.site-prose h3 {
-  font-variation-settings: 'wdth' 110, 'wght' 600;
-  margin: 32px 0 10px;
-  scroll-margin-top: 84px;
-}
-
-.site-prose p {
-  margin: 12px 0;
-  max-width: 72ch;
-}
-
-.site-prose ul,
-.site-prose ol {
-  padding-left: 22px;
-  max-width: 70ch;
-}
-
-.site-prose li {
-  margin: 6px 0;
-}
-
-.site-prose code {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 13px;
-  background: var(--prism-color-fill-tertiary);
-  border-radius: 4px;
-  padding: 2px 6px;
-}
-
-.site-prose pre {
-  background: var(--prism-color-bg-container);
-  border: 1px solid var(--prism-color-border-secondary);
-  border-radius: 4px;
-  padding: 14px 16px;
-  overflow: auto;
-}
-
-.site-prose pre code {
-  background: none;
-  padding: 0;
-}
-
-.site-prose table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 14px;
-  margin: 16px 0;
-}
-
-.site-prose th,
-.site-prose td {
-  border: 1px solid var(--prism-color-border-secondary);
-  padding: 8px 12px;
-  text-align: left;
-  vertical-align: top;
-}
-
-.site-prose th {
-  background: var(--prism-color-fill-tertiary);
-  font-weight: 600;
-}
-
-.site-prose blockquote {
-  margin: 16px 0;
-  padding: 4px 0 4px 16px;
-  border-left: 2px solid var(--al-hairline-strong);
-  opacity: 0.84;
-}
-
-/* The <Note> status device — washed hairline panel + mono ink label. */
-.site-note {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  border: 1px solid var(--al-hairline);
-  border-radius: 4px;
-  padding: 12px 16px;
-  font-size: 13.5px;
-  line-height: 1.6;
-  opacity: 0.88;
-  background: var(--al-wash);
-  margin: 20px 0 24px;
-}
-
-.site-note__label {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--prism-color-primary);
-  margin-right: 6px;
-  white-space: nowrap;
+/* The live dot. `bg-success` rather than the pack's `primary`, because a dot that means
+   "running" should read as running in every pack, and a pastel brand value fails
+   contrast as a fill on a light card. The words beside it are what a reader is told; the
+   dot is `aria-hidden` and only what a reader sees. */
+.site-live-dot {
+  background: var(--success);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  display: inline-block;
   flex: none;
+  height: 0.4375rem;
+  width: 0.4375rem;
 }
 
-.site-note__body p:first-child {
-  margin-top: 0;
-}
-
-.site-note__body p:last-child {
-  margin-bottom: 0;
-}
-
-/* ---------- docs index ---------- */
+/* ---------- the documentation section index ---------- */
 
 .site-docs-index__grid {
-  list-style: none;
-  margin: 24px 0 0;
-  padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
 }
 
+/* The twelve edges on this page that the catalogue does not draw, plus the three the
+   prose device and this page's own device own. Every one of them reads `--site-border`,
+   and that is the whole point: a shorthand with one dead operand erases the declaration
+   rather than repainting it, so a colour token is the wrong thing for a border and a
+   border token is the right one. `test/borders.test.ts` holds the count. */
 .site-docs-index__card {
+  border: var(--site-border);
+  border-radius: var(--radius-md);
+  color: inherit;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.375rem;
   height: 100%;
-  border: 1px solid var(--prism-color-border-secondary);
-  border-radius: 4px;
-  padding: 16px 18px;
-  background: color-mix(in srgb, var(--prism-color-bg-container) 45%, transparent);
-  color: var(--prism-color-text);
+  padding: 1rem 1.125rem;
+  text-decoration: none;
 }
 
 .site-docs-index__card:hover {
+  border-color: var(--primary);
   text-decoration: none;
-  border-color: var(--prism-color-primary);
 }
 
 .site-docs-index__title {
+  color: var(--brand-ink);
   font-weight: 600;
-  font-variation-settings: 'wdth' 112;
+  letter-spacing: -0.025rem;
 }
 
 .site-docs-index__description {
-  font-size: 13px;
-  line-height: 1.6;
-  opacity: 0.72;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.429;
+  text-wrap: pretty;
 }
 
-/* ---------- blog index ---------- */
+/* The status note the index opens on, so the tiers are stated once before the list is
+   read. A tier repeated on every section heading is a badge in all but name, and a badge
+   beside a section says the sections are independent topics. */
+.site-status-note {
+  border: var(--site-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+  padding: 0.875rem 1rem;
+}
+
+.site-status-note__label {
+  color: var(--brand-ink);
+  font-family: var(--site-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.site-status-note__body {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ---------- the blog index, which the catalogue deliberately does not ship ---------- */
 
 .site-catalog {
-  padding: 24px 0 96px;
+  margin-inline: auto;
+  max-width: 72rem;
+  padding: 3rem 1.5rem 4rem;
 }
 
-.site-blog-index__title {
-  font-variation-settings: 'wdth' 120, 'wght' 620;
-  letter-spacing: -0.015em;
-  margin: 40px 0 0;
+.site-catalog__title {
+  color: var(--brand-ink);
+  font-size: clamp(1.875rem, 3.6vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.025rem;
+  line-height: 1.2;
+  margin: 0 0 0.25rem;
+  text-wrap: balance;
 }
 
-.site-catalog .prism-blog-layout {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 24px;
+.site-catalog__lede {
+  color: var(--muted-foreground);
+  line-height: 1.556;
+  margin: 0 0 1.75rem;
+  max-width: var(--container-measure);
+  text-wrap: pretty;
 }
 
-.site-blog-index__lede {
-  opacity: 0.75;
-  max-width: 60ch;
-  line-height: 1.65;
-}
-
-.site-blog-index {
+.site-blog-list {
+  display: grid;
+  gap: 1.75rem;
   list-style: none;
-  margin: 32px 0 0;
+  margin: 0.5rem 0 0;
   padding: 0;
 }
 
-.site-blog-index li {
-  display: grid;
-  grid-template-columns: 110px minmax(0, 1fr);
-  grid-template-areas:
-    'time title'
-    'time blurb';
-  column-gap: 20px;
-  padding: 18px 0;
-  border-top: 1px solid var(--prism-color-border-secondary);
-}
-
-.site-blog-index time {
-  grid-area: time;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 11px;
-  opacity: 0.6;
-  padding-top: 3px;
-}
-
-.site-blog-index__link {
-  grid-area: title;
-  font-weight: 620;
-  font-size: 17px;
-  font-variation-settings: 'wdth' 112;
+.site-blog-list__title {
+  color: var(--brand-ink);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025rem;
   text-decoration: none;
-  color: var(--prism-color-text);
 }
 
-.site-blog-index__link:hover {
+.site-blog-list__title:hover {
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 0.25rem;
 }
 
-.site-blog-index__blurb {
-  grid-area: blurb;
-  font-size: 13px;
-  line-height: 1.6;
-  opacity: 0.7;
+.site-blog-list__description {
+  color: var(--muted-foreground);
+  line-height: 1.556;
+  margin: 0.375rem 0;
+  max-width: var(--container-measure);
+  text-wrap: pretty;
+}
+
+.site-blog-list__meta {
+  color: var(--muted-foreground);
+  margin: 0;
 }
 
 .site-empty {
-  margin-top: 20px;
-  opacity: 0.72;
-  max-width: 52ch;
-  line-height: 1.7;
+  color: var(--muted-foreground);
+  line-height: 1.625;
+  margin-top: 1.25rem;
+  max-width: var(--container-measure-narrow);
+  text-wrap: pretty;
+}
+
+/* ---------- the status device the docs corpus marks its claims with ---------- */
+
+/*
+ * `<Note status="Live">` is a labelled panel rather than a badge, and the label is the
+ * point: the corpus marks every claim live / approved / designed / research direction
+ * and says which in the same voice everywhere. It is a site component rather than a
+ * catalogue item because the catalogue's `Alert` takes a `variant` and a title prop
+ * with no notion of a status word in a product's own vocabulary, and the word is the
+ * whole of this device.
+ */
+.site-note {
+  border: var(--site-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  padding: 0.875rem 1rem;
+}
+
+/* A documentation section's own heading in the index grid, and the grid of cards under
+   it. The heading is a `span`-worthy label: the cards below it are the destinations, and
+   a section is a place in the corpus rather than a page of it. */
+.site-docs-section {
+  margin-top: 2.5rem;
+}
+
+.site-docs-section__title {
+  color: var(--brand-ink);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025rem;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.site-note__label {
+  color: var(--brand-ink);
+  font-family: var(--site-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.site-note__body {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-width: var(--container-measure);
+  text-wrap: pretty;
 }
 
 /* ---------- narrow screens ---------- */
 
-@media (max-width: 1080px) {
-  .al-survey {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .prism-docs-shell__body {
-    grid-template-columns: 220px minmax(0, 1fr);
-  }
-}
-
-@media (max-width: 960px) {
-  .al-hero {
-    padding-top: 56px;
-  }
-
-  .al-hero__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .al-panel {
-    min-height: 380px;
-  }
-
-  .al-section {
-    padding: 72px 0;
-  }
-
-  .al-cards,
-  .al-feats,
-  .al-bon {
-    grid-template-columns: 1fr;
-  }
-
-  .al-rail {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px 20px;
-  }
-
-  .al-row,
-  .al-ledger--pipeline .al-row {
-    grid-template-columns: 16px minmax(0, 1fr);
-  }
-
-  .al-row__bullets,
-  .al-row__reads,
-  .al-row__note {
-    grid-column: 2;
-  }
-
-  .al-row__status {
-    grid-column: 2;
-  }
-
-  .prism-docs-shell__body {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 32px;
-  }
-
-  .prism-docs-shell__sidebar {
-    position: static;
-    max-height: none;
-  }
-
+@media (max-width: 640px) {
   .site-docs-index__grid {
     grid-template-columns: 1fr;
-  }
-
-  .al-about__facts {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .al-shell {
-    padding-inline: 20px;
-  }
-
-  .al-survey,
-  .al-rail {
-    grid-template-columns: 1fr;
-  }
-
-  .al-ticker {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .al-section__tier {
-    margin-left: 0;
-  }
-
-  .site-blog-index li {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'time'
-      'title'
-      'blurb';
   }
 }
