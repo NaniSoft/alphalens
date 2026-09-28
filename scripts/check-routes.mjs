@@ -2,7 +2,7 @@
  * The route inventory: every address this site emits, and every published document it
  * deliberately does not emit.
  *
- * `check-links.mjs` resolves every internal destination against the emitted routes. It
+ * the links gate in `@nanisoft/prism-ui/gates` resolves every internal destination against the emitted routes. It
  * cannot see the other half of the question, which is the one this file exists for: a
  * **published document with no route**. Every document in `content/` is published, and
  * the destination forbids editing any of them, so a document with no address is a fact

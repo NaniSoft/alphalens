@@ -22,7 +22,7 @@ import { revealArmScript } from '@/lib/reveal-arm';
  * were false: the content is in the document, and nothing has armed the state that would
  * hide it.
  *
- * `scripts/check-hidden-state.mjs` is the other half, and neither file is sufficient
+ * the hidden-state gate in `@nanisoft/prism-ui/gates` is the other half, and neither file is sufficient
  * alone: this one would pass against a sheet that hid nothing, and that one would pass
  * against a page that hid everything.
  */
