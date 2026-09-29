@@ -1,16 +1,16 @@
 import type { ReactElement } from 'react';
-import { CtaLink } from '@nanisoft/prism-ui/components/cta-link';
 import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
 import { Cta01 } from '@nanisoft/prism-ui/blocks/cta-01';
 import { FeatureGrid01 } from '@nanisoft/prism-ui/blocks/feature-grid-01';
+import { Hero01 } from '@nanisoft/prism-ui/blocks/hero-01';
 import { InstrumentPanel01 } from '@nanisoft/prism-ui/blocks/instrument-panel-01';
 import { LogoStrip01 } from '@nanisoft/prism-ui/blocks/logo-strip-01';
 import { NoteGrid01 } from '@nanisoft/prism-ui/blocks/note-grid-01';
 import { ProcessRail01 } from '@nanisoft/prism-ui/blocks/process-rail-01';
 import { ProductGrid01 } from '@nanisoft/prism-ui/blocks/product-grid-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
+import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
 
-import { CapturedPathDiagram } from '@/components/CapturedPathDiagram';
 import { RevealRoot } from '@/components/RevealRoot';
 import {
   BUILT_ON_NEXUS,
@@ -23,6 +23,7 @@ import {
   FEED_SOURCES,
   FINAL_CTA,
   HERO,
+  HERO_FIGURE,
   HERO_PANEL,
   PATH_FEATURES,
   PIPELINE_NOTE,
@@ -149,55 +150,58 @@ const DATA_PATH_STEPS = [
 export function Landing(): ReactElement {
   return (
     <RevealRoot>
-      {/* Hero: the thesis as the page's h1, then the panel that carries the one diagram
-          on the page. The panel is the catalogue's own, so the bar, the state dot, the
-          frame's edge and the footnote are its rules rather than this site's, and that
-          frame's edge is one of the fifteen that used to vanish. */}
-      <Section>
-        <div className="site-hero">
-          <div className="site-hero__copy">
-            <SectionHeading
-              as="h1"
-              align="left"
-              className="site-display"
-              eyebrow={HERO.eyebrow}
-              title={
-                <>
-                  {HERO.h1Leading}
-                  <em>{HERO.h1Em}</em>
-                  {HERO.h1Trailing}
-                </>
-              }
-              description={HERO.sub}
-            />
-            <div className="site-cta-row">
-              {/* Both actions are anchors. The old page passed a destination to a
-                  component that rendered a button, so the page's primary action was
-                  announced as a command that navigated nothing; that is the one
-                  rendered change the whole migration exists to make. */}
-              <CtaLink href={HERO.primaryCta.href} size="lg">
-                {HERO.primaryCta.label}
-              </CtaLink>
-              <CtaLink href={HERO.secondaryCta.href} size="lg" variant="outline">
-                {HERO.secondaryCta.label}
-              </CtaLink>
-            </div>
-            <p className="site-status">
-              <span className="site-live-dot" aria-hidden />
-              {HERO.status}
-            </p>
-          </div>
+      {/* Hero: the thesis as the page's h1, then the panel carrying the one figure on
+          the page.
 
+          The figure is the four documented stages on a rail with a marker travelling
+          it, which is the capture this site actually performs, once per market minute.
+          It replaced an instrument that drew an open-interest profile from a sine
+          hash under a label reading as a live feed, and the trade is deliberate in
+          both directions: the rail is less spectacular than a profile, and it is true,
+          and it is still true with every animation stopped.
+
+          The band around it is the catalogue's, so the column split and the width at
+          which the columns stack are one decision made in the place that owns the
+          container contract rather than four sites' four grids. The panel is the
+          catalogue's too, so the bar, the state dot, the frame's edge and the
+          footnote are its rules rather than this site's, and that frame's edge is one
+          of the fifteen that used to vanish. */}
+      <Hero01
+        headingLevel="h1"
+        eyebrow={HERO.eyebrow}
+        title={
+          <>
+            {HERO.h1Leading}
+            <em>{HERO.h1Em}</em>
+            {HERO.h1Trailing}
+          </>
+        }
+        description={HERO.sub}
+        actions={[
+          { ...HERO.primaryCta },
+          { ...HERO.secondaryCta, variant: 'outline' as const },
+        ]}
+        instrument={
           <InstrumentPanel01
             label={HERO_PANEL.label}
             state="neutral"
             stateLabel={HERO_PANEL.mode}
             footnote={HERO_PANEL.footnote}
-            caption="The four stages the AlphaLens collector runs each market minute."
+            caption={HERO_FIGURE.aria}
           >
-            <CapturedPathDiagram />
+            <PulseGraph
+              nodes={HERO_FIGURE.nodes}
+              relations={HERO_FIGURE.relations}
+              label={HERO_FIGURE.aria}
+            />
           </InstrumentPanel01>
-        </div>
+        }
+      />
+      <Section className="site-hero-status">
+        <p className="site-status">
+          <span className="site-live-dot" aria-hidden />
+          {HERO.status}
+        </p>
       </Section>
 
       {/* The honesty model as a strip, which is the transition band between the hero

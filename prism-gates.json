@@ -32,7 +32,7 @@
   },
   "hidden-state": {
     "sheets": ["app/globals.css"],
-    "minRules": 50,
+    "minRules": 45,
     "marker": "data-reveal",
     "armed": "data-reveal-armed",
     "sourceRoots": ["app", "components", "lib"]

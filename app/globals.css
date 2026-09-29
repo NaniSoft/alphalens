@@ -175,18 +175,18 @@ html[data-reveal-armed] [data-reveal].is-in {
  * instrument column is a reading column and a picture column, and a reading column
  * narrower than about thirty characters stops being readable.
  */
-.site-hero {
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: center;
-}
-
-@media (min-width: 64rem) {
-  .site-hero {
-    gap: clamp(2rem, 4vw, 4.5rem);
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  }
+/*
+ * The one band under the hero that this site still draws itself.
+ *
+ * The status line is a footnote to the thesis rather than a section, and a
+ * section's worth of padding above and below it would give it the weight of a
+ * claim it is not making. The hero's own band is no longer here at all: the
+ * column split, the gap and the width at which the columns stack are the
+ * catalogue's decision now, made once in the place that owns the container
+ * contract, rather than four sites' four grids.
+ */
+.site-hero-status {
+  padding-block: 0 4rem;
 }
 
 /* The display scale, which the catalogue's `Heading` does not reach: this is a landing

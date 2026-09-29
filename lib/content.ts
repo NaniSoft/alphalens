@@ -53,6 +53,45 @@ export const HERO_STAGES = [
   { name: 'Archive', role: 'xz-compressed, swept on retention, verified before the local copy goes' },
 ] as const;
 
+/**
+ * The capture path as the running figure the hero draws.
+ *
+ * The four documented stages on one rail, each a lane, each edge carrying, so the
+ * drawing grows a marker that travels from the first chain call to the verified
+ * archive. The node names are the four stage names this site publishes and the
+ * notes are their own `role` lines, so the figure introduces no claim and no number.
+ *
+ * **This is the figure the retired hero's instrument was replaced by, and the
+ * replacement is the point.** The old instrument drew an open-interest profile from
+ * `Math.sin`, labelled it a live view, and put the words not a live quote in
+ * nine-point type underneath. That was a fabrication wearing a real typeface, and
+ * no reader could tell by looking. A rail of the four stages this site documents is
+ * the opposite trade: less spectacular, and true, and still true with every
+ * animation stopped, which is the test the design system's second law of motion
+ * sets.
+ *
+ * Note what is deliberately absent. There are no market values on this figure and
+ * no axis to read them off, so the panel's disclosure that no market values are
+ * drawn describes the drawing rather than apologising for it.
+ */
+export const HERO_FIGURE = {
+  nodes: HERO_STAGES.map((stage, index) => ({
+    id: stage.name.toLowerCase(),
+    name: stage.name.toLowerCase(),
+    x: index / (HERO_STAGES.length - 1),
+    y: 0.5,
+    lane: index,
+    emphasis: stage.name === 'Store',
+  })),
+  relations: HERO_STAGES.slice(0, -1).map((stage, index) => ({
+    from: stage.name.toLowerCase(),
+    to: HERO_STAGES[index + 1]!.name.toLowerCase(),
+    carries: true,
+  })),
+  aria:
+    'The AlphaLens capture path as four stages on one rail: capture, store, summarize and archive, with a marker travelling from one to the next once per market minute.',
+} as const;
+
 /** The status ticker — the honesty model, as a strip under the hero. */
 export const TICKER = [
   'data collector → live since 2026-08-26',

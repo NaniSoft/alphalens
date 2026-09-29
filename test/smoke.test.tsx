@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import HomePage from '@/app/page';
+import { HERO_FIGURE, HERO_STAGES } from '@/lib/content';
 
 // jsdom has no IntersectionObserver and a partial matchMedia; the landing's
 // reveal root must tolerate both.
@@ -127,15 +128,40 @@ describe('the alphalens landing', () => {
     expect(readTheBlog.getAttribute('href')).toBe('/blog');
   });
 
-  it('draws a diagram of the documented stages, and no canvas', () => {
+  it('draws the documented stages running, and no canvas', () => {
     render(<HomePage />);
     // The retired hero drew open interest from a sine hash under a label reading as a
-    // live feed. What is here instead is a diagram of the four stages the collector runs,
-    // which the site documents and a reader can check.
-    const diagram = document.querySelector('[data-slot="diagram"]');
-    expect(diagram).toBeTruthy();
-    expect(diagram?.getAttribute('aria-label')).toMatch(/capture, store, summarize, archive/i);
+    // live feed. What is here instead is the four stages the collector runs, which the
+    // site documents and a reader can check, drawn on a rail with a marker travelling
+    // it once per market minute.
+    //
+    // The figure is a `PulseGraph` rather than the static `Diagram` it was, and the two
+    // carry the same four stages. What is new is that each stage is a lane, so the order
+    // reads as an order, and that every edge grows a head. None of that is decoration:
+    // a reader who stops every animation sees the same four stages in the same order,
+    // which is the test the design system's second law of motion sets.
+    const figure = document.querySelector('[data-slot="pulse-graph"]');
+    expect(figure).toBeTruthy();
+    // The name is read from the content module rather than matched against a phrase,
+    // because the aria sentence is published copy and a test that hard-codes its
+    // wording would fail on a rewrite that changed nothing about the drawing.
+    expect(figure?.getAttribute('aria-label')).toBe(HERO_FIGURE.aria);
+    for (const stage of HERO_STAGES) {
+      expect(figure?.textContent ?? '').toContain(stage.name.toLowerCase());
+    }
     expect(document.querySelector('canvas')).toBeNull();
+
+    // The rail and its marker are the claim about order, and both are in the initial
+    // HTML rather than drawn by a loop this page owns.
+    expect(figure?.querySelector('[data-slot="pulse-graph-rail-line"]')).toBeTruthy();
+    expect(figure?.querySelector('[data-slot="pulse-graph-marker"]')).toBeTruthy();
+    expect(document.querySelector('.prism-ambient-travel')).toBeTruthy();
+
+    // Four stages, four lanes, three carrying edges, and no market values on it: the
+    // panel's disclosure describes the drawing rather than apologising for it.
+    expect(figure?.querySelectorAll('[data-slot="pulse-graph-node"]')).toHaveLength(4);
+    expect(figure?.querySelectorAll('[data-lane]')).toHaveLength(4);
+    expect(figure?.querySelectorAll('[data-slot="pulse-graph-flow"]')).toHaveLength(3);
   });
 
   it('carries the disclosure a market-shaped surface owes, in the panel a reader sees', () => {
