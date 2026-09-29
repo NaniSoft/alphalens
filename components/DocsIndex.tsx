@@ -41,7 +41,7 @@ export function DocsIndex({ pages, labels }: { pages: DocsIndexPage[]; labels: D
   return (
     <DocsShell
       title="Docs"
-      description="AlphaLens in full — the live data platform, the approved data contract, the designed research pipeline, and the engineering story. Every page carries its own status label."
+      description="AlphaLens in full: the live data platform, the approved data contract, the designed research pipeline, and the engineering story. Every page carries its own status label."
       nav={sections.map((section) => ({
         type: 'group',
         title: section.title,
@@ -56,7 +56,7 @@ export function DocsIndex({ pages, labels }: { pages: DocsIndexPage[]; labels: D
         <span className="site-status-note__label">Status</span>
         <span className="site-status-note__body">
           In active development. Claims are labelled <strong>live</strong>,{' '}
-          <strong>approved / designed</strong>, or <strong>research direction</strong> — the labels
+          <strong>approved / designed</strong>, or <strong>research direction</strong>. The labels
           are the contract between this site and the reader.
         </span>
       </p>

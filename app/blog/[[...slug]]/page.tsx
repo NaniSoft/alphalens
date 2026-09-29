@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: 'Blog',
       description:
-        'Notes from building AlphaLens — live market-data capture, the unified data contract, and the research design above it.',
+        'Notes from building AlphaLens: live market-data capture, the unified data contract, and the research design above it.',
     };
   }
   const page = blogSource.getPage(slug);
@@ -70,13 +70,13 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
         <p className="site-eyebrow">nanisoft · alphalens · blog</p>
         <h1 className="site-catalog__title">Blog</h1>
         <p className="site-catalog__lede">
-          Notes from building AlphaLens — what a live market-data layer actually takes, and the
+          Notes from building AlphaLens: what a live market-data layer actually takes, and the
           research design it makes possible. Every post states plainly what is running and what is
           still design.
         </p>
         {posts.length === 0 ? (
           <p className="site-empty">
-            Nothing published yet. Posts land as <code>content/blog/&lt;slug&gt;/index.mdx</code> —
+            Nothing published yet. Posts land as <code>content/blog/&lt;slug&gt;/index.mdx</code>,
             folder-per-post, required date, display-only tags.
           </p>
         ) : (

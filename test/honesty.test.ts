@@ -204,116 +204,56 @@ describe('the honesty guard', () => {
   });
 
   it('separates the blog index eyebrow with a middot', () => {
-    // The baseline's blog index printed `nanisoft · alphalens · blog`, and this one prints
-    // it too, which is the whole assertion. Two things are being held at once.
+    // The blog index prints `nanisoft · alphalens · blog`, and this asserts the string
+    // itself. The *value* is published, so a change to it is a copy change and belongs in
+    // its own commit; asserting it here puts the failure next to the sentence that
+    // explains it rather than in a list of 949 parity entries that no longer exists.
     //
-    // The *value* is a published string, so changing the middot to a dash would be a copy
-    // edit, and the parity tool would report it as an undeclared difference among 949
-    // entries. Asserting the string here puts the failure next to the sentence that
-    // explains it instead of in a list of 949.
-    //
-    // The *separator* is also a choice, and the law above is what chose it. An em dash here
-    // would have been a fourth dash authored by this migration, in a file whose other three
-    // are frozen, and it would have been the cheapest possible way to make the eyebrow look
-    // like the About page's - which prints `nanisoft · alphalens — about` because that page
-    // is frozen and has always said so. Matching a frozen neighbour is not a licence to
-    // author a new dash, and the middot is what both the baseline and this site use.
+    // The *separator* is a choice rather than an accident, and it is the same choice the
+    // About page makes. An em dash here was the cheapest possible way to make this eyebrow
+    // look like a page that had been typeset rather than assembled, and the About page
+    // carried one for exactly that reason until both were rewritten in the same pass. Two
+    // site labels, one separator, and the separator is the character this family already
+    // used for it.
     const blog = readFileSync(join(ROOT, 'app', 'blog', '[[...slug]]', 'page.tsx'), 'utf8');
     expect(blog).toContain('nanisoft · alphalens · blog');
     expect(blog).not.toContain('nanisoft · alphalens — blog');
   });
 
-  it('adds no em dash, en dash or ??? to the copy this site authors', () => {
-    // Reader-facing copy carries no em dash, no en dash and no `???`. The published copy on
-    // this site is full of all three - 248 strings in the pre-migration baseline carry an
-    // em dash - and it is frozen, so the law cannot be "no dashes anywhere": that would
-    // demand 248 copy edits the migration is forbidden to make, and the demand would be met
-    // by deleting the corpus.
+  it('adds no em dash, en dash or ellipsis to the copy this site authors', () => {
+    // Reader-facing copy carries no em dash, no en dash and no ellipsis, and this used to
+    // be a law with a list attached to it. The list named the six files whose prose came
+    // byte for byte from the pre-migration site, and each entry carried a count, so a new
+    // dash in a frozen file failed while a fixed sentence stayed legal. Forty dashes sat
+    // in those six files.
     //
-    // So the law is the one that can hold: **this site authors no new dashes, and the files
-    // carrying frozen prose do not gain any.** Two halves, because either alone is weak.
+    // The list is gone and so are the dashes. The reason it existed was a dead instrument:
+    // the content-parity baseline it protected was cut from the deployed site when the
+    // migration closed, so "this copy is frozen" stopped being a fact anyone could check
+    // and became a number in a test that a later change would have had to negotiate with.
+    // The six files were rewritten in one pass, the words kept and the punctuation
+    // carrying the pause with a comma, a colon, a full stop or parentheses, and the law
+    // is now the absolute one it was trying to be: every file this scan reads and is not
+    // the published corpus carries zero.
     //
-    // The first half is an exemption list, and it is small and arguable. Each entry names
-    // the files whose prose is the pre-migration page's, byte for byte, and why: the
-    // content-parity baseline was cut from the deployed site, so replacing a dash inside
-    // one of those sentences is a copy edit this migration is not allowed to make. The fix
-    // is a content change and belongs in its own commit with its own reason.
+    // The published corpus is still exempt, and it is exempt wholesale rather than per
+    // file: every `.mdx` under `content/` is a published document, thirty-one of them, and
+    // rewriting the punctuation of thirty-one published documents is a content change
+    // with its own commit and its own reader, not a side effect of a redesign. A new
+    // document in the corpus is a new published document and is out of scope for the same
+    // reason, so a size-based floor on the corpus adds nothing.
     //
-    // The second half is what stops the list becoming a hole: each exempt file's dash count
-    // is asserted against a number recorded here, so a new dash added to a frozen file fails
-    // without anybody maintaining a list of sentences. A count is a blunt instrument - it
-    // cannot tell a fixed sentence from a new one - and it is paired with the first half
-    // for exactly that reason. What it can do is catch growth, and growth is the way a
-    // frozen file starts quietly becoming an edited one.
-    //
-    // The paths are matched on a suffix with both separators spelled out, because the same
-    // test runs on Windows and on Linux and a separator is the only thing that differs. A
-    // path that matched on one platform and not the other is a gate that passes somewhere
-    // and fails somewhere else, which is worse than no gate.
-    const FROZEN: ReadonlyArray<{ path: string; dashes: number; why: string }> = [
-      {
-        path: 'app/about/page.tsx',
-        dashes: 7,
-        why: 'The About page\'s prose, carried verbatim from the pre-migration page.',
-      },
-      {
-        path: 'lib/content.ts',
-        dashes: 21,
-        why: 'The landing\'s copy, which is published text and frozen by the same argument.',
-      },
-      {
-        path: 'app/layout.tsx',
-        dashes: 2,
-        why: 'The site\'s default title and description, both published strings in the baseline.',
-      },
-      {
-        path: 'app/blog',
-        dashes: 3,
-        why: 'The blog index\'s metadata and its empty-state sentence, both published strings.',
-      },
-      {
-        path: 'components/DocsIndex.tsx',
-        dashes: 2,
-        why: 'The documentation index\'s description, published in the baseline at the same address.',
-      },
-      {
-        path: 'components/Landing.tsx',
-        dashes: 5,
-        why:
-          'The section descriptions, which are the retired page\'s paragraphs. The em dashes are inside\n' +
-          '      those paragraphs, not in anything this migration wrote.',
-      },
-    ];
-
-    const exempt = (path: string) =>
-      FROZEN.find((entry) => path.includes(entry.path) || path.includes(entry.path.split('/').join('\\')));
-
+    // Comments are not reader-facing copy, so the count is over the code alone. Several
+    // files here quote the retired page's own sentences to explain what changed, and a raw
+    // scan would fail on the documentation of the fix.
     for (const { path, text } of sources()) {
-      // The published corpus is frozen wholesale and is the largest exemption there is, so
-      // it is stated once here rather than as 31 entries: every `.mdx` under `content/` is
-      // published copy the migration is forbidden to edit, and the corpus predates this
-      // rule. A new document in the corpus is a new published document and is out of scope
-      // for the same reason, so a size-based floor on the corpus adds nothing.
       if (path.endsWith('.mdx')) continue;
-
-      // Comments are not reader-facing copy, so the count is over the code alone.
-      const found = dashCount(text);
-      const frozen = exempt(path);
-      if (!frozen) {
-        expect(
-          found,
-          `${path} introduces ${found} em dash, en dash or ??? into copy this site authors. A sentence\n` +
-            '    written here uses a semicolon, a colon or a full stop where it would otherwise reach for a dash.',
-        ).toBe(0);
-        continue;
-      }
       expect(
-        found,
-        `${path} carries ${found} dash(es) and the frozen count is ${frozen.dashes}. ${frozen.why}\n` +
-          '    A new dash in a file whose prose is frozen is a copy edit, and this migration does not make one:\n' +
-          '    the parity baseline is cut from the deployed site. Fix the sentence and the count together, or\n' +
-          '    decide the copy change deliberately and record it in the expectations file.',
-      ).toBe(frozen.dashes);
+        dashCount(text),
+        `${path} carries an em dash, an en dash or an ellipsis in copy a reader meets. A sentence\n` +
+          '    written here uses a comma, a colon, a full stop or parentheses where it would otherwise\n' +
+          '    reach for a dash.',
+      ).toBe(0);
     }
   });
 

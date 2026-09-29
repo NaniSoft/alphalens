@@ -12,11 +12,10 @@ import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
  * link preview read, and the lede under the `h1` that a reader reads. Those were two
  * literals of the same sentence, and two literals have to be kept in step by hand, which
  * is how this page came to print a comma under the heading where the published page has
- * a dash. One constant feeds both, so they cannot drift, and the sentence stays frozen
- * because nothing has to be retyped to change it.
+ * a dash. One constant feeds both, so they cannot drift.
  */
 const DESCRIPTION =
-  'AlphaLens in plain terms: a live Indian-market data layer, an approved contract, and a research design above them — labelled honestly at every step.';
+  'AlphaLens in plain terms: a live Indian-market data layer, an approved contract, and a research design above them, labelled honestly at every step.';
 
 export const metadata: Metadata = {
   title: 'About',
@@ -65,7 +64,7 @@ export default function AboutPage(): ReactElement {
         as="h1"
         align="left"
         className="site-display"
-        eyebrow="nanisoft · alphalens — about"
+        eyebrow="nanisoft · alphalens · about"
         title="The market, as one feed."
         description={DESCRIPTION}
       />
@@ -83,8 +82,8 @@ export default function AboutPage(): ReactElement {
           AlphaLens is Nanisoft&rsquo;s quantitative research platform for the Indian (NSE/BSE)
           market. Its starting point is unglamorous and decisive: an agent cannot reason about a
           market it cannot read. Before any strategy work means anything, someone has to capture
-          the whole surface — every strike, every minute, with the volatility and the Greeks
-          attached — and hand it over in a shape that does not shift underneath the reader.
+          the whole surface (every strike, every minute, with the volatility and the Greeks
+          attached) and hand it over in a shape that does not shift underneath the reader.
         </p>
         <p>
           That is what AlphaLens is today. A production collector has been capturing the full
@@ -112,7 +111,7 @@ export default function AboutPage(): ReactElement {
           </li>
           <li>
             <strong>Research direction.</strong> Strategy backtesting, discovery and validation.
-            These are where the infrastructure points — never presented as features, because
+            These are where the infrastructure points, never presented as features, because
             they are not features.
           </li>
         </ul>
@@ -124,9 +123,9 @@ export default function AboutPage(): ReactElement {
 
         <h2>Why the data layer leads</h2>
         <p>
-          Because it is the part that took the engineering. A full option chain at index scale,
-          every sixty seconds, inside a retail API&rsquo;s rate budget — that turned out to be a
-          measurement problem before it was a code problem. The answer, from a live spike in
+            Because it is the part that took the engineering. A full option chain at index scale,
+            every sixty seconds, inside a retail API&rsquo;s rate budget, turned out to be a
+            measurement problem before it was a code problem. The answer, from a live spike in
           August 2026, was that the REST option-chain endpoint returns the entire per-minute
           snapshot in about two calls, and the WebSocket that looked mandatory carries none of
           the fields that matter.
@@ -144,7 +143,7 @@ export default function AboutPage(): ReactElement {
           AlphaLens is one of three Nanisoft products on one platform, and the platform has a
           factory behind it: Nexus turns an issue into a reviewed, merged change, so building
           each product becomes repeatable. Nexus is in active development and building in the
-          open — the same honesty this page applies to the option chain. Prism is the design
+          open under the same labels as the option chain. Prism is the design
           language every Nanisoft site wears, including this one.
         </p>
       </Prose>

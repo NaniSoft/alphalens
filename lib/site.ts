@@ -82,3 +82,22 @@ export const PRODUCTS: readonly SwitcherProduct[] = site.products.map((product) 
   pack: pack(product.pack),
   href: product.href,
 }));
+
+/**
+ * The other products, which is what the header's switcher draws.
+ *
+ * **The product the reader is already on is not in this set, and that is the fix.** The
+ * header drew the brand lockup and then, immediately after it, a switcher whose first
+ * member was the same product in the same colour at a smaller size, so the bar opened
+ * with the word AlphaLens twice and a reader had to work out which of the two was the
+ * link they were on. The brand lockup already answers that: it is this page's mark, and
+ * it is the destination `/`, which is where the reader already is. So the switcher
+ * carries the three products beside it and means what its own label says: the platform.
+ *
+ * Every destination the old switcher published is still published. `/` is the brand
+ * lockup and the footer's first link, and the other four are the three marks here plus
+ * `www`, so nothing a reader could reach has gone anywhere.
+ */
+export const SIBLING_PRODUCTS: readonly SwitcherProduct[] = PRODUCTS.filter(
+  (product) => product.id !== SITE_PRODUCT.id,
+);

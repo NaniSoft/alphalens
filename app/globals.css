@@ -32,7 +32,10 @@
  * What is left is the site's own chrome: a documentation section index, the blog list
  * (which the catalogue deliberately does not ship, because the four blog lists in this
  * family are four deliberate designs), the prose device the corpus marks its claims
- * with, and the status note the docs index opens on.
+ * with, the status note the docs index opens on, the eight-source survey, and the two
+ * rules that correct something the catalogue cannot know about: that the honesty strip
+ * is read from the left, and that the hero's figure is dropped on a screen too narrow to
+ * draw its type at a size a reader can read.
  */
 
 /*
@@ -178,15 +181,28 @@ html[data-reveal-armed] [data-reveal].is-in {
 /*
  * The one band under the hero that this site still draws itself.
  *
- * The status line is a footnote to the thesis rather than a section, and a
- * section's worth of padding above and below it would give it the weight of a
- * claim it is not making. The hero's own band is no longer here at all: the
- * column split, the gap and the width at which the columns stack are the
- * catalogue's decision now, made once in the place that owns the container
- * contract, rather than four sites' four grids.
+ * The status line is a footnote to the thesis rather than a section, and a section's
+ * worth of padding above and below it gives a one-line claim the weight of a claim it is
+ * not making. It used to carry `padding-block: 0 4rem` and its own top margin, and the
+ * strip below it brought its own padding, so a reader scrolled through two empty bands
+ * to reach the first sentence of the page. Both are gone: the band is a line's height of
+ * padding under the hero, and the line's own margin is zero, because the gap above a
+ * footnote belongs to the thing the footnote is attached to and `Section` already has it.
  */
-.site-hero-status {
-  padding-block: 0 4rem;
+.site-status-band {
+  padding-block: 0 0.5rem;
+}
+
+.site-status {
+  align-items: center;
+  color: var(--muted-foreground);
+  display: flex;
+  font-family: var(--site-mono);
+  font-size: 0.75rem;
+  gap: 0.5625rem;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
 }
 
 /* The display scale, which the catalogue's `Heading` does not reach: this is a landing
@@ -284,23 +300,56 @@ html[data-reveal-armed] [data-reveal].is-in {
   font-style: italic;
 }
 
+/*
+ * The honesty strip, left aligned.
+ *
+ * `LogoStrip01` centres its items, and centred is the right answer for a row of logos,
+ * which are all the same shape and read as one mark. These five items are sentences of
+ * different lengths, so centred they wrap onto two lines that are ragged at both ends and
+ * read as a layout accident rather than as a band. A status strip is a thing a reader
+ * scans from the left, so it starts at the left.
+ *
+ * It is one declaration of one layout property, it is passed as the Block's own
+ * `className`, and the Block's `className` is documented as layout only. Nothing here
+ * touches a colour, a radius, a border or a typeface, so a pack boundary above it, a mode
+ * change and both themes resolve exactly as they do everywhere else on the page.
+ */
+.site-tiers {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/*
+ * The hero's panel, withdrawn on a phone.
+ *
+ * `PulseGraph` draws into a fixed 640 by 360 canvas and its stage names are 13 user
+ * units of type, so the name under a node is a function of how wide the drawing is. At
+ * 390px the panel is the width of the container, the drawing scales with it, and the
+ * names render at about seven pixels: a picture too small to read is a picture that
+ * should not be on the page. The four stages the panel draws are stated in words one
+ * section down and in the panel's own disclosure, so nothing is lost by leaving the
+ * smallest screen without it, and the panel comes back at the width where its type is
+ * legible rather than at the width where it fits.
+ *
+ * The class is on the hero rather than on the panel because `Hero01` is what owns the
+ * slot, and the rule is scoped to it, so nothing else on the page can inherit the
+ * withdrawal by carrying the same attribute.
+ */
+@media (max-width: 40rem) {
+  .site-hero [data-slot='hero-01-instrument'] {
+    display: none;
+  }
+}
+
+/* The pair of actions a page opens with, and the pair it closes with. The bottom margin
+   is the fix for a gap that was missing rather than for one that was wrong: `Prose` and
+   `FactList` both start flush, so a row of buttons above either of them sat with its
+   descenders against the first line of the paragraph under it. */
 .site-cta-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 2rem;
-}
-
-.site-status {
-  align-items: center;
-  color: var(--muted-foreground);
-  display: flex;
-  font-family: var(--site-mono);
-  font-size: 0.75rem;
-  gap: 0.5625rem;
-  letter-spacing: 0.08em;
-  margin: 1.75rem 0 0;
-  text-transform: uppercase;
+  margin-block: 2rem 2.5rem;
 }
 
 /* The live dot. `bg-success` rather than the pack's `primary`, because a dot that means

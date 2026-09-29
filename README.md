@@ -5,13 +5,15 @@
 Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, one design language ([Prism](https://prism.nanisoft.com)).
 
 - **Live**: https://alphalens.nanisoft.com (Custom Domain, auto-created on deploy)
-- **Pack**: `blush` is the ground, on the document element, and it does not change. Two regions carry a pack that is not the ground: the header's product switcher and the platform product rows, and in both the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape
+- **Pack**: `blush` is the ground, on the document element, and it does not change. Two regions carry a pack that is not the ground: the header's product switcher, which sits in the bar's right-hand slot, and the platform product rows, and in both the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape
 - **Stack**: Next 16 static export · fumadocs-mdx · pnpm · TypeScript strict · oxlint · Vitest (jsdom + Testing Library) · Cloudflare Workers
-- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 0.7.0, pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write
+- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui), pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write
 
 ## What ships
 
-- **Landing** (`/`) — "See the whole market, minute by minute": the thesis with two real links, the instrument panel carrying the one diagram on the page, the status strip, then six numbered sections: **01 what it captures** (live, three capture points) · **02 the data path** (live, the four-stage rail and the six properties of it) · **03 one feed for research** (approved, the eight external sources and the four contract properties) · **04 the research pipeline** (designed, six agent rows) · **05 where it's going** (research direction, three directions with their bullets) · **06 built on Nexus**. It closes on a call to action.
+- **Landing** (`/`) — "See the whole market, minute by minute": the thesis with two real links and the instrument panel carrying the one figure on the page, the product's status, the four key figures as a band (`Stats01`, every number a documented fact), the honesty model as a strip, then six numbered sections, each in the shape its own idea wants: **01 what it captures** (live, three capture points) · **02 the data path** (live, the four-stage rail) · **03 one feed for research** (approved, the eight external sources as a survey of tiles) · **04 the research pipeline** (designed, six agent rows in a ledger) · **05 where it's going** (research direction, three rows in a ledger) · **06 built on Nexus**. It closes on a call to action.
+  - **No section repeats another section's layout family**, which is the one rule the composition is built around and the reason the two grids of short points that used to sit under 02 and 03 are gone: the operations they summarised are documented in full under data platform and data contract, and a summary of a document next to the document is a second thing to keep in step.
+  - **`FeatureGrid01` is the one Block the landing does not use.** It renders its heading with `SectionHeading`'s default alignment, which is centred, while every other section here sets `align="left"`, so on this page it put a centred title above a left-aligned two-column grid with the third card alone on the second row. Filed against the design system rather than worked around; the catalogue gap is a feature grid whose heading alignment the caller can choose.
 - **Docs** (`/docs`) — a section index over `content/docs/` — 27 pages in six sections separated by rules, each section named for subject matter and four of the six describing a pipeline rather than a topic.
 - **Blog** (`/blog`) — the four launch posts over `content/blog/` (folder-per-post, required date, drafts excluded). The index is this site's own composition and CSS, because the four blog lists in this family are four deliberate designs and the design system deliberately ships none. Each post is the design system's blog post Page.
 - **About** (`/about`) — the product's story: why the data layer leads, the three honesty tiers, and a dated fact list.
@@ -25,21 +27,30 @@ app/page.tsx          the landing
 app/about/page.tsx    a section heading, the prose at the measure, the fact list
 app/blog/…            the blog index (site's own) and the blog post (the catalogue's)
 app/docs/…            the section index (site's own grid) and the doc page (the catalogue's)
-app/globals.css       420 lines: the docs index, the blog index, the status device, the reveal
-components/           RevealRoot (the only client component), CapturedPathDiagram, the two docs templates
+app/globals.css       the site's own sheet: the docs index, the blog index, the status
+                      device, the honesty strip's alignment, the hero's narrow-screen
+                      rule, the reveal
+components/           RevealRoot (the only client component) and the two docs templates
 lib/site.json         the ground, the default mode, the product directory
 lib/site.ts           those facts, typed by the design system's pack vocabulary
 lib/content.ts        every word of the landing, as data
-scripts/              the five gates, the parity expectations
+scripts/              the gates, the routes check, the both-modes browser check
 ```
 
-Three things are worth knowing before changing anything here.
+Four things are worth knowing before changing anything here.
 
 **A consumer cannot write a design-system utility class.** The emitted stylesheet is
 compiled from the design system's own source, so a utility exists in it only if a Prism
 component uses it. `mb-12` is safe; a utility Prism happens not to use would do nothing
 and say nothing. Anything this site needs for itself goes in `app/globals.css` as a site
 class.
+
+**The one stylesheet rule a site class may break is a Prism-owned visual property, and
+`className` is the one slot that is not layout.** The hero's band, the section rhythm and
+the strip's centring are the design system's, so this repository takes them as they come
+and spends its two overrides on the two things the catalogue cannot know: that the
+honesty strip is scanned from the left, and that the hero's figure is dropped on a screen
+where its type would be seven pixels tall.
 
 **The site stylesheet owns almost nothing.** It must not declare the page ground, the
 body ink, a focus outline or a hairline colour on a selector with no class in it, and
@@ -118,10 +129,10 @@ itself a finding. The permanent successor asks a question that is true of every
 future build rather than of one migration: does a reader who follows a link on this
 site arrive somewhere.
 
-## The two things this site was wrong about
+## The three things this site was wrong about
 
-Both were live before the migration and both are now gates, so neither can come back
-unnoticed.
+All three were live before the migration and all three are now gates, so none can come
+back unnoticed.
 
 **The focus indicator was the site's, and the site was outranked on every link.** The
 sheet declared a two-pixel outline in the retired line's `primary` token, and prism's own
@@ -141,6 +152,20 @@ whole page below the header and no way out of it. The state is now scoped under 
 attribute one inlined script writes and two things can remove, there is no timer anywhere
 in it, and `test/no-scripting.test.tsx` renders the landing with scripting off and asserts
 the content is present.
+
+**The copy was frozen by an instrument that had been destroyed.** The dash law in
+`test/honesty.test.ts` held reader-facing copy to no em dash, no en dash and no ellipsis,
+and it could not hold that here, so it held something else instead: six files were
+exempt, and each exemption carried a count, because the copy in them was the
+pre-migration page's byte for byte and the content-parity baseline that said so was cut
+from the deployed site when the migration closed. Forty dashes sat in those six files
+under a rule whose stated reason no longer existed, and the cheapest way to satisfy the
+rule later would have been to author a seventh exemption. The six files were rewritten in
+one pass, the words kept and the punctuation carrying the pause with a comma, a colon, a
+full stop or parentheses, the list is gone, and the law is the absolute one it was trying
+to be. The published corpus is still exempt, wholesale and by extension, because
+rewriting the punctuation of thirty-one published documents is a content change with its
+own commit and its own reader.
 
 ## Deploy
 

@@ -1,13 +1,13 @@
 import type { ReactElement } from 'react';
 import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
 import { Cta01 } from '@nanisoft/prism-ui/blocks/cta-01';
-import { FeatureGrid01 } from '@nanisoft/prism-ui/blocks/feature-grid-01';
 import { Hero01 } from '@nanisoft/prism-ui/blocks/hero-01';
 import { InstrumentPanel01 } from '@nanisoft/prism-ui/blocks/instrument-panel-01';
 import { LogoStrip01 } from '@nanisoft/prism-ui/blocks/logo-strip-01';
 import { NoteGrid01 } from '@nanisoft/prism-ui/blocks/note-grid-01';
 import { ProcessRail01 } from '@nanisoft/prism-ui/blocks/process-rail-01';
 import { ProductGrid01 } from '@nanisoft/prism-ui/blocks/product-grid-01';
+import { Stats01 } from '@nanisoft/prism-ui/blocks/stats-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
 import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
 
@@ -15,17 +15,21 @@ import { RevealRoot } from '@/components/RevealRoot';
 import {
   BUILT_ON_NEXUS,
   CAPTURE_CARDS,
-  CONTRACT_FEATURES,
+  CAPTURE_DESCRIPTION,
   DATA_PATH,
   DIRECTIONS,
+  DIRECTIONS_DESCRIPTION,
   DIRECTIONS_MORE,
+  FEED_DESCRIPTION,
   FEED_NOTE,
   FEED_SOURCES,
+  FIGURES,
   FINAL_CTA,
   HERO,
   HERO_FIGURE,
   HERO_PANEL,
-  PATH_FEATURES,
+  PATH_DESCRIPTION,
+  PIPELINE_DESCRIPTION,
   PIPELINE_NOTE,
   PIPELINE_ROWS,
   SECTIONS,
@@ -38,19 +42,23 @@ import { GROUND_PACK, PRODUCTS } from '@/lib/site';
 /**
  * The landing, composed from the design system's catalogue.
  *
- * The old page was a client subtree: a `'use client'` component, a scroll-reveal
- * observer, a canvas that drew invented open interest from a sine hash, a packet that
- * travelled across a rail on a five-second loop, and 11.5 KB of stylesheet. It is now a
- * server component composed from catalogue items plus the reveal root, which is a small
- * client component that exists only to add a class when a marked element scrolls into
- * view and that can withdraw the hidden state's arming on every path.
+ * **One layout family per section, and that is the whole of the visual argument.** The
+ * page used to be six sections of the same shape: an index, a title with its status in
+ * parentheses, a paragraph of two to four lines, then a grid of short points. Read as a
+ * page it was one section repeated six times, which is what "bland" is when a
+ * stylesheet is not at fault. So each section now carries exactly one idea in the shape
+ * that idea wants: the capture points are cards, the data path is a rail, the eight
+ * sources are a survey of tiles, the pipeline is a ledger, the three directions are
+ * terms and their answers, the platform is rows. Two grids of hairline notes used to sit
+ * under sections 02 and 03 as well, which made the sixth section the first one a reader
+ * had already seen three times.
  *
- * **Two fabrications are cut rather than relabelled, and the second is the one that
- * matters.** The hero's canvas drew a curve of open interest from `Math.sin` under a bar
- * reading as a live NIFTY feed, with the word "illustrative" in nine-point type
- * underneath; the panel now holds a `Diagram` of the four documented stages, which are
- * published facts. And the rail's travelling packet was a decorative animation rather
- * than state feedback, and the design system cuts those rather than repairing them.
+ * **The two lists that came off the page went to the documents they were summarising.**
+ * Six properties of the data path and four properties of the contract were on the
+ * landing as well as in `/docs/data-platform` and `/docs/data-contract`, in shorter
+ * form, and a reader who wanted the detail had to guess which page had it. The landing
+ * now states what each one is and links the section that holds the working; the two
+ * lists live in one place each.
  *
  * **The honesty status is a word inside the section's own title, not a badge beside it.**
  * That is the constraint worth restating, because it is easy to undo by accident: a
@@ -66,6 +74,14 @@ import { GROUND_PACK, PRODUCTS } from '@/lib/site';
  * annotation above a title. Where a section needed both an index and a status, the
  * title carries both and the eyebrow carries the index alone, so no Block is asked for
  * two eyebrows and the number is never doubled.
+ *
+ * **The hero dropped its eyebrow and its panel is dropped on a phone.** The eyebrow read
+ * `nanisoft · alphalens` over a headline that already says what this is, and the
+ * catalogue draws an eyebrow as a quiet pill, so the page opened on a badge. And the
+ * panel's drawing is sized in its own user units, so at 390px its stage names render at
+ * seven pixels: a picture too small to read is a picture that should not be on the page,
+ * and the four stages are stated in words one section down. See `app/globals.css` for
+ * the two site classes that do this.
  *
  * It is a server component: no hook beyond the reveal root, no context, no mode, and
  * nothing read at runtime. Every colour resolves through the cascade rather than by
@@ -109,7 +125,7 @@ function FeedSources(): ReactElement {
         className="mb-12"
         eyebrow={SECTIONS[2].index}
         title={sectionTitle(2)}
-        description="The approved unified data contract merges Fyers with the sources Fyers structurally cannot provide into one queryable view — data_feed_view — with a single canonical timestamp, one symbol form, and a column list pinned by test."
+        description={FEED_DESCRIPTION}
       />
       <ul className="site-sources">
         {FEED_SOURCES.map((source) => (
@@ -165,10 +181,12 @@ export function Landing(): ReactElement {
           container contract rather than four sites' four grids. The panel is the
           catalogue's too, so the bar, the state dot, the frame's edge and the
           footnote are its rules rather than this site's, and that frame's edge is one
-          of the fifteen that used to vanish. */}
+          of the fifteen that used to vanish. `site-hero` is the one class on it, and it
+          carries no visual property: it is the hook the narrow-screen rule in
+          `app/globals.css` needs to take the panel away. */}
       <Hero01
+        className="site-hero"
         headingLevel="h1"
-        eyebrow={HERO.eyebrow}
         title={
           <>
             {HERO.h1Leading}
@@ -197,63 +215,83 @@ export function Landing(): ReactElement {
           </InstrumentPanel01>
         }
       />
-      <Section className="site-hero-status">
+
+      {/* The product's own status, as a footnote to the thesis rather than a section.
+          The section's worth of padding it used to carry gave a one-line claim the
+          weight of a claim it is not making, and 4rem of it was followed by the strip's
+          own padding, so a reader scrolled through two empty bands to reach the first
+          sentence of the page. */}
+      <Section className="site-status-band">
         <p className="site-status">
           <span className="site-live-dot" aria-hidden />
           {HERO.status}
         </p>
       </Section>
 
+      {/* The figures, as a band under the hero rather than a section. Four counts, each
+          one a documented fact and each label saying what it counts, because a research
+          page that shows no numbers asks for trust and a research page that invents them
+          is the failure this site was rebuilt to remove. `Stats01` is the catalogue's own
+          KPI block and it ships no numbers of its own. */}
+      <Stats01 stats={FIGURES.map((figure) => ({ label: figure.label, value: figure.value }))} />
+
       {/* The honesty model as a strip, which is the transition band between the hero
-          and the first numbered section. */}
-      <LogoStrip01 items={[...TICKER]} label="What is running and what is design" />
+          and the first numbered section. Left aligned by one site class: centred, five
+          items of different lengths wrap into two ragged centred lines that read as a
+          mistake, and a status band is a thing a reader scans from the left. */}
+      <LogoStrip01 className="site-tiers" items={[...TICKER]} label="What is running and what is design" />
 
       {/* 01, what it captures. Live, and the only part of this page that is simply
-          true. Three capture points, each a title and a sentence, which is what the
-          bare feature grid is for: a grid of features with a tile and an icon reads as
-          an argument rather than a description. */}
-      <FeatureGrid01
+          true. Three capture points, each a title and a sentence, which is what a
+          definition list is for.
+
+          **It was a `FeatureGrid01` and it is not any more.** That Block renders its
+          heading with `SectionHeading`'s default alignment, which is centred, while
+          every other section on this page sets `align="left"`; a centred title above a
+          left-aligned two-column grid is two unrelated pieces, which is the reason
+          `SectionHeading` documents the default as being right for a band that is only
+          a heading. It also put three cards in a two-column grid, so the third sat alone
+          on the second row. The gap is filed against the design system rather than
+          worked around: a feature grid whose heading can be aligned. */}
+      <NoteGrid01
         eyebrow={SECTIONS[0].index}
         title={sectionTitle(0)}
-        description="One process, one minute, the whole surface: the collector has run live since 26 August 2026 and on Kubernetes since 8 September. This is the part of AlphaLens that is simply true."
-        variant="bare"
-        numbered
-        features={CAPTURE_CARDS.map((card) => ({ title: card.title, body: card.body }))}
+        description={CAPTURE_DESCRIPTION}
+        notes={CAPTURE_CARDS.map((card) => ({ title: card.title, body: card.body }))}
       />
 
       {/* 02, the live data path. Four stages, which is exactly what the catalogue's
           process rail admits: `steps` is a tuple of two, three or four and a fifth is a
           compile error rather than a fifth column, because a rail that quietly dropped a
           stage to fit a width would be a diagram of a process that is not the process.
-          The travelling packet that used to cross this rail is gone. */}
+          The travelling packet that used to cross this rail is gone, and so is the grid
+          of six notes that used to follow it: the operations are documented in full under
+          data platform, and a summary of a document next to the document is one more thing
+          to keep in step. */}
       <ProcessRail01
         eyebrow={SECTIONS[1].index}
         title={sectionTitle(1)}
+        description={PATH_DESCRIPTION}
         steps={DATA_PATH_STEPS}
         finalLabel="verified"
       />
-      <NoteGrid01
-        notes={PATH_FEATURES.map((feature) => ({ title: feature.title, body: feature.body }))}
-      />
 
       {/* 03, the approved contract. Eight sources, each a name and a role, which is
-          what the stack grid draws: a survey is a claim that a set of parts is
-          sufficient, and both halves of that claim are the caller's. The grid's `own`
-          arm is not passed, because this site asserts nothing about which of these it
-          built itself and an empty group would make the Block throw for a claim it does
-          not make. */}
+          what the survey is for: a survey is a claim that a set of parts is sufficient,
+          and both halves of that claim are the caller's. The grid's `own` arm is not
+          passed, because this site asserts nothing about which of these it built itself
+          and an empty group would make the Block throw for a claim it does not make. */}
       <FeedSources />
-      <NoteGrid01 notes={CONTRACT_FEATURES.map((feature) => ({ title: feature.title, body: feature.body }))} />
 
       {/* 04, the designed pipeline. Six rows, and this is the place the catalogue's
           four-stage rail does not reach: six is a compile error there rather than a
-          six-column rail, which is the design system refusing the wrong shape rather
-          than a gap this site is working around quietly. So it is a ledger, whose row
-          shape carries a name, a state and a detail line, and the words are unchanged. */}
+          six-column rail, which is the design system refusing the wrong shape rather than
+          a gap this site is working around quietly. So it is a ledger, whose row shape
+          carries a name, a state and a detail line, and the words are unchanged. */}
       <StatusLedger01
         eyebrow={SECTIONS[3].index}
         title={sectionTitle(3)}
-        description="TradingAgents’ anatomy — analysts debating into a trader, overseen by risk, with a reflector keeping the memory — assessed against Indian markets and mapped onto the feed. This is the layer the data platform exists to serve, and it is documented as design because it is design."
+        description={PIPELINE_DESCRIPTION}
         rows={PIPELINE_ROWS.map((row) => ({
           name: row.agent,
           status: 'designed',
@@ -264,17 +302,21 @@ export function Landing(): ReactElement {
         caption={PIPELINE_NOTE}
       />
 
-      {/* 05, where it goes. The same ledger with the `direction` tier, which is one of
-          its four, and the bullets the rows carry. */}
+      {/* 05, where it goes. Three rows and the same `direction` tier the ledger drew
+          for 04, which is a repeated shape on purpose: both sections are inventories of
+          state rather than arguments, and the tier is the thing a reader is scanning for.
+          The blocker travels in the row's bullet, which is the only part of a research
+          direction a reader can act on, and the tier stays in the section title rather
+          than beside each row. */}
       <StatusLedger01
         eyebrow={SECTIONS[4].index}
         title={sectionTitle(4)}
-        description="Quantitative trading research is the destination. The data layer has to exist first, because a backtester over a broken feed produces confident nonsense. What follows is the trajectory — plainly labelled."
+        description={DIRECTIONS_DESCRIPTION}
         rows={DIRECTIONS.map((direction) => ({
           name: direction.title,
-          status: 'direction' as const,
+          status: 'direction',
           statusLabel: STATUS_LABEL[direction.status],
-          bullets: [...direction.bullets],
+          bullets: [direction.body],
         }))}
         caption={DIRECTIONS_MORE}
       />
