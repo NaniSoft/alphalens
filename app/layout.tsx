@@ -1,4 +1,3 @@
-import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
@@ -22,32 +21,25 @@ export const metadata: Metadata = {
     'AlphaLens captures the full NSE option chain every market minute and conforms it into one research-ready feed. A live data layer, an approved contract and a designed research pipeline, labelled honestly.',
 };
 
-// The design system's own first family, and the only file this site loads.
-//
-// `--font-sans` in prism's emitted sheet reads `Inter, ui-sans-serif, system-ui, ...`
-// and 0.7.0 carried no font file, so a site that loads nothing renders in the
-// platform's UI face, which is the one face a design system never means by its first
-// choice. The fallback list prism declares is kept verbatim behind this one, so
-// nothing about the design system's intent changes; the only difference is that its
-// first entry now exists. The migration dropped this site's Archivo and JetBrains Mono
-// and let the display type fall back to the platform face, which is the most visible
-// change the migration made and the wrong one to leave in place.
-//
-// Prism has since shipped Inter as three static woff2 files under the OFL, which
-// means this download now declares the same family the design system already ships
-// and puts a second copy of every glyph on the wire. Removing it is a separate change
-// from the one the bar is for, because it touches the token-read gate's own record of
-// what the build supplies (`prism-gates.json`) and this layout's font class, and it
-// deserves its own commit rather than arriving inside a chrome change.
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
 /**
  * The document, and nothing else: the two theme attributes, two blocking scripts, the
  * page.
+ *
+ * **This site loads no font file at all.** It used to: `next/font/google` was
+ * downloading Inter at build time and `app/globals.css` was repointing `--font-sans`
+ * at the result, on the stated ground that prism shipped no typeface. The migration
+ * dropped this site's Archivo and JetBrains Mono and let the display type fall back to
+ * the platform face, which was the most visible change the migration made and the
+ * wrong one to leave in place.
+ *
+ * Prism then shipped Inter as three static woff2 files under the OFL, with three
+ * `@font-face` rules in its own emitted sheet, which turned that workaround into the
+ * defect it had always been: the same family declared twice, a build that depended on
+ * a download from Google, and a second copy of every glyph on the wire. So the download
+ * is gone, `app/globals.css` no longer overrides `--font-sans`, and
+ * `prism-gates.json` no longer records a build-supplied custom property. What the
+ * design system publishes is what the page uses, which is the arrangement the rest of
+ * this file already takes with the theme.
  *
  * **The chrome left this file.** It is in `components/SiteChrome.tsx` now, and each page
  * renders it against the page it is serving, because a layout is rendered once per route
@@ -72,7 +64,7 @@ const inter = Inter({
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={inter.variable} {...THEME_ATTRIBUTES} suppressHydrationWarning>
+    <html lang="en" {...THEME_ATTRIBUTES} suppressHydrationWarning>
       <head>
         {/* Before paint, on the same attributes the server rendered: a stored choice
             is applied and a stored value that no longer parses is left in place, so
