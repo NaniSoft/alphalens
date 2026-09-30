@@ -1,7 +1,7 @@
 {
   "$comment": [
     "The site's own facts, as data: which pack is the ground, which mode a reader",
-    "who has never chosen gets, and the set of products the switcher moves between.",
+    "who has never chosen gets, and the set of sites the family's menu moves between.",
     "",
     "A pack identifier is a token, and this file is the one place this site picks one,",
     "so a renamed or retired pack is a compile error rather than a mark that quietly",
@@ -14,13 +14,23 @@
     "carrying it would have matched nothing and painted the page's own colour while",
     "claiming a product's. The rename is recorded here rather than in prose so that a",
     "reader who finds `rose` in a document knows the pack was renamed rather than",
-    "that the document is wrong."
+    "that the document is wrong.",
+    "",
+    "**Every `href` here is absolute, including this site's own.** It was `/` until the",
+    "bar's family arrived as a menu, and that was a defect the old switcher hid rather",
+    "than caused: the old switcher drew only the siblings, so this entry was never read",
+    "by the one control that uses it. A menu of destinations that leave this site is",
+    "rendered with `target=\"_blank\"` on every row, and `/` in a new tab is a new tab on",
+    "the page the reader is already on. The five sites are five origins and the file",
+    "now says so. `test/site-chrome.test.tsx` is what holds it: it reads the rendered",
+    "set rather than the JSON, so a relative href is a finding on the page and not a",
+    "reading of this comment."
   ],
   "siteId": "alphalens",
   "ground": "blush",
   "defaultMode": "dark",
   "products": [
-    { "id": "alphalens", "name": "AlphaLens", "pack": "blush", "href": "/" },
+    { "id": "alphalens", "name": "AlphaLens", "pack": "blush", "href": "https://alphalens.nanisoft.com" },
     { "id": "nexus", "name": "Nexus", "pack": "lavender", "href": "https://nexus.nanisoft.com" },
     { "id": "atlas", "name": "Atlas", "pack": "mint", "href": "https://atlas.nanisoft.com" },
     { "id": "www", "name": "NaniSoft", "pack": "sky", "href": "https://www.nanisoft.com" },

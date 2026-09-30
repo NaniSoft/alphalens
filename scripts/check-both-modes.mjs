@@ -440,11 +440,13 @@ try {
       })()`);
       const measurement = await evaluate(MEASURE);
 
-      /* Twelve real Tab presses, from the top of the document. Twelve is a floor rather
-         than a choice: the header alone has a brand lockup, a switcher and three
-         navigation links, so fewer than that would never reach a component and the gate
-         would be asserting about plain anchors only - which is the case where the
-         browser's own indicator is the correct answer, and the easy one to pass. */
+    /* Twelve real Tab presses, from the top of the document. Twelve is a floor rather
+       than a choice: the bar alone is a brand lockup, three navigation links and three
+       controls, so fewer than that would never reach a component and the gate would be
+       asserting about plain anchors only - which is the case where the browser's own
+       indicator is the correct answer, and the easy one to pass. It is a floor rather
+       than an exact count on purpose: a bar that grows a control should not be able to
+       fail this lane by pushing the first twelve stops into the bar. */
       await evaluate('document.body.focus(); if (document.activeElement) document.activeElement.blur(); true');
       const tabStops = [];
       for (let press = 0; press < 12; press += 1) {

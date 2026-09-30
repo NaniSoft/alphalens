@@ -5,9 +5,9 @@
 Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, one design language ([Prism](https://prism.nanisoft.com)).
 
 - **Live**: https://alphalens.nanisoft.com (Custom Domain, auto-created on deploy)
-- **Pack**: `blush` is the ground, on the document element, and it does not change. Two regions carry a pack that is not the ground: the header's product switcher, which sits in the bar's right-hand slot, and the platform product rows, and in both the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape
+- **Pack**: `blush` is the ground, on the document element, and it does not change. The platform product rows are the only region of a page carrying a pack that is not the ground, and in it the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape. The family's five marks live in the bar's menu now, and a closed menu paints nothing: a reader at first paint sees one pack, and the second packs reach them when they ask to leave
 - **Stack**: Next 16 static export · fumadocs-mdx · pnpm · TypeScript strict · oxlint · Vitest (jsdom + Testing Library) · Cloudflare Workers
-- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui), pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write
+- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 0.13.0, pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write. This repository authors one client component, `components/RevealRoot.tsx`, and it is still the only one: the bar's own controls are client components inside the pinned package
 
 ## What ships
 
@@ -18,21 +18,61 @@ Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, on
 - **Blog** (`/blog`) — the four launch posts over `content/blog/` (folder-per-post, required date, drafts excluded). The index is this site's own composition and CSS, because the four blog lists in this family are four deliberate designs and the design system deliberately ships none. Each post is the design system's blog post Page.
 - **About** (`/about`) — the product's story: why the data layer leads, the three honesty tiers, and a dated fact list.
 - **Not found** — the design system's not-found Page: the code as the page's heading, the sentence under it, and three ways out.
+- **Search** (`/api/search`) — thirty-four entries as one JSON array, prerendered because the export has no server: the thirty-one documents with their section's declared title as a breadcrumb, and the three pages this site writes as React. `/docs` is one of the documents rather than a fourth hand-written entry, because `content/docs/index.mdx` is the Introduction and claiming `/docs` twice produced two results for one address. The bar's search control fetches it when it opens and filters in the browser, which is a static file of about 71 KB and no request per keystroke. It is not in the route inventory, because a search index is not a page a reader navigates to.
+
+## The bar is the design system's, and this site composes it
+
+The bar is `@nanisoft/prism-ui/blocks/site-navbar`, and `components/SiteChrome.tsx`
+holds it, the `<main>` and the footer, with each page rendering that chrome against the
+page it is serving. Three decisions belong to this site and the rest belong to the Block,
+so they are worth separating rather than describing as one thing.
+
+**The chrome is composed per page, and it cost this site nothing.** It used to live in the
+root layout, which is rendered once per route and is handed no pathname, so the bar could
+never mark the page a reader was on. Moving it down one level is the whole of that fix, and
+it is a server render reading its own route rather than a client boundary. This site is
+the one in the family that already had a client component, so the interesting question is
+whether the bar needed a second one. It does not: the Block's controls are one client
+island inside the package, and `test/site-chrome.test.tsx` renders the landing, the About
+page and the 404 to hold that.
+
+**The family is a menu, and it carries all five sites including this one.** The old
+switcher sat in the header's `actions` slot and drew only the siblings, because the brand
+lockup had already drawn this site's mark and drawing it twice read as a mistake. The fix
+at the time was to filter this site's own mark out of the set, which removed the duplicate
+by hiding a member of the family from the one control that exists to say what the family
+is. The menu is better on both counts: nothing is adjacent to the lockup while it is
+closed, and the member the reader is on is marked `aria-current="page"` when it opens.
+
+**That is what exposed the relative href.** This site's own entry in `lib/site.json` was
+`/`, and nothing had read it since the old switcher started filtering it out. A menu of
+destinations that leave this site opens every row in a new tab, and `/` in a new tab is a
+new tab on the page the reader is already on. All five `href`s are absolute now, and the
+test reads the rendered set rather than the JSON so the file and the page cannot disagree.
+
+**Search is a static index, because this site is a static export.** There is no server to
+ask, so `app/api/search/route.ts` prerenders an index of thirty-four entries and the dialog
+filters it in the browser. The mode control is the one other piece of theme state, and it
+is the design system's: a stored choice applied by the same `PrismThemeScript` that was
+already in `<head>` before this change.
 
 ## How it is put together
 
 ```
-app/layout.tsx        the document: two theme attributes, two blocking scripts, the chrome
+app/layout.tsx        the document: two theme attributes, two blocking scripts, the page
 app/page.tsx          the landing
 app/about/page.tsx    a section heading, the prose at the measure, the fact list
 app/blog/…            the blog index (site's own) and the blog post (the catalogue's)
 app/docs/…            the section index (site's own grid) and the doc page (the catalogue's)
+app/api/search/route.ts  the search index, prerendered because the export has no server
 app/globals.css       the site's own sheet: the docs index, the blog index, the status
                       device, the honesty strip's alignment, the hero's narrow-screen
                       rule, the reveal
-components/           RevealRoot (the only client component) and the two docs templates
-lib/site.json         the ground, the default mode, the product directory
+components/           RevealRoot (the only client component), SiteChrome, and the two
+                      docs templates
+lib/site.json         the ground, the default mode, the site directory
 lib/site.ts           those facts, typed by the design system's pack vocabulary
+lib/bar.ts            the bar's own data and every word it prints
 lib/content.ts        every word of the landing, as data
 scripts/              the gates, the routes check, the both-modes browser check
 ```

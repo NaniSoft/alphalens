@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BlogPostPage } from '@nanisoft/prism-ui/pages';
 
 import { getMdxComponents } from '@/lib/mdx-components';
+import { SiteChrome } from '@/components/SiteChrome';
 import { blogSource } from '@/lib/source';
 
 // Optional catch-all: `/blog` renders the reverse-chronological index,
@@ -66,36 +67,38 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
   if (!slug) {
     const posts = published();
     return (
-      <div className="site-catalog">
-        <p className="site-eyebrow">nanisoft · alphalens · blog</p>
-        <h1 className="site-catalog__title">Blog</h1>
-        <p className="site-catalog__lede">
-          Notes from building AlphaLens: what a live market-data layer actually takes, and the
-          research design it makes possible. Every post states plainly what is running and what is
-          still design.
-        </p>
-        {posts.length === 0 ? (
-          <p className="site-empty">
-            Nothing published yet. Posts land as <code>content/blog/&lt;slug&gt;/index.mdx</code>,
-            folder-per-post, required date, display-only tags.
+      <SiteChrome current="/blog">
+        <div className="site-catalog">
+          <p className="site-eyebrow">nanisoft · alphalens · blog</p>
+          <h1 className="site-catalog__title">Blog</h1>
+          <p className="site-catalog__lede">
+            Notes from building AlphaLens: what a live market-data layer actually takes, and the
+            research design it makes possible. Every post states plainly what is running and what is
+            still design.
           </p>
-        ) : (
-          <ul className="site-blog-list">
-            {posts.map((post) => (
-              <li key={post.url}>
-                <Link href={post.url} className="site-blog-list__title">
-                  {post.data.title}
-                </Link>
-                <p className="site-blog-list__description">{post.data.description}</p>
-                <p className="site-mono site-blog-list__meta">
-                  <time dateTime={post.data.date}>{post.data.date}</time>
-                  {post.data.tags.length > 0 && <span> · {post.data.tags.join(' · ')}</span>}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          {posts.length === 0 ? (
+            <p className="site-empty">
+              Nothing published yet. Posts land as <code>content/blog/&lt;slug&gt;/index.mdx</code>,
+              folder-per-post, required date, display-only tags.
+            </p>
+          ) : (
+            <ul className="site-blog-list">
+              {posts.map((post) => (
+                <li key={post.url}>
+                  <Link href={post.url} className="site-blog-list__title">
+                    {post.data.title}
+                  </Link>
+                  <p className="site-blog-list__description">{post.data.description}</p>
+                  <p className="site-mono site-blog-list__meta">
+                    <time dateTime={post.data.date}>{post.data.date}</time>
+                    {post.data.tags.length > 0 && <span> · {post.data.tags.join(' · ')}</span>}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </SiteChrome>
     );
   }
 
@@ -111,18 +114,20 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
   const MDX = page.data.body;
 
   return (
-    <BlogPostPage
-      title={page.data.title}
-      description={page.data.description}
-      date={page.data.date}
-      dateTime={page.data.date}
-      tags={page.data.tags.map((tag) => ({ label: tag }))}
-      previous={previous ? { title: previous.data.title, href: previous.url } : undefined}
-      next={next ? { title: next.data.title, href: next.url } : undefined}
-      trailLabels={{ previous: 'Previous', next: 'Next' }}
-      trailLabel="More posts"
-    >
-      <MDX components={getMdxComponents()} />
-    </BlogPostPage>
+    <SiteChrome current="/blog">
+      <BlogPostPage
+        title={page.data.title}
+        description={page.data.description}
+        date={page.data.date}
+        dateTime={page.data.date}
+        tags={page.data.tags.map((tag) => ({ label: tag }))}
+        previous={previous ? { title: previous.data.title, href: previous.url } : undefined}
+        next={next ? { title: next.data.title, href: next.url } : undefined}
+        trailLabels={{ previous: 'Previous', next: 'Next' }}
+        trailLabel="More posts"
+      >
+        <MDX components={getMdxComponents()} />
+      </BlogPostPage>
+    </SiteChrome>
   );
 }

@@ -13,7 +13,8 @@ Part of the five-site Nanisoft web platform (www + nexus + atlas + alphalens + p
 - A Block takes data and content as props.
 - A consumer cannot write a Prism utility class: the consumer does not run Tailwind, so a utility exists in the emitted sheet only if a Prism component already uses it. Anything this site needs for itself goes in `app/globals.css` as a site class.
 - Two attributes on `<html>`, from `lib/site.ts`: `data-pack` for the ground and `class="dark"` for the mode. A blocking `PrismThemeScript` in `<head>` applies a stored choice before first paint.
-- A pack boundary is an attribute on an element: it repoints that pack's colour **and** its corner radius beneath it, and it wears the mode of the nearest ancestor carrying `.dark`. On this site that is `ProductMark`, and the only regions that carry one are the header's switcher and the platform product rows.
+- A pack boundary is an attribute on an element: it repoints that pack's colour **and** its corner radius beneath it, and it wears the mode of the nearest ancestor carrying `.dark`. On this site that is `ProductMark`, and the only region of a page that carries one is the platform product rows. The family's five marks are in the bar's menu, and a closed menu paints no mark, so the built export has none of them.
+- The bar is `@nanisoft/prism-ui/blocks/site-navbar` and this site supplies it data and copy only: `lib/bar.ts` holds the destinations, the family and every sentence the controls can say. Every `href` in `lib/site.json` is absolute, including this site's own, because the menu opens each row in a new tab.
 
 ## This site's one client component
 
@@ -28,6 +29,21 @@ hides everything.
 The other three sites ship no hidden state, so they have nothing to exit and no
 runtime to exit it with, which is why the sentence "no client runtime" appears in
 their instructions and not in this one.
+
+The bar's own controls are a second client island, and it is inside
+`@nanisoft/prism-ui` rather than in this tree: the family menu, the search dialog,
+the light and dark control and the panel below the bar's threshold. So "one client
+component" is a statement about this repository's source, not about the JavaScript a
+reader downloads. `test/site-chrome.test.tsx` renders the landing, the About page and
+the 404 and asserts the bar is on all three.
+
+## The chrome
+
+`components/SiteChrome.tsx` composes the bar, the `<main>` and the footer, and every
+page renders it with the route it is serving, because a root layout is not told its own
+pathname and a bar that cannot be told cannot mark the reader's place. That is a server
+render reading its own route, not a client boundary, and it is why the layout's own
+comment claiming the mark was impossible is gone rather than contradicted.
 
 ## What is enforced, and where the words live
 

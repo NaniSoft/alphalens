@@ -3,7 +3,7 @@
  *
  * Three decisions live here and nowhere else, which is why they are one module: the
  * page's ground pack, the mode a reader who has never chosen gets, and the set of
- * products the switcher moves between. The retired line kept the same three facts in
+ * products the family's menu moves between. The retired line kept the same three facts in
  * about twenty lines of theme module together with a type import and an inlined boot
  * script, and patching that module one import at a time passed a read-through and
  * failed a build. So all three are rewritten at once, and the two things that came
@@ -65,12 +65,26 @@ export const SITE_PRODUCT = {
 } as const;
 
 /**
- * The set of products the switcher moves between, in the order a reader meets them.
+ * The set of sites the family's menu moves between, in the order a reader meets them.
  *
- * This site is one of four products on one platform, so its switcher carries all of
- * them. Its own mark wears the page's own pack rather than the spectrum, because this
- * site does have a pack: a brand lockup drawn in the colour the page is painted in is
- * the honest mark for the page that is the product.
+ * This site is one of five products on one platform, so the menu carries all of them,
+ * this one included. Its own mark wears the page's own pack rather than the spectrum,
+ * because this site does have a pack: a brand lockup drawn in the colour the page is
+ * painted in is the honest mark for the page that is the product.
+ *
+ * **This list used to have a sibling-only variant, and that was a workaround for a
+ * defect the bar no longer has.** The header drew the brand lockup and then, immediately
+ * after it, a switcher whose first member was the same product in the same colour at a
+ * smaller size, so the bar opened with the word AlphaLens twice and a reader had to work
+ * out which of the two was the link they were on. The fix was to filter this site's own
+ * mark out of the set, which removed the duplicate by removing a member of the family
+ * from the one control that exists to say what the family is.
+ *
+ * The family is a menu now, and the menu is the better fix: it is closed until a reader
+ * opens it, so nothing is adjacent to the lockup at first paint, and the member the
+ * reader is on is marked `aria-current="page"` inside it. Every destination the old
+ * switcher published is still published. `/` is the brand lockup and the footer's first
+ * link, and the other four are here, so nothing a reader could reach has gone anywhere.
  *
  * The directory is a JSON file rather than a list in this module, because two
  * independent readers need it and a TypeScript module is not one of them: the test
@@ -82,22 +96,3 @@ export const PRODUCTS: readonly SwitcherProduct[] = site.products.map((product) 
   pack: pack(product.pack),
   href: product.href,
 }));
-
-/**
- * The other products, which is what the header's switcher draws.
- *
- * **The product the reader is already on is not in this set, and that is the fix.** The
- * header drew the brand lockup and then, immediately after it, a switcher whose first
- * member was the same product in the same colour at a smaller size, so the bar opened
- * with the word AlphaLens twice and a reader had to work out which of the two was the
- * link they were on. The brand lockup already answers that: it is this page's mark, and
- * it is the destination `/`, which is where the reader already is. So the switcher
- * carries the three products beside it and means what its own label says: the platform.
- *
- * Every destination the old switcher published is still published. `/` is the brand
- * lockup and the footer's first link, and the other four are the three marks here plus
- * `www`, so nothing a reader could reach has gone anywhere.
- */
-export const SIBLING_PRODUCTS: readonly SwitcherProduct[] = PRODUCTS.filter(
-  (product) => product.id !== SITE_PRODUCT.id,
-);

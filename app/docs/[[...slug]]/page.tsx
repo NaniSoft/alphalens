@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 
 import { DocArticle } from '@/components/DocArticle';
 import { DocsIndex } from '@/components/DocsIndex';
+import { SiteChrome } from '@/components/SiteChrome';
 import { docsSource } from '@/lib/source';
 
 // Optional catch-all: `/docs` renders the section index, `/docs/<slug>` the
@@ -62,11 +63,24 @@ export default async function DocsPage({ params }: PageProps): Promise<ReactElem
         url: page.url,
       }))
       .sort((a, b) => a.title.localeCompare(b.title));
-    return <DocsIndex pages={pages} labels={LABELS} />;
+    return (
+      <SiteChrome current="/docs">
+        <DocsIndex pages={pages} labels={LABELS} />
+      </SiteChrome>
+    );
   }
 
   const page = docsSource.getPage(slug);
   if (!page) notFound();
 
-  return <DocArticle page={page} tree={docsSource.getPageTree()} labels={LABELS} />;
+  // `/docs` marks the navigation and every document under it does too, because the
+  // bar's three destinations are this site's own top level rather than every route
+  // beneath it. A reader twenty pages into the contract is still in the docs, and a bar
+  // that had stopped saying so would be a bar that had lost the answer to the question
+  // it exists to answer.
+  return (
+    <SiteChrome current="/docs">
+      <DocArticle page={page} tree={docsSource.getPageTree()} labels={LABELS} />
+    </SiteChrome>
+  );
 }
