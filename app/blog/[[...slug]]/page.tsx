@@ -6,6 +6,7 @@ import { BlogPostPage } from '@nanisoft/prism-ui/pages';
 
 import { getMdxComponents } from '@/lib/mdx-components';
 import { SiteChrome } from '@/components/SiteChrome';
+import { displayDate, isoDate } from '@/lib/post-date';
 import { blogSource } from '@/lib/source';
 
 // Optional catch-all: `/blog` renders the reverse-chronological index,
@@ -55,7 +56,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  * to something that can be checked. `BlogPostPage` takes the title, the standfirst, the
  * displayed date and the machine date as separate props, so a field that is not passed
  * cannot quietly be missing, and it owns the trail to the neighbouring posts rather than
- * this site deriving it.
+ * this site deriving it. Those two date props are the reason `lib/post-date.ts` exists:
+ * both were handed the frontmatter's own string, so the reader was shown `2026-09-21`
+ * and the Page was handed one string in two slots, which the design system's Page now
+ * refuses at render. The index's `<time>` element is the same case in one element: its
+ * text is the reading and its `datetime` is the value.
+ *
+ * **The eyebrow above the `h1` is gone.** It read `nanisoft · alphalens · blog`: the
+ * header's wordmark, a separator, the site name and the page's own name, three elements
+ * of one fact, above a heading that already says what the page is. The bar directly above
+ * carries the wordmark, so the page said it again on arrival.
  *
  * Two words appear on the post that were not there before: the trail says `Previous` and
  * `Next` beside the titles, where the old markup drew an arrow glyph. A glyph is
@@ -69,7 +79,6 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
     return (
       <SiteChrome current="/blog">
         <div className="site-catalog">
-          <p className="site-eyebrow">nanisoft · alphalens · blog</p>
           <h1 className="site-catalog__title">Blog</h1>
           <p className="site-catalog__lede">
             Notes from building AlphaLens: what a live market-data layer actually takes, and the
@@ -90,7 +99,7 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
                   </Link>
                   <p className="site-blog-list__description">{post.data.description}</p>
                   <p className="site-mono site-blog-list__meta">
-                    <time dateTime={post.data.date}>{post.data.date}</time>
+                    <time dateTime={isoDate(post.data.date)}>{displayDate(post.data.date)}</time>
                     {post.data.tags.length > 0 && <span> · {post.data.tags.join(' · ')}</span>}
                   </p>
                 </li>
@@ -118,8 +127,8 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
       <BlogPostPage
         title={page.data.title}
         description={page.data.description}
-        date={page.data.date}
-        dateTime={page.data.date}
+        date={displayDate(page.data.date)}
+        dateTime={isoDate(page.data.date)}
         tags={page.data.tags.map((tag) => ({ label: tag }))}
         previous={previous ? { title: previous.data.title, href: previous.url } : undefined}
         next={next ? { title: next.data.title, href: next.url } : undefined}

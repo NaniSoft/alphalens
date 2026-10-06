@@ -6,21 +6,15 @@ import HomePage from '@/app/page';
 import NotFound from '@/app/not-found';
 import { COPY, CURRENT_SITE_ID, NAV, SITES } from '@/lib/bar';
 
-// The bar's controls are a client island inside `@nanisoft/prism-ui`, and two of them
-// reach for browser APIs jsdom does not have. The landing's reveal root needs the same
-// two, and `test/smoke.test.tsx` mocks them for the landing; this file renders the bar
-// on the landing, the About page and the 404, so it needs them too.
-class MockIntersectionObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
+// The bar's own controls are a client island inside `@nanisoft/prism-ui`, and jsdom has no
+// `matchMedia`, which the mode control reaches for. This file renders the bar on the
+// landing, the About page and the 404, so it needs that one stub.
+//
+// It also used to stub `IntersectionObserver`, for the landing's reveal root. Both that
+// component and the need are gone: `test/no-hidden-state.test.ts` holds the count of client
+// directives in this repository's source at zero, and a stub left behind for a deleted
+// dependency is a reader being sent to look for something that is not there.
 beforeAll(() => {
-  if (!('IntersectionObserver' in globalThis)) {
-    (globalThis as unknown as { IntersectionObserver: typeof MockIntersectionObserver }).IntersectionObserver =
-      MockIntersectionObserver;
-  }
   window.matchMedia =
     window.matchMedia ??
     (() =>

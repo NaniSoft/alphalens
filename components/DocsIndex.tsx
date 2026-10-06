@@ -3,16 +3,17 @@
 // site's own CSS, because the catalogue deliberately ships no documentation index: a
 // Page is judged on what it encodes, and the four documentation sets in this family are
 // four different shapes.
+//
+// Both halves are read from the page tree the content pipeline publishes, through
+// `lib/to-prism-tree.ts`, so the section names, the section order and the documents
+// inside each section are the tree's and cannot disagree with the rail beside them.
 
 import type { ReactElement } from 'react';
+import type { Root } from 'fumadocs-core/page-tree';
 import { DocsShell } from '@nanisoft/prism-ui/pages';
 import Link from 'next/link';
 
-export interface DocsIndexPage {
-  title: string;
-  description: string;
-  url: string;
-}
+import { toIndexSections, toPrismTree } from '@/lib/to-prism-tree';
 
 export interface DocsIndexLabels {
   nav: string;
@@ -23,30 +24,33 @@ export interface DocsIndexLabels {
 /**
  * The index, over the whole corpus.
  *
- * **The section is a label and the pages under it are destinations.** The index has no
- * rail, so the sections are headings over their pages and nothing else: a link whose
- * destination is a page in the list below it is a link that goes nowhere a reader has
- * not already been, and six of them read as six invitations to jump into a pipeline out
- * of order. So the sections are `group` entries with no `href`, which Prism renders as a
- * span, and every card in the grid is a real `href` to a real route.
+ * **The section is a label and the pages under it are destinations.** The index body has
+ * no navigation of its own to hang one, so a section is a heading over its pages and
+ * nothing else: a link whose destination is a page in the list below it is a link that goes
+ * nowhere a reader has not already been, and six of them read as six invitations to jump
+ * into a pipeline out of order. So the sections are `group` entries with no `href`, which
+ * Prism renders as a span, and every card in the grid is a real `href` to a real route.
+ *
+ * **The rail beside this body is the tree, rendered by the same function that renders it
+ * on every documentation page.** It used to be derived from this component's own grouping,
+ * which is how the index came to print a section as an empty `<h2>` and an empty label in
+ * its rail while a documentation page printed the same six sections with their real names.
+ * The rail on `/docs` and the rail on `/docs/reference` are now the same call over the
+ * same input, so a reader who learns a section's name here meets the same name there.
  *
  * **The status note opens the list, not the sections.** The three tiers are stated once,
  * in the note under the title, because a reader who is told what the labels mean once
  * does not need each section to repeat it, and a tier repeated on every heading is a
  * badge in all but name.
  */
-export function DocsIndex({ pages, labels }: { pages: DocsIndexPage[]; labels: DocsIndexLabels }): ReactElement {
-  const sections = groupBySection(pages);
+export function DocsIndex({ tree, labels }: { tree: Root; labels: DocsIndexLabels }): ReactElement {
+  const sections = toIndexSections(tree);
 
   return (
     <DocsShell
       title="Docs"
       description="AlphaLens in full: the live data platform, the approved data contract, the designed research pipeline, and the engineering story. Every page carries its own status label."
-      nav={sections.map((section) => ({
-        type: 'group',
-        title: section.title,
-        items: section.pages.map((page) => ({ type: 'page', title: page.title, href: page.url })),
-      }))}
+      nav={toPrismTree(tree.children)}
       navLabel={labels.nav}
       tocLabel={labels.toc}
       pagerLabel={labels.pager}
@@ -78,28 +82,4 @@ export function DocsIndex({ pages, labels }: { pages: DocsIndexPage[]; labels: D
       ))}
     </DocsShell>
   );
-}
-
-/**
- * The corpus, grouped by the section each page lives in.
- *
- * The order is the sections' own order, taken from the tree the content pipeline
- * publishes, and the order within a section is the order the section's own `meta.json`
- * files. Nothing here is sorted: an index that alphabetised its own contents would be
- * asserting that the corpus is a set rather than a sequence, and four of these six
- * sections are a sequence.
- *
- * It is derived from the page tree rather than from the URL, because the URL is a route
- * and the tree is the structure. A page filed under a section by its path is a page whose
- * section changes when a folder is renamed.
- */
-function groupBySection(pages: DocsIndexPage[]): Array<{ title: string; pages: DocsIndexPage[] }> {
-  const sections: Array<{ title: string; pages: DocsIndexPage[] }> = [];
-  for (const page of pages) {
-    const segment = page.url.split('/')[2] ?? '';
-    const existing = sections.find((section) => section.title === segment);
-    if (existing) existing.pages.push(page);
-    else sections.push({ title: segment, pages: [page] });
-  }
-  return sections;
 }

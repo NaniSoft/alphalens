@@ -11,7 +11,6 @@ import { Stats01 } from '@nanisoft/prism-ui/blocks/stats-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
 import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
 
-import { RevealRoot } from '@/components/RevealRoot';
 import {
   BUILT_ON_NEXUS,
   CAPTURE_CARDS,
@@ -83,10 +82,11 @@ import { GROUND_PACK, PRODUCTS } from '@/lib/site';
  * and the four stages are stated in words one section down. See `app/globals.css` for
  * the two site classes that do this.
  *
- * It is a server component: no hook beyond the reveal root, no context, no mode, and
- * nothing read at runtime. Every colour resolves through the cascade rather than by
- * being read once at mount, which is the class of defect the old page had, where a
- * light-mode reader was served dark-mode ink on a light ground until hydration.
+ * It is a server component, and it is a plain function: no hook, no context, no mode,
+ * nothing read at runtime and no `'use client'` line anywhere in this repository's own
+ * source. Every colour resolves through the cascade rather than by being read once at
+ * mount, which is the class of defect the old page had, where a light-mode reader was
+ * served dark-mode ink on a light ground until hydration.
  */
 
 /** The pack a product row's mark is drawn in, from the site's own directory. */
@@ -111,6 +111,14 @@ function markPack(productId: string) {
  * whose status is its own word, whose border is dashed while the source is approved and
  * not collecting, and whose note says what the source is for. Every word is the word the
  * content module published.
+ *
+ * **The status word is set larger than the role line, and it used to be the same size as
+ * it.** Measured on the built export before this change: eight status pills and eight role
+ * lines, all at 10px, with the tile's own name larger than either. The status is the one
+ * word this section is for, so it is on the design system's reading scale at 12px and
+ * weighted, and the role is at 11px and supporting. The dashed edge says the same state in
+ * shape, so a reader who cannot separate two tints of the same neutral still has it twice.
+ * `app/globals.css` owns the two sizes; `test/site-sheet.test.ts` holds the ordering.
  *
  * The catalogue gap is filed rather than worked around silently: a survey grid that can
  * carry a per-item state. `StackGrid01` is the right block for a set of parts and it is
@@ -165,7 +173,7 @@ const DATA_PATH_STEPS = [
 
 export function Landing(): ReactElement {
   return (
-    <RevealRoot>
+    <>
       {/* Hero: the thesis as the page's h1, then the panel carrying the one figure on
           the page.
 
@@ -346,6 +354,6 @@ export function Landing(): ReactElement {
         secondaryAction={FINAL_CTA.secondary}
         note={FINAL_CTA.footnote}
       />
-    </RevealRoot>
+    </>
   );
 }

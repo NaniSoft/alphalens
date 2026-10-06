@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { PrismThemeScript } from '@nanisoft/prism-ui/provider';
 
 import { DEFAULT_MODE, GROUND_PACK, THEME_ATTRIBUTES } from '@/lib/site';
-import { revealArmScript } from '@/lib/reveal-arm';
 
 // The one stylesheet. Every token, every utility and every base rule on this site
 // arrives in this one import: the design system compiles its own source into it, and
@@ -22,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * The document, and nothing else: the two theme attributes, two blocking scripts, the
+ * The document, and nothing else: the two theme attributes, one blocking script, the
  * page.
  *
  * **This site loads no font file at all.** It used to: `next/font/google` was
@@ -57,10 +56,19 @@ export const metadata: Metadata = {
  * built for: a server render, no client JavaScript of its own, and a page that is
  * correct with scripting disabled.
  *
- * The second script is the arming half of the reveal law, and it is here for the same
- * reason the first is: both are the smallest strings that can do a job that has to
- * happen before the page is parsed. See `lib/reveal-arm.ts` for what the attribute it
- * writes is and who removes it.
+ * **One script, and it is the theme.** There used to be a second: an inlined arming
+ * script that wrote the attribute a CSS-authored scroll reveal was scoped under, for a
+ * reveal no element on this site carried. Zero of the thirty-six emitted pages hold a
+ * `data-reveal` attribute, so the hidden state did not exist to be escaped, and the
+ * whole arrangement - the only `'use client'` line in the tree, the arming module, four
+ * stylesheet rules including a scoped `opacity: 0`, and a test that rendered the landing
+ * with scripting off - was observing an empty `NodeList`. What the reasoning in it was
+ * worth did not die with it: a hidden state must be escapable rather than
+ * escapable-after-a-delay, and a `load` listener beats a `setTimeout` because a timer's
+ * clock starts at first style resolution rather than at the moment it would have been
+ * cancelled. If Prism ever ships a Block-level entrance, that argument is where it
+ * belongs, and `DESIGN.md` under Motion already carries it. This repository now says
+ * nothing about hidden states at all, which is a true statement rather than a quiet one.
  */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -70,9 +78,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             is applied and a stored value that no longer parses is left in place, so
             nothing a reader chose is ever cleared by this site. */}
         <PrismThemeScript defaultPack={GROUND_PACK} defaultMode={DEFAULT_MODE} />
-        {/* The arming half of the reveal law, and the only writer of the attribute the
-            landing's hidden state is scoped under. */}
-        <script dangerouslySetInnerHTML={{ __html: revealArmScript }} />
       </head>
       <body>{children}</body>
     </html>

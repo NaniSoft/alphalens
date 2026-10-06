@@ -29,10 +29,9 @@ import {
  * **The bar is the design system's, and its client boundary is inside the package.**
  * Search, the menu of the family's five sites, the light and dark control and the panel
  * below the row's threshold are four pieces of reader state, and they are one client
- * island in `@nanisoft/prism-ui` rather than lines in this repository. This site's own
- * one client component is `components/RevealRoot.tsx` and it is still the only one:
- * `test/no-scripting.test.tsx` renders the landing with scripting off and would fail if
- * the bar needed a reader to see the page.
+ * island in `@nanisoft/prism-ui` rather than lines in this repository. This repository
+ * draws no client boundary of its own at all, so the bar was never a second one:
+ * `test/no-hidden-state.test.ts` asserts the count of client directives is zero.
  *
  * **The family moved out of the navigation row and into a menu, and it is a menu rather
  * than a filtered list.** The old switcher sat in the header's `actions` slot and carried
@@ -42,10 +41,9 @@ import {
  * the reader is on is marked when it is open.
  *
  * **The bar is sticky, and this is the site that needed it most.** The landing is nine
- * bands long and the hidden state below the header is the one thing on this site that a
- * reader can arrive after, not see. The `actions` slot is left empty: this site has no
- * control of its own that belongs above the fold, and an empty slot is the honest way to
- * say so.
+ * bands long, so the bar scrolling away takes the only persistent way back to the docs
+ * with it. The `actions` slot is left empty: this site has no control of its own that
+ * belongs above the fold, and an empty slot is the honest way to say so.
  */
 export type SiteSection = '/docs' | '/blog' | '/about';
 

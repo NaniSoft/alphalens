@@ -2,7 +2,7 @@
 // and the pager it derives from them. Structural props only, and fumadocs types stay
 // at the app layer, mapped through `lib/to-prism-tree` before they reach prism-ui.
 
-import type { ComponentType, ReactElement, ReactNode } from 'react';
+import { isValidElement, type ComponentType, type ReactElement, type ReactNode } from 'react';
 import { DocsShell, type DocsNavEntry } from '@nanisoft/prism-ui/pages';
 import type { Root } from 'fumadocs-core/page-tree';
 
@@ -48,19 +48,48 @@ export const PAGER_LABELS = { previous: 'Previous', next: 'Next' } as const;
  * the document, so it is the whole outline or none of it: a partial one lies about the
  * page it is attached to.
  *
+ * A title is resolved to its words rather than read as one, because a `ReactNode` is not
+ * a label and fumadocs does not fill that field with a bare string: its heading plugin
+ * wraps a heading's own children in a fragment, so `## Columns` arrives as an element
+ * holding that string and a heading carrying inline code arrives as an element holding an
+ * element. Words are the only thing a label can be made of, so the nodes are walked for
+ * them and nothing else is taken from them. An entry that yields no words is dropped
+ * rather than forwarded, because a row of nothing in the rail is not a place in the
+ * document, and offering one is the same lie the two-level filter above refuses to tell.
+ *
  * The entries are `page` rather than `group`, because a heading in a document is a
  * destination and not a section, and a destination gets an anchor. The `depth` is dropped
  * on purpose - Prism's rail indents one level per nested group, and nesting by depth
  * would be a second indent axis saying something the outline already said.
  */
 function toTocEntries(toc: NonNullable<DocArticlePage['data']['toc']>): DocsNavEntry[] {
-  return toc
-    .filter((entry) => entry.depth >= 2 && entry.depth <= 3)
-    .map((entry) => ({
-      type: 'page',
-      title: typeof entry.title === 'string' ? entry.title : '',
-      href: entry.url,
-    }));
+  const entries: DocsNavEntry[] = [];
+  for (const entry of toc) {
+    if (entry.depth < 2 || entry.depth > 3) continue;
+    /* Trimmed out here and not in the walk, because the walk concatenates the nodes a
+       heading is split across and the spaces between those nodes are part of the title. */
+    const title = tocWords(entry.title).trim();
+    if (!title) continue;
+    entries.push({ type: 'page', title, href: entry.url });
+  }
+  return entries;
+}
+
+/**
+ * A heading's title as the text it will be read as.
+ *
+ * Everything in a `ReactNode` except the two text primitives is either a container or
+ * React's own way of writing nothing: an element, an array of the two, or `null`,
+ * `undefined` and the booleans. A number among them is text and a boolean is not, which is
+ * the whole distinction this walk draws. A node that is none of those resolves to no
+ * words, and an entry holding one is not a destination the reader can follow.
+ */
+function tocWords(title: ReactNode): string {
+  if (typeof title === 'string') return title;
+  if (typeof title === 'number' || typeof title === 'bigint') return String(title);
+  if (Array.isArray(title)) return title.map(tocWords).join('');
+  if (isValidElement<{ children?: ReactNode }>(title)) return tocWords(title.props.children);
+  return '';
 }
 
 /**

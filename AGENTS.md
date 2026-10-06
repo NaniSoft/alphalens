@@ -16,26 +16,30 @@ Part of the five-site Nanisoft web platform (www + nexus + atlas + alphalens + p
 - A pack boundary is an attribute on an element: it repoints that pack's colour **and** its corner radius beneath it, and it wears the mode of the nearest ancestor carrying `.dark`. On this site that is `ProductMark`, and the only region of a page that carries one is the platform product rows. The family's five marks are in the bar's menu, and a closed menu paints no mark, so the built export has none of them.
 - The bar is `@nanisoft/prism-ui/blocks/site-navbar` and this site supplies it data and copy only: `lib/bar.ts` holds the destinations, the family and every sentence the controls can say. Every `href` in `lib/site.json` is absolute, including this site's own, because the menu opens each row in a new tab.
 
-## This site's one client component
+## This site draws no client boundary
 
-`components/RevealRoot.tsx` is the only `'use client'` line in the tree, and it
-exists because this site authors the one CSS-authored hidden state in the family: a
-marked element is hidden until a class is added when it scrolls into view, and the
-class is withdrawn on every path including `load`. `test/no-scripting.test.tsx`
-renders the landing with scripting off and asserts the content is there, because the
-stylesheet half alone would be satisfied by a sheet that hides nothing and a page that
-hides everything.
+There is no `'use client'` line in this repository's source, and `test/no-hidden-state.test.ts`
+asserts it. It used to have exactly one, `components/RevealRoot.tsx`, and it existed for
+the scroll reveal: a marked element hidden until a class was added when it scrolled into
+view. Measured on the built export of all thirty-six pages, `data-reveal` appears as an
+attribute **zero** times, so the family's only hydration boundary, an inlined arming script
+with a `load` listener, four rules in this site's own sheet including a scoped `opacity: 0`,
+and `test/no-scripting.test.tsx` were all observing an empty `NodeList`. All of it is gone,
+with the reasoning that was worth keeping recorded at the top of `test/no-hidden-state.test.ts`
+rather than in a component that no longer exists.
 
-The other three sites ship no hidden state, so they have nothing to exit and no
-runtime to exit it with, which is why the sentence "no client runtime" appears in
-their instructions and not in this one.
+The bar's own controls are a client island, and it is inside `@nanisoft/prism-ui` rather
+than in this tree: the family menu, the search dialog, the light and dark control and the
+panel below the bar's threshold. So the JavaScript a reader downloads is the design
+system's, and nothing in this repository adds to it. `test/site-chrome.test.tsx` renders the
+landing, the About page and the 404 and asserts the bar is on all three.
 
-The bar's own controls are a second client island, and it is inside
-`@nanisoft/prism-ui` rather than in this tree: the family menu, the search dialog,
-the light and dark control and the panel below the bar's threshold. So "one client
-component" is a statement about this repository's source, not about the JavaScript a
-reader downloads. `test/site-chrome.test.tsx` renders the landing, the About page and
-the 404 and asserts the bar is on all three.
+The `hidden-state` gate still runs and now reports that it passed **vacuously**, which is
+a real answer rather than a scan of nothing: the run prints the rule count it read, so the
+difference between "there is no hidden state" and "nothing was read" is visible on every run.
+If Prism ever ships a Block-level entrance, the argument about escapable states and about
+why a `load` listener beats a `setTimeout` belongs there, in the design system, where the
+gate can see every consumer at once.
 
 ## The chrome
 
@@ -52,10 +56,12 @@ The laws are not in this file. They are the failure messages of the gates in
 in one release and cannot be declined here. The four repositories that run them
 share the programs and hold none of the wording.
 
-This site's own halves are in `prism-gates.json`: its sheets, its coverage floors,
-the one destination its corpus gets wrong with the reason, and the attribute and
-module names the hidden-state law works in. When a build fails, the law's text is in
-the failing message: read that rather than looking for a rule here.
+This site's own halves are in `prism-gates.json`: its sheets and its coverage floors, and
+nothing else. It names no destination its own corpus gets wrong, because it no longer gets
+one wrong, and it names no arming attribute, because this site ships no hidden state. A
+line there that stated a rule would be the defect the file exists to end. When a build
+fails, the law's text is in the failing message: read that rather than looking for a rule
+here.
 
 `check:routes` is this repository's own, not the kit's: it exists because one
 published document here is deliberately unreachable, and the reason has to live where

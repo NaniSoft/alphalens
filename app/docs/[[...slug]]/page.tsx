@@ -55,17 +55,9 @@ export default async function DocsPage({ params }: PageProps): Promise<ReactElem
   const { slug } = await params;
 
   if (!slug) {
-    const pages = docsSource
-      .getPages()
-      .map((page) => ({
-        title: page.data.title ?? page.url,
-        description: page.data.description ?? '',
-        url: page.url,
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title));
     return (
       <SiteChrome current="/docs">
-        <DocsIndex pages={pages} labels={LABELS} />
+        <DocsIndex tree={docsSource.getPageTree()} labels={LABELS} />
       </SiteChrome>
     );
   }

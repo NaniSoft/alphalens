@@ -1,27 +1,15 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { render, screen } from '@testing-library/react';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import HomePage from '@/app/page';
 import { HERO_FIGURE, HERO_STAGES } from '@/lib/content';
 
-// jsdom has no IntersectionObserver and a partial matchMedia; the landing's
-// reveal root must tolerate both.
-class MockIntersectionObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-beforeAll(() => {
-  if (!('IntersectionObserver' in globalThis)) {
-    (globalThis as unknown as { IntersectionObserver: typeof MockIntersectionObserver }).IntersectionObserver =
-      MockIntersectionObserver;
-  }
-  window.matchMedia =
-    window.matchMedia ?? (() => ({ matches: true, addListener() {}, removeListener() {} }) as never);
-});
+// The landing is a server component with no hook, so this file needs no browser API and
+// mocks none. It used to open with an `IntersectionObserver` and a `matchMedia` stub for
+// the reveal root; both are gone with the reveal, and a stub nobody needs is a reader
+// being sent looking for a dependency that is not there.
 
 const ROOT = path.resolve(__dirname, '..');
 

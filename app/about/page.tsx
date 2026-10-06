@@ -38,19 +38,27 @@ const FACTS = [
  * About, composed from the catalogue: a section heading, the prose at the reading
  * measure, and the fact list.
  *
- * The words are the words. Every paragraph, the six facts and the two calls to action are
- * unchanged; what changed is who owns the measure, the rhythm and the link treatment.
+ * The words are the words. Every paragraph, the six facts and the pair of calls to action
+ * are unchanged; what changed is who owns the measure, the rhythm and the link treatment.
  * `Prose` owns the first two, which is why `app/globals.css` no longer has a rule for
- * this page at all.
+ * this page at all. The pair appears once rather than twice, and the copy beside it says
+ * why.
  *
- * **A heading and two links, not a `PageHeader01`.** That Block's `actions` render a
- * `Button` and its `PageHeaderAction` type has no `href` at all, so a page composed from
- * it cannot have a call to action that goes anywhere - the same defect the landing's hero
- * has, and filed against `Hero01` as the catalogue gap it is. So this page composes
+ * **A heading and a pair of links, not a `PageHeader01`.** That Block's `actions` render
+ * a `Button` and its `PageHeaderAction` type has no `href` at all, so a page composed
+ * from it cannot have a call to action that goes anywhere - the same defect the landing's
+ * hero has, and filed against `Hero01` as the catalogue gap it is. So this page composes
  * `SectionHeading` and `CtaLink` directly, which is the arrangement the design system's
  * own guidance names: a section this site needs and the catalogue does not have is a
  * finding to report, not a component to work around by passing a destination to a
  * control that ignores it.
+ *
+ * **The page dropped its eyebrow.** It read `nanisoft · alphalens · about` above the
+ * `h1`: the header's wordmark, a separator, the site name and the page's own name, three
+ * elements of one fact, above a heading that already says what the page is. The bar
+ * directly above carries the wordmark, so the page was saying it again on arrival. The
+ * blog index said the same thing over its own `h1` and lost it for the same reason, and
+ * `test/honesty.test.ts` asserts neither page prints one.
  *
  * **The facts are a `FactList`, which is a `dl`.** The retired page drew the same six
  * pairs as flex rows with a `border-bottom` on each, and the last row's rule read as a
@@ -67,18 +75,9 @@ export default function AboutPage(): ReactElement {
           as="h1"
           align="left"
           className="site-display"
-          eyebrow="nanisoft · alphalens · about"
           title="The market, as one feed."
           description={DESCRIPTION}
         />
-        <div className="site-cta-row">
-          <CtaLink href="/docs" size="lg">
-            Read the docs
-          </CtaLink>
-          <CtaLink href="/blog" size="lg" variant="outline">
-            Read the blog
-          </CtaLink>
-        </div>
 
         <Prose size="lg">
           <p>
@@ -153,6 +152,13 @@ export default function AboutPage(): ReactElement {
 
         <FactsTable />
 
+        {/* The one pair of calls to action this page carries, and it is the closing one.
+            There used to be a second, identical pair forty pixels under the heading and
+            again about 1400px later, and the page's own bar carries both destinations
+            directly above the top one: three controls for two facts, the two nearest
+            together saying the same thing twice. At the foot the pair follows the argument
+            it concludes, which is the only place a reader who came to `/about` deliberately
+            is ready to act on it. */}
         <div className="site-cta-row">
           <CtaLink href="/docs" size="lg">
             Read the docs

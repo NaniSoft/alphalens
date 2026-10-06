@@ -203,21 +203,38 @@ describe('the honesty guard', () => {
     }
   });
 
-  it('separates the blog index eyebrow with a middot', () => {
-    // The blog index prints `nanisoft · alphalens · blog`, and this asserts the string
-    // itself. The *value* is published, so a change to it is a copy change and belongs in
-    // its own commit; asserting it here puts the failure next to the sentence that
-    // explains it rather than in a list of 949 parity entries that no longer exists.
+  it('prints no page-name eyebrow above a heading that already names the page', () => {
+    // `/blog` and `/about` each printed `nanisoft · alphalens · <page>` above their own
+    // `h1`: the header's wordmark, a separator, the site name and the page's name, three
+    // elements of one fact, above a heading that says what the page is. The bar carrying
+    // the wordmark is directly above both, so each page said it again on arrival.
     //
-    // The *separator* is a choice rather than an accident, and it is the same choice the
-    // About page makes. An em dash here was the cheapest possible way to make this eyebrow
-    // look like a page that had been typeset rather than assembled, and the About page
-    // carried one for exactly that reason until both were rewritten in the same pass. Two
-    // site labels, one separator, and the separator is the character this family already
-    // used for it.
-    const blog = readFileSync(join(ROOT, 'app', 'blog', '[[...slug]]', 'page.tsx'), 'utf8');
-    expect(blog).toContain('nanisoft · alphalens · blog');
-    expect(blog).not.toContain('nanisoft · alphalens — blog');
+    // The sibling repository's documentation index lost exactly this and recorded why in
+    // that file's own comment, so this is the same removal rather than a second opinion
+    // about eyebrows. The separator mattered as much as the line: the earlier version of
+    // these two carried an em dash in the same place, which was the cheapest way to make a
+    // label look typeset rather than assembled. Asserting the absence is therefore also the
+    // assertion that the dash question is settled for these two pages.
+    //
+    // The About page's own half of this assertion is rendered, in
+    // `test/about-page.test.tsx`, because this file is not a component test. What is
+    // asserted here is the half a source read is the right tool for: that neither route
+    // reaches the string, and that the sheet no longer declares the class they used.
+    //
+    // The two routes are read with their comments blanked, because both files *name* the
+    // string they no longer print - that is how a later reader finds out why it is gone -
+    // and a raw read would fail on the record rather than on the element.
+    const blog = stripComments(readFileSync(join(ROOT, 'app', 'blog', '[[...slug]]', 'page.tsx'), 'utf8'));
+    expect(blog, '/blog prints an eyebrow above its h1').not.toContain('site-eyebrow');
+    expect(blog, '/blog names itself above its own h1').not.toContain('nanisoft · alphalens · blog');
+
+    const about = stripComments(readFileSync(join(ROOT, 'app', 'about', 'page.tsx'), 'utf8'));
+    expect(about, '/about prints an eyebrow above its h1').not.toContain('site-eyebrow');
+    expect(about, '/about names itself above its own h1').not.toContain('nanisoft · alphalens · about');
+    expect(about, '/about passes an eyebrow prop').not.toMatch(/eyebrow=/);
+
+    const sheet = stripComments(readFileSync(join(ROOT, 'app', 'globals.css'), 'utf8'));
+    expect(sheet, 'the sheet declares an eyebrow nothing renders').not.toContain('.site-eyebrow');
   });
 
   it('adds no em dash, en dash or ellipsis to the copy this site authors', () => {
@@ -236,20 +253,31 @@ describe('the honesty guard', () => {
     // is now the absolute one it was trying to be: every file this scan reads and is not
     // the published corpus carries zero.
     //
-    // The published corpus is still exempt, and it is exempt wholesale rather than per
-    // file: every `.mdx` under `content/` is a published document, thirty-one of them, and
-    // rewriting the punctuation of thirty-one published documents is a content change
-    // with its own commit and its own reader, not a side effect of a redesign. A new
-    // document in the corpus is a new published document and is out of scope for the same
-    // reason, so a size-based floor on the corpus adds nothing.
+    // The published corpus is still exempt, and the exemption names two regions with two
+    // reasons rather than being folded into one list. **`content/docs/**` is exempt in
+    // full**, frontmatter included: twenty-seven pages of published documentation, and
+    // twenty of the `description:` lines in it carry an em dash that stays there because
+    // rewriting a published document's own punctuation is a content change with its own
+    // commit and its own reader. **A post's body is exempt** for the same reason and by
+    // the same argument: the four posts are published documents in exactly the sense a
+    // documentation page is. A directory, not a file list, in both cases, so an exclusion
+    // stays arguable rather than becoming a list somebody appends to.
+    //
+    // **A post's frontmatter is not exempt, and that is the half that was wrong.**
+    // `title` and `description` are two lines this repository reads and composes into three
+    // surfaces it owns: the card on `/blog`, the `<meta name="description">` a crawler and a
+    // link preview read, and the `description` of a search result written by
+    // `app/api/search/route.ts`. That is site UI copy wearing a document's frontmatter, so it
+    // is scanned. Three of the four posts' descriptions carried an em dash and the rule
+    // caught none of them, because the exemption was on `.mdx` rather than on the prose; the
+    // three are rewritten and the rule now reaches the next one.
     //
     // Comments are not reader-facing copy, so the count is over the code alone. Several
     // files here quote the retired page's own sentences to explain what changed, and a raw
     // scan would fail on the documentation of the fix.
     for (const { path, text } of sources()) {
-      if (path.endsWith('.mdx')) continue;
       expect(
-        dashCount(text),
+        authoredDashCount(path, text),
         `${path} carries an em dash, an en dash or an ellipsis in copy a reader meets. A sentence\n` +
           '    written here uses a comma, a colon, a full stop or parentheses where it would otherwise\n' +
           '    reach for a dash.',
@@ -381,4 +409,44 @@ function stripComments(source: string): string {
 /** How many em dashes, en dashes and `???` a file's *code* carries, comments excluded. */
 function dashCount(text: string): number {
   return (stripComments(text).match(/—|–|\?\?\?/g) ?? []).length;
+}
+
+/**
+ * The same count over the part of a file this repository authors rather than the part it
+ * publishes.
+ *
+ * Two regions are exempt and the reasons are different from one another, so they are named
+ * separately rather than folded into one list:
+ *
+ *   - **`content/docs/**`, in full.** The published documentation corpus, frontmatter
+ *     included, is copy the destination froze. That includes the twenty `description:`
+ *     lines in it that carry an em dash; a link that names a page wrongly is a bug and is
+ *     fixed, and a published document's own punctuation is a content change with its own
+ *     commit and its own reader.
+ *   - **A post's body.** The four posts are published documents in exactly the sense a
+ *     documentation page is, and the same argument covers them.
+ *
+ * What is *not* exempt is a post's **frontmatter**, because `title` and `description` are
+ * two lines this repository reads and composes into three surfaces it owns: the card on
+ * `/blog`, the `<meta name="description">` a crawler and a link preview read, and the
+ * `description` of a search result written by `app/api/search/route.ts`. That is site UI
+ * copy wearing a document's frontmatter, and it is where the rule previously stopped: the
+ * exemption was on the file extension, so three of the four posts' descriptions carried an
+ * em dash for as long as the law existed. Splitting on the fence rather than on the
+ * extension is what makes this the rule rather than a list: a document that gains or loses
+ * a body, or a `.mdx` that is not a document at all, is handled by what it is rather than
+ * by where it lives.
+ */
+function authoredDashCount(path: string, text: string): number {
+  const code = stripComments(text);
+  if (!path.endsWith('.mdx')) return dashCount(code);
+  if (isInDirectory(path, 'docs')) return 0;
+  return dashCount(/^---\r?\n([\s\S]*?)\r?\n---/.exec(code)?.[1] ?? '');
+}
+
+/** Whether a repository-relative path is inside a named content directory. */
+function isInDirectory(path: string, directory: string): boolean {
+  const normalised = path.split(/[\\/]/g);
+  const at = normalised.lastIndexOf('content');
+  return at !== -1 && normalised[at + 1] === directory;
 }

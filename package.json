@@ -18,11 +18,11 @@
     "check:routes": "node scripts/check-routes.mjs",
     "check:both-modes": "node scripts/check-both-modes.mjs",
     "check:prism-gates": "prism-gates",
-    "check": "pnpm check:prism-gates && pnpm pnpm check:routes",
+    "check": "pnpm check:prism-gates && pnpm check:routes",
     "check:local": "pnpm check && pnpm check:both-modes"
   },
   "dependencies": {
-    "@nanisoft/prism-ui": "0.13.0",
+    "@nanisoft/prism-ui": "0.16.1",
     "fumadocs-core": "^16.15.12",
     "fumadocs-mdx": "^15.4.2",
     "next": "^16.3.5",

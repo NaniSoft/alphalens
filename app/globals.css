@@ -25,17 +25,22 @@
  *   - Colour is a token, never a raw value, and never a `color-mix()` over a
  *     `var()`: a shorthand with one dead operand erases the declaration instead of
  *     repainting it, and a live one computes away under an unlayered rule.
+ *   - Motion is a token too. A `transition` or an `animation` here takes
+ *     `var(--duration-*)` and `var(--ease-*)`; a raw `cubic-bezier(...)` literal is this
+ *     design system's own prohibition, and the one rule below that carried one was a
+ *     scroll reveal no element on the site used.
  *
  * The fifteen boxes whose edges this sheet draws are named one by one below, because
  * that count is a contract rather than a coincidence. See the border token's own note.
  *
- * What is left is the site's own chrome: a documentation section index, the blog list
- * (which the catalogue deliberately does not ship, because the four blog lists in this
- * family are four deliberate designs), the prose device the corpus marks its claims
- * with, the status note the docs index opens on, the eight-source survey, and the two
- * rules that correct something the catalogue cannot know about: that the honesty strip
- * is read from the left, and that the hero's figure is dropped on a screen too narrow to
- * draw its type at a size a reader can read.
+ * What is left is the site's own chrome: the document column that puts the footer at the
+ * bottom of a short page, a documentation section index, the blog list (which the
+ * catalogue deliberately does not ship, because the four blog lists in this family are
+ * four deliberate designs), the prose device the corpus marks its claims with, the status
+ * note the docs index opens on, the eight-source survey, and the two rules that correct
+ * something the catalogue cannot know about: that the honesty strip is read from the
+ * left, and that the hero's figure is dropped on a screen too narrow to draw its type at
+ * a size a reader can read.
  */
 
 /*
@@ -94,21 +99,60 @@
   --site-hairline-strong: 2px solid var(--border);
 }
 
-.site-main {
-  /* Keeps the footer below the fold on a short page. Layout, so it is a class rule
-     and not a bare-element one, and it competes with nothing prism declares. */
+/*
+ * The document is a column, and `main` is the part of it that grows.
+ *
+ * `main` used to be padded to a whole viewport instead, which is a sticky footer stated
+ * backwards. Measured on `/404` at 1440 by 900: the bar is 57px, `main` resolves to
+ * 900px, and the footer's top edge lands at 957px, so the page whose only job is to offer
+ * a way out keeps that way 57px below the fold. `/docs` and `/blog` carry the same dead
+ * space above their footers, and a gap under the last line of a page is not space, it is
+ * the footer having been pushed down by something that was not there. A document at least
+ * one viewport tall, with `main` growing into whatever the bar and the footer do not use,
+ * puts the footer's bottom edge on the viewport's bottom edge instead, and leaves a page
+ * taller than the viewport entirely alone. The landing was never short enough for the old
+ * rule to bite, which is why nine bands of it went unread as the same page.
+ *
+ * **The cascade was read rather than assumed.** The design system's own `body` rule sits
+ * inside `@layer base` of `@nanisoft/prism-ui/styles.css`, and this sheet is unlayered,
+ * so a bare-element rule here outranks it at any specificity: the old class rule was never
+ * in competition with anything, and neither is this one. Prism declares four properties on
+ * `body` in that layer - `background-color`, `color`, `font-family` and
+ * `-webkit-font-smoothing` - and none of the three below is one of them. The seven a bare
+ * element may not declare here are exactly the seven Prism's base layer declares, and
+ * `display`, `flex-direction` and `min-height` are none of them.
+ *
+ * `<body>` has three children that participate in layout, in this order: the bar, the
+ * `main` and the footer. Next's placeholder `<div hidden>` and its `<script>` tags are
+ * `display: none` from the browser's own sheet and neither this one nor Prism's touches
+ * them, so neither is a flex item and neither takes a line of the column.
+ */
+body {
+  display: flex;
+  flex-direction: column;
   min-height: 100dvh;
+}
+
+/*
+ * `1 0 auto` rather than `1`: a shrink factor of 1 against a zero basis would let a page
+ * taller than the viewport be compressed to fit the column, and `auto` rather than an
+ * omitted basis so nothing here depends on `min-height: auto` resolving to a content floor.
+ */
+.site-main {
+  flex: 1 0 auto;
 }
 
 /* ---------- the site's own document chrome ---------- */
 
-.site-eyebrow {
-  color: var(--muted-foreground);
-  font-family: var(--site-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
+/*
+ * There was a `.site-eyebrow` here and it is gone, and a class nothing renders is not a
+ * class: it is a name. It styled `nanisoft · alphalens · <page>`, printed above the `h1`
+ * on `/blog` and `/about`, which is three elements of one fact - the header's wordmark, a
+ * separator, the site name and the page's name - above a heading that already says what
+ * the page is, under a bar that is already carrying the wordmark. Both pages dropped the
+ * element; `test/honesty.test.ts` asserts neither page prints one and that this sheet does
+ * not declare the class, so the three cannot drift apart again.
+ */
 
 .site-mono {
   font-family: var(--site-mono);
@@ -121,54 +165,6 @@
   font-size: 0.875rem;
   line-height: 1.429;
   text-wrap: pretty;
-}
-
-/*
- * The scroll reveal.
- *
- * The hidden state is scoped under `html[data-reveal-armed]`, and that attribute is
- * written by one inlined script in the document head and by nothing else. A reader with
- * scripting disabled never receives it, so this state does not exist for them: a
- * condition that is never true is not a wait, which is the whole of the exit. The rule
- * that used to hide unconditionally had no exit at all - not a slow one, none - because
- * `is-in` comes from an IntersectionObserver in a client effect, so a reader without
- * scripting, without that API, or with a script that failed to parse received
- * `opacity: 0` and the entire landing below the header. The `@media (scripting: none)`
- * block below is the second half and covers the reader whose scripting failed midway,
- * because it is a statement about capability and does not care why.
- *
- * The transition is not an exit. It says how long the reveal takes once the class lands;
- * a clock that reveals content is a second mechanism with its own failure mode, and the
- * measured failure of the old shape was that the fallback timer starts at first style
- * resolution rather than at scroll, so by the time anything could cancel it there was
- * nothing left. `scripts/check-hidden-state.mjs` is the gate.
- */
-html[data-reveal-armed] [data-reveal] {
-  opacity: 0;
-  transform: translateY(12px);
-  transition:
-    opacity 280ms cubic-bezier(0.25, 1, 0.5, 1),
-    transform 280ms cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-html[data-reveal-armed] [data-reveal].is-in {
-  opacity: 1;
-  transform: none;
-}
-
-@media (scripting: none) {
-  html[data-reveal-armed] [data-reveal] {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-reveal-armed] [data-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
 }
 
 /* ---------- the documentation section index ---------- */
@@ -230,7 +226,9 @@ html[data-reveal-armed] [data-reveal].is-in {
  *
  * The status is a word, in the mono face, above the name. Not a badge, and not a coloured
  * dot alone: this site labels every claim in words because a reader who cannot see the
- * colour still has to be told which sources exist and which do not yet.
+ * colour still has to be told which sources exist and which do not yet. It is also the only
+ * coloured word on the tile, so it is the one a reader's eye lands on, and it is set above
+ * the role line rather level with it - see the two rules below for the sizes and why.
  */
 .site-sources {
   display: grid;
@@ -255,11 +253,30 @@ html[data-reveal-armed] [data-reveal].is-in {
   border-style: dashed;
 }
 
+/*
+ * The status word is the largest of the tile's small type and the role line is the
+ * smallest of it. That ordering is the whole of section 03, and it was the wrong way
+ * round: both were `0.625rem`, the status was the smallest text on its tile, and the
+ * tile's own name was larger than the one word a reader scans this section for.
+ *
+ * `0.75rem` is `--text-xs`, the smallest step the design system's type scale offers for
+ * anything a reader reads, and it is the smallest step Prism itself renders anywhere on
+ * this site. `0.625rem` is `--text-mono`, the machine step: it is declared in the theme
+ * and no Prism component puts it on a rendered page here. So the status is on the reading
+ * scale and the role is on the machine scale, and the status is the only coloured word on
+ * the tile, which is what makes it the word a reader finds first.
+ *
+ * The colours were already compliant and were not the defect: `--success` on `--background`
+ * is 5.01:1 in this pack's light mode and 8.69:1 in its dark one, computed from the
+ * published token values, and at 12px with a semibold weight it stays comfortably above
+ * 4.5:1. What was wrong was the size.
+ */
 .site-source__status {
   color: var(--success);
   font-family: var(--site-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -272,10 +289,14 @@ html[data-reveal-armed] [data-reveal].is-in {
   letter-spacing: -0.025rem;
 }
 
+/* The role is what the source does, and it is supporting: the smallest type on the tile,
+   and it is the only line here that a reader can lose without losing the fact. The state
+   it would have carried is already on the tile twice over - in the status word above it
+   and in the solid or dashed border - so nothing here depends on reading it. */
 .site-source__role {
   color: var(--muted-foreground);
   font-family: var(--site-mono);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -344,10 +365,14 @@ html[data-reveal-armed] [data-reveal].is-in {
   }
 }
 
-/* The pair of actions a page opens with, and the pair it closes with. The bottom margin
-   is the fix for a gap that was missing rather than for one that was wrong: `Prose` and
-   `FactList` both start flush, so a row of buttons above either of them sat with its
-   descenders against the first line of the paragraph under it. */
+/* The closing pair of actions on `/about`, which is now the only pair on that page. It used
+   to be two: one under the heading and this one again about 1400px later, with the page's
+   own bar offering both destinations directly above the top one. The pair that closes the
+   argument is the one a reader arrives at having read it.
+
+   The top margin is the reason the pair sits where it does rather than against the edge:
+   `FactList` ends flush and the row's descenders would sit on the last rule's line, so the
+   space above is the pair's and the space below is `Section`'s. */
 .site-cta-row {
   display: flex;
   flex-wrap: wrap;
@@ -452,14 +477,44 @@ html[data-reveal-armed] [data-reveal].is-in {
   padding: 3rem 1.5rem 4rem;
 }
 
+/*
+ * The blog index heading, and the scale it reads.
+ *
+ * This was a second display scale invented for this sheet: clamp(1.875rem, 3.6vw, 2.75rem),
+ * resolving to 44px at 1440 and 30px at 390. Every other h1 here is the design system's own
+ * step, `text-5xl sm:text-6xl`, resolving to 60px and 48px, so the blog list carried the
+ * smallest heading on the site and the reader's eye stepped up 16px on click, off a list
+ * whose own heading was smaller than the h1 of every post it links to.
+ *
+ * So the scale is Prism's step rather than a larger clamp: `--text-5xl` is 3rem and
+ * `--text-6xl` is 3.75rem, both with a declared line-height of 1, and `sm` is 40rem.
+ * The documentation index beside it already reads that step, which is why the two indexes on
+ * this site were 16px apart from each other as well as from every other page.
+ *
+ * Note the same clamp, under the same class name, was in the Nexus sheet until its own copy
+ * was corrected. Two consumers independently arriving at one display scale is the argument
+ * for the scale living in the design system rather than in a consumer sheet: nothing about a
+ * `clamp()` written here can be corrected in one place, and nothing about it announces that
+ * a step already exists.
+ *
+ * The leading moves from 1.2 to the token's own 1 with it, which shortens the title box by
+ * 0.2em, so the 4px beneath the title now sits against a tighter gap than it did. That is the
+ * display leading the rest of the family uses and it is deliberate, not a leftover.
+ */
 .site-catalog__title {
   color: var(--brand-ink);
-  font-size: clamp(1.875rem, 3.6vw, 2.75rem);
+  font-size: var(--text-5xl);
   font-weight: 600;
   letter-spacing: -0.025rem;
-  line-height: 1.2;
+  line-height: 1;
   margin: 0 0 0.25rem;
   text-wrap: balance;
+}
+
+@media (min-width: 40rem) {
+  .site-catalog__title {
+    font-size: var(--text-6xl);
+  }
 }
 
 .site-catalog__lede {

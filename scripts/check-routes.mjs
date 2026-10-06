@@ -31,11 +31,19 @@
  * So it stays, with its frontmatter and its body intact, and the reason lives here where
  * the route inventory is read. A verifier that fixes things is not a verifier.
  *
- * **The check is bidirectional, so an exemption cannot rot.** Every document under
+ * The check is bidirectional, so an exemption cannot rot. Every document under
  * `content/` is either emitted at a route or listed below with a reason, and every route
  * in the inventory is a document or a declared page of this site's own. A document added
  * without a route is a finding; an inventory entry that matches nothing is a finding,
  * because a rule that fires on nothing is indistinguishable from one that found nothing.
+ *
+ * **A wrong link is not an entry here.** This file is about a document with no address.
+ * A document that has an address and a *link* that guesses it wrongly is a different
+ * defect, and `links` in the gate kit is what finds it: five documents used to link to
+ * `/docs/data-contract/index`, that path was declared broken in `prism-gates.json`, and the
+ * gate reported it and passed. An exemption in a data file is a rule held in two places,
+ * so the five links were corrected and the entry deleted. What belongs in this file is a
+ * fact about routing; what belongs in a document is a link that resolves.
  *
  * Run after `pnpm build`: node scripts/check-routes.mjs
  */
@@ -121,9 +129,12 @@ const documents = new Map();
     const route = isBlogPost
       ? `/${relative}/${slug === 'index' ? '' : slug}`.replace(/\/$/, '')
       : // A documentation section's own page is its folder's `index.mdx`, and the route
-        // is the folder: `/docs/data-platform/index.mdx` reads at `/docs/data-platform`,
-        // which is the convention the content pipeline follows and the reason five
-        // published documents linking to `/docs/data-contract/index` find nothing.
+        // is the folder: `/docs/data-platform/index.mdx` reads at `/docs/data-platform`.
+        // This used to be the reason a fifth document was linked to the guessed path
+        // `/docs/data-contract/index`, and the guess was fixed in all five places, so
+        // `prism-gates.json` no longer carries a destination declared broken. The
+        // convention is read here because this gate is where the route inventory is,
+        // not because anything is wrong with it.
         `/${[relative === 'docs' ? '' : relative, slug === 'index' ? '' : slug].filter(Boolean).join('/')}`;
     documents.set(path.relative(ROOT, full).split(path.sep).join('/'), route);
   }

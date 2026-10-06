@@ -7,7 +7,7 @@ Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, on
 - **Live**: https://alphalens.nanisoft.com (Custom Domain, auto-created on deploy)
 - **Pack**: `blush` is the ground, on the document element, and it does not change. The platform product rows are the only region of a page carrying a pack that is not the ground, and in it the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape. The family's five marks live in the bar's menu now, and a closed menu paints nothing: a reader at first paint sees one pack, and the second packs reach them when they ask to leave
 - **Stack**: Next 16 static export · fumadocs-mdx · pnpm · TypeScript strict · oxlint · Vitest (jsdom + Testing Library) · Cloudflare Workers
-- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 0.13.0, pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write. This repository authors one client component, `components/RevealRoot.tsx`, and it is still the only one: the bar's own controls are client components inside the pinned package
+- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 0.15.0, pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write. This repository draws **no** client boundary of its own: the bar's own controls are client components inside the pinned package, and `test/no-hidden-state.test.ts` holds the count at zero
 - **Typeface**: none of this site's own. Prism ships Inter as three static woff2 files under the OFL and declares the `@font-face` rules in its own emitted sheet, so `--font-sans` resolves as published and nothing here loads, re-declares or repoints a family. This site used to download Inter through `next/font/google` and override the token, on the fair ground that prism 0.7.0 shipped no face at all; that stopped being true at 0.10.2 and the workaround had been declaring the same family twice ever since
 
 ## What ships
@@ -15,7 +15,7 @@ Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, on
 - **Landing** (`/`) — "See the whole market, minute by minute": the thesis with two real links and the instrument panel carrying the one figure on the page, the product's status, the four key figures as a band (`Stats01`, every number a documented fact), the honesty model as a strip, then six numbered sections, each in the shape its own idea wants: **01 what it captures** (live, three capture points) · **02 the data path** (live, the four-stage rail) · **03 one feed for research** (approved, the eight external sources as a survey of tiles) · **04 the research pipeline** (designed, six agent rows in a ledger) · **05 where it's going** (research direction, three rows in a ledger) · **06 built on Nexus**. It closes on a call to action.
   - **No section repeats another section's layout family**, which is the one rule the composition is built around and the reason the two grids of short points that used to sit under 02 and 03 are gone: the operations they summarised are documented in full under data platform and data contract, and a summary of a document next to the document is a second thing to keep in step.
   - **`FeatureGrid01` is the one Block the landing does not use.** It renders its heading with `SectionHeading`'s default alignment, which is centred, while every other section here sets `align="left"`, so on this page it put a centred title above a left-aligned two-column grid with the third card alone on the second row. Filed against the design system rather than worked around; the catalogue gap is a feature grid whose heading alignment the caller can choose.
-- **Docs** (`/docs`) — a section index over `content/docs/` — 27 pages in six sections separated by rules, each section named for subject matter and four of the six describing a pipeline rather than a topic.
+- **Docs** (`/docs`) — a section index over `content/docs/` — 27 documents in six sections separated by rules, each section named for subject matter and four of the six describing a pipeline rather than a topic. The index draws 20 cards: every document except the six that *are* a section, because a section's own page is the section and a card restating it as a page is a link to the heading above it. The section names, the section order and the documents inside each one are all read from the content pipeline's page tree, which is also what the rail on every documentation page is rendered from, so the two cannot disagree
 - **Blog** (`/blog`) — the four launch posts over `content/blog/` (folder-per-post, required date, drafts excluded). The index is this site's own composition and CSS, because the four blog lists in this family are four deliberate designs and the design system deliberately ships none. Each post is the design system's blog post Page.
 - **About** (`/about`) — the product's story: why the data layer leads, the three honesty tiers, and a dated fact list.
 - **Not found** — the design system's not-found Page: the code as the page's heading, the sentence under it, and three ways out.
@@ -31,11 +31,11 @@ so they are worth separating rather than describing as one thing.
 **The chrome is composed per page, and it cost this site nothing.** It used to live in the
 root layout, which is rendered once per route and is handed no pathname, so the bar could
 never mark the page a reader was on. Moving it down one level is the whole of that fix, and
-it is a server render reading its own route rather than a client boundary. This site is
-the one in the family that already had a client component, so the interesting question is
-whether the bar needed a second one. It does not: the Block's controls are one client
-island inside the package, and `test/site-chrome.test.tsx` renders the landing, the About
-page and the 404 to hold that.
+it is a server render reading its own route rather than a client boundary. The interesting
+question was whether the bar needed a client island of its own. It does not: the Block's
+controls are one island inside the package, and this repository draws none —
+`test/site-chrome.test.tsx` renders the landing, the About page and the 404 to hold the bar,
+and `test/no-hidden-state.test.ts` holds the count of client directives at zero.
 
 **The family is a menu, and it carries all five sites including this one.** The old
 switcher sat in the header's `actions` slot and drew only the siblings, because the brand
@@ -66,15 +66,17 @@ app/about/page.tsx    a section heading, the prose at the measure, the fact list
 app/blog/…            the blog index (site's own) and the blog post (the catalogue's)
 app/docs/…            the section index (site's own grid) and the doc page (the catalogue's)
 app/api/search/route.ts  the search index, prerendered because the export has no server
-app/globals.css       the site's own sheet: the docs index, the blog index, the status
-                      device, the honesty strip's alignment, the hero's narrow-screen
-                      rule, the reveal
-components/           RevealRoot (the only client component), SiteChrome, and the two
-                      docs templates
+app/globals.css       the site's own sheet: the document column that keeps the footer on a
+                      short page, the docs index, the blog index, the status device, the
+                      eight-source survey, the honesty strip's alignment, the hero's
+                      narrow-screen rule
+components/           SiteChrome, Landing, and the two docs templates
 lib/site.json         the ground, the default mode, the site directory
 lib/site.ts           those facts, typed by the design system's pack vocabulary
 lib/bar.ts            the bar's own data and every word it prints
 lib/content.ts        every word of the landing, as data
+lib/to-prism-tree.ts  the content pipeline's page tree, read for the rail and the index
+lib/post-date.ts      a post's date as a reading and as a machine value
 scripts/              the gates, the routes check, the both-modes browser check
 ```
 
@@ -132,9 +134,9 @@ this site's own routes gate. The laws themselves are not in this repository: the
 are the failure messages of those gates, so a fix to one reaches this site in one
 release and cannot be declined here. The four repositories of the family run the
 same programs and hold none of the wording. What this site holds is its own half,
-in `prism-gates.json`: its sheets, its coverage floors, the one destination its
-corpus gets wrong with the reason, and the attribute and module names the
-hidden-state law works in.
+in `prism-gates.json`: its sheets and its coverage floors, and nothing else. It names
+no destination its own corpus gets wrong and no arming attribute, because this site
+has neither a wrong destination nor a hidden state.
 
 What the kit enforces here, by name, so a failure message is findable:
 
@@ -145,18 +147,25 @@ What the kit enforces here, by name, so a failure message is findable:
 | `stylesheet-ownership` | This site's sheet owns no surface the design system owns, carries no `:focus` rule, and takes no `var()` as a `color-mix()` operand. |
 | `token-read` | Every custom property this sheet reads is declared. A read that resolves to nothing is not a wrong colour; it is no declaration at all. |
 | `links` | Every internal destination and every in-page fragment resolves to something this site emits. |
-| `hidden-state` | Every CSS-authored hidden state is armed, guarded by `(scripting: none)`, and has no clock for an exit. The arming has one writer, the module withdraws it, and an inlined `load` listener covers the reader whose scripting started and stopped. |
+| `hidden-state` | Every CSS-authored hidden state is armed, guarded by `(scripting: none)`, and has no clock for an exit. This site ships none, so the run reports that it passed vacuously and prints the rule count it read; that is a real answer and the count is how a reader tells it from a scan of nothing. |
 | `runtime-token-read` | No token is read at runtime, because a read resolves once and a resolved value does not follow the cascade. |
 
 `pack-boundary` is in the kit and not in this site's list: this site publishes no
-pack map, so there is nothing for it to check.
+pack map, so there is nothing for it to check, and the gate says so itself rather than
+reporting a clean page — `scripts/pack-map.json does not resolve`. `runtime-token-read`
+**is** in this site's list, and it was documented here while not being configured, which is
+the same defect as a documented gate that does not run: it is enabled in `prism-gates.json`
+and reports zero findings across `app`, `components` and `lib`.
 
 `check:routes` is this repository's own rather than the kit's: every published
 document has a route, and the one that does not is written down with its reason.
 
 The kit's limits, which it prints on every run: it reads text rather than resolving
 a cascade, it reads the emitted export rather than a browser, and a stylesheet half
-is not a rendered half, which is why `test/no-scripting.test.tsx` exists here.
+is not a rendered half. That last one is why `test/site-sheet.test.ts` and
+`test/no-hidden-state.test.ts` exist here: they ask the two questions no text scan of
+a stylesheet can ask, which are whether anything is marked for an entrance at all and
+whether the sheet hides anything.
 
 The content-parity comparison was a one-time instrument for the migration sweep and
 is gone with its baseline, which lived outside the repository and was destroyed at
@@ -172,8 +181,9 @@ site arrive somewhere.
 
 ## The three things this site was wrong about
 
-All three were live before the migration and all three are now gates, so none can come
-back unnoticed.
+The first and third were live before the migration and both are now gates, so neither can
+come back unnoticed. The second was repaired once and then left behind, and it is written
+here because the repair is the thing worth having and the leftover was the defect.
 
 **The focus indicator was the site's, and the site was outranked on every link.** The
 sheet declared a two-pixel outline in the retired line's `primary` token, and prism's own
@@ -186,13 +196,23 @@ keeps the browser's own, and neither can die with a token. The gate kit's
 `stylesheet-ownership` gate and `test/focus-indicator.test.ts` hold that, and the
 measurement is in the gate's own header.
 
-**The landing's content had no exit.** Every `[data-reveal]` element was hidden at
-`opacity: 0` and revealed by an `IntersectionObserver` in a client effect, so a reader
-without scripting, without that API, or with a script that failed to parse received the
-whole page below the header and no way out of it. The state is now scoped under an
-attribute one inlined script writes and two things can remove, there is no timer anywhere
-in it, and `test/no-scripting.test.tsx` renders the landing with scripting off and asserts
-the content is present.
+**The landing's content had no exit, and then the exit had nothing to be an exit for.**
+Every `[data-reveal]` element was hidden at `opacity: 0` and revealed by an
+`IntersectionObserver` in a client effect, so a reader without scripting, without that API,
+or with a script that failed to parse received the whole page below the header and no way
+out of it. That was repaired properly: the state was scoped under an attribute one inlined
+script wrote and two things could remove, the exit was an event rather than a clock, and
+`test/no-scripting.test.tsx` rendered the landing with scripting off and asserted the
+content was present. The repair was then found to be guarding nothing at all. Measured on
+the built export of all thirty-six pages, `data-reveal` appears as an attribute **zero**
+times: every textual match was the mechanism's own comment and script strings, and
+`document.querySelectorAll('[data-reveal]').length === 0` on the landing. So the family was
+carrying a hydration boundary, an inline script, four rules in this site's own sheet and a
+test, all to observe an empty `NodeList`, and the `hidden-state` gate reported nothing
+because it verifies the mechanism rather than asking whether anything uses it. All of it
+is deleted. The reasoning is not lost: `test/no-hidden-state.test.ts` carries it, and if
+Prism ships a Block-level entrance that is the right home for it, because the gate can then
+see every consumer of it at once.
 
 **The copy was frozen by an instrument that had been destroyed.** The dash law in
 `test/honesty.test.ts` held reader-facing copy to no em dash, no en dash and no ellipsis,
@@ -204,9 +224,18 @@ under a rule whose stated reason no longer existed, and the cheapest way to sati
 rule later would have been to author a seventh exemption. The six files were rewritten in
 one pass, the words kept and the punctuation carrying the pause with a comma, a colon, a
 full stop or parentheses, the list is gone, and the law is the absolute one it was trying
-to be. The published corpus is still exempt, wholesale and by extension, because
-rewriting the punctuation of thirty-one published documents is a content change with its
-own commit and its own reader.
+to be. Two regions are still exempt and the reasons are different from one another, so they
+are named separately rather than folded into one list. **`content/docs/**` is exempt in
+full**, frontmatter included: twenty-seven pages of published documentation, and twenty of
+the `description:` lines in it carry an em dash that stays there, because rewriting a
+published document's own punctuation is a content change with its own commit and its own
+reader. **A post's body is exempt** for the same reason. What is *not* exempt is a post's
+**frontmatter**: `title` and `description` are two lines this repository reads and composes
+into three surfaces it owns — the card on `/blog`, the `<meta name="description">` a
+crawler reads, and the `description` of a search result — so that is site UI copy wearing a
+document's frontmatter. Three of the four posts' descriptions carried an em dash and the
+rule caught none of them, because the exemption was on the file extension rather than on the
+prose; those three are rewritten and the rule now reaches the next one.
 
 ## Deploy
 

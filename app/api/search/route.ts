@@ -26,11 +26,13 @@ import { blogSource, docsSource } from '@/lib/source';
  * a page a reader can reach and a search cannot read is the silent half-published defect
  * that join exists to prevent.
  *
- * The routes gate in `scripts/check-routes.mjs` is the other half of this, and the two
- * disagree on purpose about one destination: five published documents link to
- * `/docs/data-contract/index` and the real page is at `/docs/data-contract`. The index
- * is written from the loader, so it holds the address that exists rather than the one
- * that is linked, and a search for the contract lands where the reader can read it.
+ * The routes gate in `scripts/check-routes.mjs` is the other half of this, and the two now
+ * agree about every destination. They used to disagree on purpose: five published documents
+ * linked to `/docs/data-contract/index`, the real page was at `/docs/data-contract`, and the
+ * index was written from the loader so a search for the contract landed somewhere a reader
+ * could read while five links did not. The links are corrected and `prism-gates.json` no
+ * longer declares a destination broken, so there is nothing left for the two to disagree
+ * about.
  */
 
 /** One page in the index. The four fields a result is drawn from, and no more. */

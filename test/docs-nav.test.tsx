@@ -3,7 +3,7 @@ import path from 'node:path';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { DocArticle } from '@/components/DocArticle';
+import { DocArticle, type DocArticlePage } from '@/components/DocArticle';
 import { toPrismTree } from '@/lib/to-prism-tree';
 
 /**
@@ -163,5 +163,77 @@ describe('a documentation section is a label, never a control', () => {
       entry.isDirectory(),
     );
     expect(sections.length).toBe(SECTIONS.length);
+  });
+});
+
+/**
+ * One document's contents rail, given the titles as the heading plugin hands them over.
+ *
+ * fumadocs fills `toc[].title` with a heading's own children wrapped in a fragment, so
+ * the value that reaches the page is an element even for a heading with no markup in it.
+ * Every fixture below is shaped that way, because a bare string is the one shape this
+ * pipeline does not produce, and a fixture that used one would pass against the bug.
+ */
+function contentsRail(toc: NonNullable<DocArticlePage['data']['toc']>): HTMLElement {
+  render(
+    <DocArticle
+      labels={LABELS}
+      page={{
+        url: '/docs/reference/feed-fields',
+        data: { title: 'Feed field reference', body: () => null, toc },
+      }}
+      tree={tree()}
+    />,
+  );
+  return screen.getByRole('navigation', { name: LABELS.toc });
+}
+
+describe('a contents rail entry is named by the words in its own heading', () => {
+  it('resolves an element title to the text inside it, nested elements included', () => {
+    const rail = contentsRail([
+      { title: <>{'Columns'}</>, url: '#columns', depth: 2 },
+      { title: <>{'Option chain '}<code>live</code></>, url: '#option-chain-live', depth: 3 },
+      { title: <>{['Per-source ', <em key="e">field</em>, ' detail']}</>, url: '#per-source', depth: 3 },
+    ]);
+
+    expect(rail.querySelector('a[href="#columns"]')?.textContent).toBe('Columns');
+    expect(rail.querySelector('a[href="#option-chain-live"]')?.textContent).toBe('Option chain live');
+    expect(rail.querySelector('a[href="#per-source"]')?.textContent).toBe('Per-source field detail');
+  });
+
+  it('drops an entry whose title resolves to nothing rather than forwarding a blank one', () => {
+    // A nameless entry reaches the design system as a label rather than a link, so it
+    // draws a row of nothing inside the rail. Dropping it here is the whole fix: the
+    // rail is the whole outline or none of it, and a row with no words is not a place in
+    // the document. The whitespace-only title is the same case with a space in front of
+    // it, and is dropped for the same reason.
+    const rail = contentsRail([
+      { title: <>{'Columns'}</>, url: '#columns', depth: 2 },
+      { title: <>{null}</>, url: '#nameless', depth: 2 },
+      { title: <>{'   '}</>, url: '#blank', depth: 3 },
+    ]);
+
+    expect(rail.querySelectorAll('a')).toHaveLength(1);
+    expect(rail.querySelector('a[href="#nameless"]')).toBeNull();
+    expect(rail.querySelector('a[href="#blank"]')).toBeNull();
+    // Nothing in the rail renders Prism's label half, which is the slot an entry with no
+    // address or no words falls back to.
+    expect(rail.querySelectorAll('[data-slot="docs-nav-label"]')).toHaveLength(0);
+  });
+
+  it('keeps the two-level promise while naming every entry it keeps', () => {
+    // The filter is the reason the rail can be trusted, and dropping an entry because it
+    // resolved to nothing must not become a reason to widen the filter.
+    const rail = contentsRail([
+      { title: <>{'Feed field reference'}</>, url: '#top', depth: 1 },
+      { title: <>{'Columns'}</>, url: '#columns', depth: 2 },
+      { title: <>{'Option chain'}</>, url: '#option-chain', depth: 3 },
+      { title: <>{'Step one'}</>, url: '#step-one', depth: 4 },
+    ]);
+
+    expect([...rail.querySelectorAll('a')].map((anchor) => anchor.getAttribute('href'))).toEqual([
+      '#columns',
+      '#option-chain',
+    ]);
   });
 });

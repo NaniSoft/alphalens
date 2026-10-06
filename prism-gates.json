@@ -7,14 +7,14 @@
     "package exactly, so a change to a law lands once and reaches this repository",
     "in one release and cannot be declined here. What is here is the set of facts",
     "only this site knows: which stylesheets are its own, how much of them counts",
-    "as having read something, which destination its own corpus gets wrong, and",
-    "which module owns the arming attribute for the one hidden state this site ships.",
+    "as having read something, and that this repository ships no destination its",
+    "own corpus gets wrong.",
     "",
     "A line in this file that stated a rule would be the defect the file exists to",
     "end, because a rule held in five repositories is five rules that will disagree."
   ],
   "gateKit": 1,
-  "gates": ["pin", "retired-line", "stylesheet-ownership", "links", "hidden-state"],
+  "gates": ["pin", "retired-line", "stylesheet-ownership", "links", "runtime-token-read", "hidden-state"],
   "stylesheet-ownership": {
     "sheets": ["app/globals.css"],
     "minDeclarations": 20
@@ -22,16 +22,11 @@
   "links": {
     "outDir": "out",
     "minRoutes": 30,
-    "minAnchors": 900,
-    "knownBroken": {
-      "/docs/data-contract/index": "fumadocs routes a folder index at the folder, so this document is at /docs/data-contract. Five published documents link to the guessed path. The corpus is frozen by the migration, so the decision is recorded here rather than made by editing five documents; a change to the corpus can close it and delete this entry in the same commit."
-    }
+    "minAnchors": 900
   },
   "hidden-state": {
     "sheets": ["app/globals.css"],
     "minRules": 45,
-    "marker": "data-reveal",
-    "armed": "data-reveal-armed",
     "sourceRoots": ["app", "components", "lib"]
   }
 }
