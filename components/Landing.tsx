@@ -11,6 +11,7 @@ import { Stats01 } from '@nanisoft/prism-ui/blocks/stats-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
 import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
 
+import { AlphaLensLogo } from '@/components/logo';
 import {
   BUILT_ON_NEXUS,
   CAPTURE_CARDS,
@@ -212,6 +213,7 @@ export function Landing(): ReactElement {
             stateLabel={HERO_PANEL.mode}
             footnote={HERO_PANEL.footnote}
             caption={HERO_FIGURE.aria}
+            actions={<AlphaLensLogo size={22} className="site-panel-logo" />}
           >
             <PulseGraph
               nodes={HERO_FIGURE.nodes}

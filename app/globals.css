@@ -167,6 +167,33 @@ body {
   text-wrap: pretty;
 }
 
+/* ---------- the mark, as the page draws it ---------- */
+
+/*
+ * The logo glyph is a site-authored drawing in currentColor, so it follows the
+ * ink it sits beside through the cascade. The centre bar is the pack's own
+ * primary, read as a variable rather than a resolved value, so the accent
+ * follows the pack the way every other fill on the page does.
+ */
+.site-logo {
+  display: block;
+  flex: none;
+  color: var(--foreground);
+}
+
+.site-logo__accent {
+  fill: var(--primary);
+}
+
+/*
+ * The lockup inside the hero instrument panel's title bar, at the size the
+ * panel's own controls draw.
+ */
+.site-panel-logo {
+  display: block;
+  color: var(--muted-foreground);
+}
+
 /* ---------- the documentation section index ---------- */
 
 /* ---------- the fifteen box edges ---------- */

@@ -95,7 +95,7 @@ const OVERCLAIM_PATTERNS: ReadonlyArray<{ term: RegExp; name: string }> = [
 
 /** Outbound links must point at Nanisoft surfaces or the material's cited sources. */
 const ALLOWED_LINK_HOSTS =
-  /^(?:nanisoft\.com|www\.nanisoft\.com|(?:nexus|atlas|alphalens|prism|playground)\.nanisoft\.com|github\.com|economictimes\.indiatimes\.com|moneycontrol\.com|nseindia\.com|bseindia\.com|data\.rbi\.org\.in|esankhyiki\.mospi\.gov\.in|api\.stocktwits\.com|api-docs\.stocktwits\.com|trendlyne\.com|tigzig\.com|polymarket\.com|docs\.polymarket\.com|support\.fyers\.in|fyers\.in|public\.fyers\.in|127\.0\.0\.1|localhost|schema\.org)$/;
+  /^(?:nanisoft\.com|www\.nanisoft\.com|(?:nexus|atlas|alphalens|prism|playground)\.nanisoft\.com|github\.com|economictimes\.indiatimes\.com|moneycontrol\.com|nseindia\.com|bseindia\.com|data\.rbi\.org\.in|esankhyiki\.mospi\.gov\.in|api\.stocktwits\.com|api-docs\.stocktwits\.com|trendlyne\.com|tigzig\.com|polymarket\.com|docs\.polymarket\.com|support\.fyers\.in|fyers\.in|public\.fyers\.in|127\.0\.0\.1|localhost|schema\.org|www\.w3\.org)$/;
 
 /**
  * The disclosure law, and the reason it is a check on existence rather than on wording.
