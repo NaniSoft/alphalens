@@ -1,13 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- AlphaLens mark: the lens — a rose reticle sitting on the option chain's
-       open-interest profile (calls above the axis, puts below). -->
-  <rect width="32" height="32" rx="4" fill="#14070F" />
-  <g stroke="#F08CB4" stroke-width="1.8" stroke-linecap="round" fill="none">
+  <!-- AlphaLens mark: the lens, a gold reticle sitting on the option chain's
+       open-interest profile (calls above the axis, puts below). Colours are the
+       gold pack's own tokens (brand-100, brand-400, neutral-950). -->
+  <rect width="32" height="32" rx="4" fill="#1A1815" />
+  <g stroke="#D2A24B" stroke-width="1.8" stroke-linecap="round" fill="none">
     <path d="M3 21.5 H29" opacity="0.45" />
     <path d="M16 6 V26" opacity="0.3" />
     <circle cx="16" cy="21.5" r="5.4" />
   </g>
-  <g fill="#F08CB4">
+  <g fill="#D2A24B">
     <rect x="6" y="15.5" width="2" height="6" opacity="0.55" />
     <rect x="10" y="12" width="2" height="9.5" opacity="0.75" />
     <rect x="14" y="9.5" width="2" height="12" />
@@ -15,7 +16,7 @@
     <rect x="22" y="14" width="2" height="7.5" opacity="0.6" />
     <rect x="26" y="17" width="2" height="4.5" opacity="0.4" />
   </g>
-  <g fill="#F08CB4" opacity="0.4">
+  <g fill="#FFEAC7" opacity="0.4">
     <rect x="10" y="21.5" width="2" height="4.5" />
     <rect x="18" y="21.5" width="2" height="5.5" />
     <rect x="22" y="21.5" width="2" height="3" />

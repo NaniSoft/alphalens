@@ -45,7 +45,7 @@ export const HERO = {
  */
 export const FIGURES = [
   { value: '7 + 4', label: 'expiries per index' },
-  { value: '12', label: 'API calls a minute' },
+  { value: '11 + 1', label: 'calls a minute per index' },
   { value: '4.5 MB', label: 'archived per day' },
   { value: '2', label: 'writers of one schema' },
 ] as const;
@@ -65,7 +65,7 @@ export const FIGURES = [
  */
 export const HERO_PANEL = {
   label: 'the capture path, stage by stage',
-  mode: 'dark · blush',
+  mode: 'documented',
   footnote:
     'The four stages the collector runs each market minute, as this site documents them. No market values are drawn: there is no live feed on this page to draw from.',
 } as const;
@@ -80,7 +80,7 @@ export const HERO_PANEL = {
  * room for a phrase and not for a sentence.
  */
 export const HERO_STAGES = [
-  { name: 'Capture', note: '11 calls per index', role: '11 chain calls plus one batched quote call per index' },
+  { name: 'Capture', note: '11 + 1 calls', role: '11 chain calls plus one batched quote call per index, each market minute' },
   { name: 'Store', note: 'one transaction a minute', role: 'one SQLite transaction per minute, into that day’s file' },
   { name: 'Summarize', note: 'PCR and max OI', role: 'PCR and max-OI strikes from the rows already captured' },
   { name: 'Archive', note: 'xz, then verified', role: 'xz-compressed, swept on retention, verified before the local copy goes' },
@@ -112,6 +112,12 @@ export const HERO_FIGURE = {
     id: stage.name.toLowerCase(),
     name: stage.name.toLowerCase(),
     note: stage.note,
+    // The fit renormalises the caller's x span onto the padded drawing, so an inset
+    // here changes nothing: what keeps the end labels inside the canvas is the fit's
+    // own padding (56 units) against the width of the widest end note, which is why
+    // the notes are phrases and not sentences. The drawing itself is width-hooked to
+    // its panel in `Landing`, so the whole rail scales to the panel rather than
+    // scrolling its right-hand stage out of the first screen.
     x: index / (HERO_STAGES.length - 1),
     y: 0.5,
     lane: index,

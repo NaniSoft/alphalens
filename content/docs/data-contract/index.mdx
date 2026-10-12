@@ -1,6 +1,6 @@
 ---
 title: Unified data contract
-description: How Fyers rows and external rows merge into one queryable surface — the contract the agents will read.
+description: How Fyers rows and external rows merge into one queryable surface, the contract the agents will read.
 ---
 
 <Note status="Approved, not yet implemented">
@@ -14,7 +14,7 @@ running today.
 ## The problem
 
 TradingAgents-style agents consume formatted text reports, not rigid
-DataFrames. Fyers provides price, quotes, option chain, candles and depth — and
+DataFrames. Fyers provides price, quotes, option chain, candles and depth, and
 **no** fundamentals, news, sentiment, macro, corporate actions or insider
 deals. Something has to decide how Fyers rows and external rows merge into the
 one interface the Market, Sentiment, News and Fundamentals analysts read.
@@ -23,7 +23,7 @@ The standing preference that shaped the answer: **Fyers is primary**; external
 sources fill only what Fyers structurally cannot provide, and free/public
 Indian endpoints come first.
 
-## Approach B — keep, add, unify
+## Approach B: keep, add, unify
 
 The approved approach keeps the existing Fyers tables untouched, adds six
 external tables, and unifies the read path with a SQL view.
@@ -40,14 +40,14 @@ External collectors (new)         fundamentals · news_items · sentiment_posts
 
 **Why this shape:** it minimizes blast radius against a normalize-and-rewrite,
 it preserves the existing SQLite + WAL + xz pipeline, and it lets the .NET port
-stay schema-identical — the Fyers half of the contract needs no migration at
+stay schema-identical: the Fyers half of the contract needs no migration at
 all.
 
 ## The six new tables
 
 | Table | Grain | Conflict strategy |
 |---|---|---|
-| `fundamentals` | `symbol, report_date, revenue, net_profit, debt_equity, roce, quarter` | fixed-upsert — the most recent poll wins |
+| `fundamentals` | `symbol, report_date, revenue, net_profit, debt_equity, roce, quarter` | fixed-upsert: the most recent poll wins |
 | `news_items` | `symbol, pub_date_ts, headline, content, source, url` | append-only |
 | `sentiment_posts` | `symbol, post_ts, message, sentiment, likes` | append-only |
 | `macro_indicators` | `indicator_name, value_ts, value, unit, frequency` | fixed-upsert |
@@ -59,13 +59,13 @@ the natural key **`(symbol, ts_utc, source)`**, so re-runs are idempotent.
 
 ## Read this next
 
-- **[`data_feed_view` anatomy](/docs/data-contract/data-feed-view)** — the
+- **[`data_feed_view` anatomy](/docs/data-contract/data-feed-view)**: the
   column list, and why it is pinned by a test.
-- **[Canonical timestamps & symbols](/docs/data-contract/timestamps-and-symbols)**
-  — the two normalizations that make cross-source rows joinable.
-- **[External sources](/docs/data-contract/external-sources)** — the source
+- **[Canonical timestamps & symbols](/docs/data-contract/timestamps-and-symbols)**:
+  the two normalizations that make cross-source rows joinable.
+- **[External sources](/docs/data-contract/external-sources)**: the source
   picks, and what each one covers.
-- **[The never-fail-closed posture](/docs/data-contract/error-posture)** — how
+- **[The never-fail-closed posture](/docs/data-contract/error-posture)**: how
   an outage degrades.
-- **[Known gaps](/docs/data-contract/known-gaps)** — what the feed does not
+- **[Known gaps](/docs/data-contract/known-gaps)**: what the feed does not
   have, stated plainly.

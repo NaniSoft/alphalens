@@ -15,7 +15,7 @@ News ────┤                                       └─ discussion ┘
 Fundamentals ─┘
 ```
 
-Each analyst node may call its tools more than once per ticker per run — the
+Each analyst node may call its tools more than once per ticker per run: the
 Market Analyst typically calls `get_stock_data` and `get_indicators`
 separately. The debate and reflection loops add further LLM calls: the default
 configuration is one debate round and one risk-discussion round.
@@ -24,15 +24,15 @@ configuration is one debate round and one risk-discussion round.
 
 | Data category | Source in the reference framework | Consuming agent |
 |---|---|---|
-| Core price / OHLCV | yfinance (primary), Alpha Vantage (fallback) | Market Analyst — `get_stock_data` |
-| Technical indicators | derived from OHLCV (stockstats) | Market Analyst — `get_indicators` |
+| Core price / OHLCV | yfinance (primary), Alpha Vantage (fallback) | Market Analyst: `get_stock_data` |
+| Technical indicators | derived from OHLCV (stockstats) | Market Analyst: `get_indicators` |
 | Fundamentals (overview, balance sheet, cash flow, income statement) | yfinance (primary), Alpha Vantage (fallback) | Fundamentals Analyst |
 | News and insider transactions | yfinance news, Alpha Vantage news | News Analyst |
-| Global / macro news | yfinance Search | News Analyst — `get_global_news` |
-| Macro-economic indicators | FRED (requires `FRED_API_KEY`) | News Analyst — `get_macro_indicators` |
-| Prediction markets | Polymarket public Gamma API, no key | News Analyst — `get_prediction_markets` |
-| Reddit sentiment | Reddit public RSS/JSON, no key | Sentiment Analyst — internal fetch, not a vendor tool |
-| StockTwits sentiment | StockTwits public stream, no key | Sentiment Analyst — internal fetch |
+| Global / macro news | yfinance Search | News Analyst: `get_global_news` |
+| Macro-economic indicators | FRED (requires `FRED_API_KEY`) | News Analyst: `get_macro_indicators` |
+| Prediction markets | Polymarket public Gamma API, no key | News Analyst: `get_prediction_markets` |
+| Reddit sentiment | Reddit public RSS/JSON, no key | Sentiment Analyst: internal fetch, not a vendor tool |
+| StockTwits sentiment | StockTwits public stream, no key | Sentiment Analyst: internal fetch |
 
 Two things worth noticing: the Fundamentals, News and Sentiment agents read
 exactly the categories Fyers cannot provide, which is why the
@@ -53,8 +53,8 @@ plus markdown reports under a per-timestamp directory.
 
 ## What a run costs
 
-Roughly **4–6 LLM calls per ticker per run** — analysts, trader, risk,
-reflection. At 500 tickers a day that is on the order of **2,000–3,000 LLM
+Roughly **4-6 LLM calls per ticker per run**: analysts, trader, risk,
+reflection. At 500 tickers a day that is on the order of **2,000-3,000 LLM
 calls per day**, with the total driven by LLM pricing. Debate and risk round
 counts are the knobs that move it.
 

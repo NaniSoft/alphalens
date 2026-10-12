@@ -9,12 +9,14 @@
     "stable for the life of the page and comes from `ground` below, and a product's",
     "mark comes from its own entry in `products`.",
     "",
-    "The old line called this pack rose and the design system calls it blush. `rose`",
-    "is not a published pack on this line and no emitted rule resolves it, so a mark",
-    "carrying it would have matched nothing and painted the page's own colour while",
-    "claiming a product's. The rename is recorded here rather than in prose so that a",
-    "reader who finds `rose` in a document knows the pack was renamed rather than",
-    "that the document is wrong.",
+    "Two renames are recorded here rather than in prose. The first line called this",
+    "pack rose and the design system called it blush. Then the family's map asked for",
+    "a gold ground for this product, and the token build grew one, so the ground moved",
+    "from blush to gold and Prism's mark in the directory went the other way: Prism",
+    "carries no pack at all now, which is the one case `ProductMark` draws as the full",
+    "spectrum, because the design system itself owns every hue. `rose` and `blush` are",
+    "not this site's identifiers any more, and a mark carrying one would either match",
+    "nothing or paint somebody else's colour while claiming this product's.",
     "",
     "**Every `href` here is absolute, including this site's own.** It was `/` until the",
     "bar's family arrived as a menu, and that was a defect the old switcher hid rather",
@@ -27,13 +29,13 @@
     "reading of this comment."
   ],
   "siteId": "alphalens",
-  "ground": "blush",
+  "ground": "gold",
   "defaultMode": "dark",
   "products": [
-    { "id": "alphalens", "name": "AlphaLens", "pack": "blush", "href": "https://alphalens.nanisoft.com" },
-    { "id": "nexus", "name": "Nexus", "pack": "lavender", "href": "https://nexus.nanisoft.com" },
+    { "id": "alphalens", "name": "AlphaLens", "pack": "gold", "href": "https://alphalens.nanisoft.com" },
+    { "id": "nexus", "name": "Nexus", "pack": "cyan", "href": "https://nexus.nanisoft.com" },
     { "id": "atlas", "name": "Atlas", "pack": "mint", "href": "https://atlas.nanisoft.com" },
     { "id": "www", "name": "NaniSoft", "pack": "sky", "href": "https://www.nanisoft.com" },
-    { "id": "prism", "name": "Prism", "pack": "peach", "href": "https://prism.nanisoft.com" }
+    { "id": "prism", "name": "Prism", "href": "https://prism.nanisoft.com" }
   ]
 }

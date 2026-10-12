@@ -9,7 +9,7 @@ The Python collector was working. It is 4,426 lines across 15 modules with 167
 tests, live in production, capturing the full NIFTY and BANKNIFTY chain every
 market minute.
 
-On 15 September 2026 the decision was made to port it to **.NET 10** anyway —
+On 15 September 2026 the decision was made to port it to **.NET 10** anyway,
 with no further Python feature work. Python becomes a cold standby after
 cutover.
 
@@ -34,8 +34,8 @@ a given day. With it, Python and .NET are interchangeable against a single
 archive, and "cold standby" is a real option rather than a hope.
 
 The rate limiter deserves its own sentence, because it is where a port would
-quietly diverge. The entire design depends on staying 429-free — Fyers blocks
-an account for the rest of the day after three per-minute breaches — so the
+quietly diverge. The entire design depends on staying 429-free (Fyers blocks
+an account for the rest of the day after three per-minute breaches), so the
 .NET limiter ports the sliding windows exactly, with parity tests pinning them.
 
 One Fyers app also means one quota pool: after cutover, exactly one capturer
@@ -49,7 +49,7 @@ The **Nifty 500 quote universe**, behind `quote_universe.enabled`:
   official NSE `ind_nifty500list.csv` with auto-refresh;
 - the **two nearest monthly futures** for members present in the F&O instrument
   master;
-- **no option chains** for the extended universe — chains stay on the two
+- **no option chains** for the extended universe: chains stay on the two
   indices, where they are affordable.
 
 The budget, which is what makes it admissible at all: roughly **140 calls/min
@@ -64,7 +64,7 @@ lookback window, no probe gate, no archive resurrection, no pending-resume. A
 separate data-integrity service owns repair.
 
 The consequence is that `candles_runs` markers become pure status records
-instead of resume state. That is a simpler contract — a scheduler that silently
+instead of resume state. That is a simpler contract: a scheduler that silently
 rewrites history is much harder to reason about than one that reports what it
 did.
 
@@ -77,7 +77,7 @@ The ported backup flow runs at 23:15 IST:
    folder
 3. **verify remote size == local size**, then clean up locally
 
-`summary.db` is always preserved — it is the only file the next day reads. The
+`summary.db` is always preserved: it is the only file the next day reads. The
 verify-then-delete step is the difference between a backup and a coin flip.
 
 ## Two surprises, both found live
@@ -87,12 +87,12 @@ than designed on paper. Two things would otherwise have shipped as bugs:
 
 **Commodity futures have no OI anywhere.** `quotes` returns none, depth always
 reports `oi=0`, history returns `no_data`. GOLD, SILVER, CRUDEOIL and
-NATURALGAS are captured with OHLCV and VWAP — and excluded from depth polling,
+NATURALGAS are captured with OHLCV and VWAP, and excluded from depth polling,
 because polling a field that is always zero is how a feed starts lying.
 
 **Sectoral index futures do not exist on NSE.** The design captures cash-market
-index spots instead — IT, AUTO, PHARMA, METAL, FMCG, REALTY, MIDCPNIFTY,
-SMLCAP100 — all verified live the same morning. Currency futures (USDINR,
+index spots instead (IT, AUTO, PHARMA, METAL, FMCG, REALTY, MIDCPNIFTY,
+SMLCAP100), all verified live the same morning. Currency futures (USDINR,
 EURINR) do carry live depth OI, and MIDCPNIFTY futures do too; both verified.
 
 ## Where it stands

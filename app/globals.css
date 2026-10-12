@@ -204,16 +204,24 @@ body {
   text-transform: uppercase;
 }
 
-/* The display scale, which the catalogue's `Heading` does not reach: this is a landing
-   page's own display step, and it is the one thing on the page that is not a size in the
-   design system's type scale. `text-wrap: balance` because a four-word headline broken
-   three-one reads as two headlines. */
+/* The display scale for a page's own claim, read from the design system's type
+   ladder rather than from a clamp this site invents: `text-5xl` at rest and
+   `text-6xl` at `sm`, the same two steps the catalogue's own page header uses, so
+   every page on this site takes its top-level size from one scale.
+   `text-wrap: balance` because a four-word headline broken three-one reads as two
+   headlines. */
 .site-display {
-  font-size: clamp(2.5rem, 5.6vw, 4.75rem);
+  font-size: var(--text-5xl);
   font-weight: 600;
   letter-spacing: -0.025rem;
-  line-height: 1.04;
+  line-height: 1;
   text-wrap: balance;
+}
+
+@media (min-width: 40rem) {
+  .site-display {
+    font-size: var(--text-6xl);
+  }
 }
 
 /* The eight external sources, and the per-tile state that is the whole of this survey.
@@ -251,6 +259,28 @@ body {
 
 .site-source[data-status='approved'] {
   border-style: dashed;
+}
+
+/*
+ * Motion, on the surfaces this site owns.
+ *
+ * Every transition reads the design system's duration and easing tokens and
+ * nothing else: no raw cubic-bezier, no keyframes authored here, no entrance
+ * states. The ambient motion on this site is the design system's own (the hero
+ * figure's travelling marker), and what this sheet adds is feedback: a hover
+ * answer that arrives at the speed the design system answers at, rather than
+ * instantly. Under `prefers-reduced-motion: reduce` the design system's own
+ * sheet disables transitions globally, so this block collapses with everything
+ * else.
+ */
+.site-source {
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.site-source:hover {
+  background-color: var(--accent);
 }
 
 /*
@@ -378,20 +408,6 @@ body {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-block: 2rem 2.5rem;
-}
-
-/* The live dot. `bg-success` rather than the pack's `primary`, because a dot that means
-   "running" should read as running in every pack, and a pastel brand value fails
-   contrast as a fill on a light card. The words beside it are what a reader is told; the
-   dot is `aria-hidden` and only what a reader sees. */
-.site-live-dot {
-  background: var(--success);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  display: inline-block;
-  flex: none;
-  height: 0.4375rem;
-  width: 0.4375rem;
 }
 
 /* ---------- the documentation section index ---------- */
@@ -539,6 +555,7 @@ body {
   font-weight: 600;
   letter-spacing: -0.025rem;
   text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .site-blog-list__title:hover {
@@ -555,6 +572,10 @@ body {
 }
 
 .site-blog-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.875rem;
   color: var(--muted-foreground);
   margin: 0;
 }

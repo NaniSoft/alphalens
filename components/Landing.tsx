@@ -31,7 +31,6 @@ import {
   PIPELINE_DESCRIPTION,
   PIPELINE_NOTE,
   PIPELINE_ROWS,
-  SECTIONS,
   STATUS_LABEL,
   TICKER,
   sectionTitle,
@@ -131,7 +130,6 @@ function FeedSources(): ReactElement {
         as="h2"
         align="left"
         className="mb-12"
-        eyebrow={SECTIONS[2].index}
         title={sectionTitle(2)}
         description={FEED_DESCRIPTION}
       />
@@ -219,6 +217,7 @@ export function Landing(): ReactElement {
               nodes={HERO_FIGURE.nodes}
               relations={HERO_FIGURE.relations}
               label={HERO_FIGURE.aria}
+              className="w-full min-w-0"
             />
           </InstrumentPanel01>
         }
@@ -230,10 +229,7 @@ export function Landing(): ReactElement {
           own padding, so a reader scrolled through two empty bands to reach the first
           sentence of the page. */}
       <Section className="site-status-band">
-        <p className="site-status">
-          <span className="site-live-dot" aria-hidden />
-          {HERO.status}
-        </p>
+        <p className="site-status">{HERO.status}</p>
       </Section>
 
       {/* The figures, as a band under the hero rather than a section. Four counts, each
@@ -241,7 +237,9 @@ export function Landing(): ReactElement {
           page that shows no numbers asks for trust and a research page that invents them
           is the failure this site was rebuilt to remove. `Stats01` is the catalogue's own
           KPI block and it ships no numbers of its own. */}
-      <Stats01 stats={FIGURES.map((figure) => ({ label: figure.label, value: figure.value }))} />
+      <Stats01
+        stats={FIGURES.map((figure) => ({ key: figure.label, label: figure.label, value: figure.value }))}
+      />
 
       {/* The honesty model as a strip, which is the transition band between the hero
           and the first numbered section. Left aligned by one site class: centred, five
@@ -262,7 +260,6 @@ export function Landing(): ReactElement {
           on the second row. The gap is filed against the design system rather than
           worked around: a feature grid whose heading can be aligned. */}
       <NoteGrid01
-        eyebrow={SECTIONS[0].index}
         title={sectionTitle(0)}
         description={CAPTURE_DESCRIPTION}
         notes={CAPTURE_CARDS.map((card) => ({ title: card.title, body: card.body }))}
@@ -277,7 +274,6 @@ export function Landing(): ReactElement {
           data platform, and a summary of a document next to the document is one more thing
           to keep in step. */}
       <ProcessRail01
-        eyebrow={SECTIONS[1].index}
         title={sectionTitle(1)}
         description={PATH_DESCRIPTION}
         steps={DATA_PATH_STEPS}
@@ -297,7 +293,6 @@ export function Landing(): ReactElement {
           a gap this site is working around quietly. So it is a ledger, whose row shape
           carries a name, a state and a detail line, and the words are unchanged. */}
       <StatusLedger01
-        eyebrow={SECTIONS[3].index}
         title={sectionTitle(3)}
         description={PIPELINE_DESCRIPTION}
         rows={PIPELINE_ROWS.map((row) => ({
@@ -317,7 +312,6 @@ export function Landing(): ReactElement {
           direction a reader can act on, and the tier stays in the section title rather
           than beside each row. */}
       <StatusLedger01
-        eyebrow={SECTIONS[4].index}
         title={sectionTitle(4)}
         description={DIRECTIONS_DESCRIPTION}
         rows={DIRECTIONS.map((direction) => ({
@@ -333,7 +327,6 @@ export function Landing(): ReactElement {
           mark is its own product's boundary, and a mark is a fully rounded disc, so the
           boundary moves nothing about its shape. */}
       <ProductGrid01
-        eyebrow={SECTIONS[5].index}
         title={sectionTitle(5)}
         description={BUILT_ON_NEXUS.lede}
         products={BUILT_ON_NEXUS.products.map((product) => ({

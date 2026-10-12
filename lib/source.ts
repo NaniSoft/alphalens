@@ -1,4 +1,4 @@
-// Content sources — Fumadocs headless, the prism.nanisoft.com recipe.
+// Content sources: Fumadocs headless, the prism.nanisoft.com recipe.
 //
 // The fumadocs-mdx Macro API is compile-time: `defineDocs`/`defineCollections`
 // may only appear at top level in this module with literal `dir`s, and the

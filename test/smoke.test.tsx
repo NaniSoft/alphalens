@@ -21,13 +21,18 @@ const ROOT = path.resolve(__dirname, '..');
  * `eyebrow` above the title, rendered in the mono face, so this reads the numbering the
  * page publishes rather than a class this repository no longer owns.
  */
+/**
+ * The six sections' headings, and nothing else.
+ *
+ * Selected as every `h2` under main except the closing call to action, which is an
+ * `h2` too and is not one of the sections. The sections used to be found by the
+ * ordinal eyebrow beside each heading; the eyebrow is gone, and the reading order
+ * the number carried is the order the headings render in.
+ */
 function numberedSections(): string[] {
-  return [...document.querySelectorAll('h2')]
-    .filter((heading) => {
-      const eyebrow = heading.parentElement?.querySelector('[data-slot="section-heading"] span, span');
-      return /^\d{2}$/.test(eyebrow?.textContent?.trim() ?? '');
-    })
-    .map((heading) => heading.textContent ?? '');
+  return [...document.querySelectorAll('main h2')]
+    .map((heading) => heading.textContent ?? '')
+    .filter((text) => text !== 'Read the market the way an agent would.');
 }
 
 /**

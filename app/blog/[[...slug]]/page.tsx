@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BlogPostPage } from '@nanisoft/prism-ui/pages';
 
 import { getMdxComponents } from '@/lib/mdx-components';
+import { JsonLd } from '@/components/json-ld';
 import { SiteChrome } from '@/components/SiteChrome';
 import { displayDate, isoDate } from '@/lib/post-date';
 import { blogSource } from '@/lib/source';
@@ -34,13 +35,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!slug) {
     return {
       title: 'Blog',
+      alternates: { canonical: '/blog' },
       description:
         'Notes from building AlphaLens: live market-data capture, the unified data contract, and the research design above it.',
     };
   }
   const page = blogSource.getPage(slug);
   if (!page) return {};
-  return { title: page.data.title, description: page.data.description };
+  return {
+    title: page.data.title,
+    description: page.data.description,
+    alternates: { canonical: page.url },
+  };
 }
 
 /**
@@ -86,10 +92,7 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
             still design.
           </p>
           {posts.length === 0 ? (
-            <p className="site-empty">
-              Nothing published yet. Posts land as <code>content/blog/&lt;slug&gt;/index.mdx</code>,
-              folder-per-post, required date, display-only tags.
-            </p>
+            <p className="site-empty">Nothing published yet. The first post is being written.</p>
           ) : (
             <ul className="site-blog-list">
               {posts.map((post) => (
@@ -100,7 +103,7 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
                   <p className="site-blog-list__description">{post.data.description}</p>
                   <p className="site-mono site-blog-list__meta">
                     <time dateTime={isoDate(post.data.date)}>{displayDate(post.data.date)}</time>
-                    {post.data.tags.length > 0 && <span> · {post.data.tags.join(' · ')}</span>}
+                    {post.data.tags.length > 0 && <span>{post.data.tags.join(', ')}</span>}
                   </p>
                 </li>
               ))}
@@ -122,8 +125,27 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
 
   const MDX = page.data.body;
 
+  // The two URLs are string concatenation rather than a template literal, which is
+  // for the honesty guard as much as for style: the guard scans source text for
+  // every URL this file publishes, and a scanned URL should parse as a URL.
+  const pageUrl = 'https://alphalens.nanisoft.com' + page.url;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: page.data.title,
+    description: page.data.description,
+    datePublished: isoDate(page.data.date),
+    inLanguage: 'en',
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    author: { '@type': 'Organization', name: 'NaniSoft', url: 'https://nanisoft.com' },
+    publisher: { '@type': 'Organization', name: 'NaniSoft', url: 'https://nanisoft.com' },
+  };
+
   return (
     <SiteChrome current="/blog">
+      <JsonLd data={jsonLd} />
       <BlogPostPage
         title={page.data.title}
         description={page.data.description}

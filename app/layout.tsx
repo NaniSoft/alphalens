@@ -12,12 +12,22 @@ import '@nanisoft/prism-ui/styles.css';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://alphalens.nanisoft.com'),
   title: {
     default: 'AlphaLens: quantitative trading research for the Indian market',
     template: '%s · AlphaLens',
   },
   description:
     'AlphaLens captures the full NSE option chain every market minute and conforms it into one research-ready feed. A live data layer, an approved contract and a designed research pipeline, labelled honestly.',
+  applicationName: 'AlphaLens',
+  openGraph: {
+    type: 'website',
+    siteName: 'AlphaLens',
+    locale: 'en',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 };
 
 /**

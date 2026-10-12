@@ -23,7 +23,7 @@ import type { ComponentType, ReactNode } from 'react';
 type MdxComponentMap = Record<string, ComponentType<Record<string, unknown>>>;
 
 /**
- * `<Note status="Live">…</Note>` — a labelled status panel. The label is the
+ * `<Note status="Live">…</Note>`, a labelled status panel. The label is the
  * point: AlphaLens marks every claim live / approved / designed / direction,
  * and the docs say which in the same voice everywhere.
  */

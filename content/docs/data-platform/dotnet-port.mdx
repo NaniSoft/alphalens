@@ -6,7 +6,7 @@ description: A second implementation of the same collector, schema-identical by 
 <Note status="Live">Approved 2026-09-15; **Phase 1 live**. Phases 2 and 3 remain
 designed, not built.</Note>
 
-The Python collector is the first implementation. The .NET port is the second —
+The Python collector is the first implementation. The .NET port is the second:
 not a rewrite of the data model, but a re-implementation of the same one, so
 that the two are interchangeable against a single history.
 
@@ -17,7 +17,7 @@ hosted services) with **no further Python feature work**. Python becomes a cold
 standby after cutover. One Fyers app means one quota pool, so after cutover
 exactly one capturer runs.
 
-The port is two applications — **collector** (capture, EOD, candles, backup)
+The port is two applications: **collector** (capture, EOD, candles, backup)
 and **token-refresh** (the click-flow callback service). The ~250 lines the two
 share are deliberately duplicated rather than extracted into a NuGet package.
 
@@ -28,7 +28,7 @@ the `candles_runs` table, same xz archive layout. History and Google Drive
 continuity are preserved across the port: a day written by Python and a day
 written by .NET are the same shape to any reader.
 
-The rate limiter is a direct port too — the exact sliding windows (8/second
+The rate limiter is a direct port too: the exact sliding windows (8/second
 pacing plus the strict 190/minute cap), because the whole design depends on
 staying 429-free. Breaching the per-minute cap more than three times in a day
 blocks the Fyers account for the rest of that day.
@@ -42,7 +42,7 @@ The feature that justified the port arrives with it, behind a config switch
   the official NSE `ind_nifty500list.csv` with auto-refresh.
 - **The two nearest monthly futures** for members present in the F&O
   instrument master.
-- **No option chains** for the extended universe — chains stay on the two
+- **No option chains** for the extended universe: chains stay on the two
   indices.
 
 Budget: roughly **140 calls/min worst case against the 190 cap**, and about
@@ -55,17 +55,17 @@ session window, verified live against Fyers that morning:
 
 | Segment | Verdict |
 |---|---|
-| NSE commodity futures (GOLD, SILVER, CRUDEOIL, NATURALGAS) | Quotes (OHLCV + VWAP) captured. **OI is not available** — `quotes` returns none, depth always reports `oi=0`, history returns `no_data`. A Fyers feed gap; depth polling excluded. |
-| NSE currency futures (USDINR, EURINR) | Quotes, 480 bars/day of history, and **live depth OI** — verified. |
+| NSE commodity futures (GOLD, SILVER, CRUDEOIL, NATURALGAS) | Quotes (OHLCV + VWAP) captured. **OI is not available**: `quotes` returns none, depth always reports `oi=0`, history returns `no_data`. A Fyers feed gap; depth polling excluded. |
+| NSE currency futures (USDINR, EURINR) | Quotes, 480 bars/day of history, and **live depth OI**, verified. |
 | Sectoral index futures | **Do not exist on NSE.** Cash-market index spots are captured instead: NIFTY IT / AUTO / PHARMA / METAL / FMCG / REALTY / MIDCPNIFTY / SMLCAP100, all verified live. |
-| MIDCPNIFTY futures | Current + two months, candles, and live depth OI — verified. |
+| MIDCPNIFTY futures | Current + two months, candles, and live depth OI, verified. |
 
 Three symbol masters are cached on the 12-hour rule: F&O (77 MB), CDS (11.5 MB)
 and commodities (27 MB).
 
 ## What is deliberately not ported
 
-**No healing logic.** The collector pulls today only — no lookback window, no
+**No healing logic.** The collector pulls today only: no lookback window, no
 probe gate, no archive resurrection, no pending-resume. Data-integrity repair
 belongs to a separate service; the collector captures the day and archives it.
 The `candles_runs` markers consequently become pure status records.

@@ -5,7 +5,7 @@ description: One view, one canonical timestamp, sparse columns where a source ha
 
 <Note status="Approved, not yet implemented">
 The view is specified and its column list is pinned by a contract-stability
-test in the implementation plan — any future `ALTER` that drops or renames a
+test in the implementation plan: any future `ALTER` that drops or renames a
 view column breaks the build, because agent prompts depend on the shape.
 </Note>
 
@@ -50,7 +50,7 @@ WHERE symbol = 'NSE:NIFTY'
 
 A Fyers quote at 09:15 IST and a news item published at 09:15 IST both resolve
 to `03:45Z` and land in the same slice. That is the whole point of the
-canonical timestamp — see
+canonical timestamp. See
 [Canonical timestamps & symbols](/docs/data-contract/timestamps-and-symbols).
 
 ## Where a category is silent
@@ -59,4 +59,4 @@ An analyst querying a category with no rows at a given minute gets an empty
 result, not an error and not a fabricated value. The documented reading is
 **"category silent this minute."** The existing `NO_DATA_AVAILABLE:` /
 `DATA_UNAVAILABLE:` sentinels and their fallback chains are unchanged by the
-contract — see [The never-fail-closed posture](/docs/data-contract/error-posture).
+contract. See [The never-fail-closed posture](/docs/data-contract/error-posture).

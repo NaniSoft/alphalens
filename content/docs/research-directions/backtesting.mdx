@@ -1,6 +1,6 @@
 ---
 title: Backtesting
-description: What replaying history honestly would require — and what the live data layer already provides toward it.
+description: What replaying history honestly would require, and what the live data layer already provides toward it.
 ---
 
 <Note status="Research direction">No backtesting engine exists in
@@ -8,8 +8,8 @@ AlphaLens.</Note>
 
 Backtesting means replaying historical market state through a strategy's rules
 and measuring the result. For an options-and-index universe, the interesting
-version needs **the full chain at each point in time** — not closes, and not a
-single expiry — because the strategy's inputs and its achievable fills both
+version needs **the full chain at each point in time** (not closes, and not a
+single expiry), because the strategy's inputs and its achievable fills both
 depend on the whole surface.
 
 ## What AlphaLens already has toward it
@@ -19,7 +19,7 @@ depend on the whole surface.
 | Full NIFTY + BANKNIFTY chain, every strike, per minute | **live** since 2026-08-26 |
 | IV and Greeks attached per leg, no local re-pricing | **live** |
 | One-minute OHLCV for spot, VIX, futures and every captured leg | **live**, post-close backfill |
-| A timestamp an analyst can range over across sources | **approved** — the contract's `ts_utc` |
+| A timestamp an analyst can range over across sources | **approved**: the contract's `ts_utc` |
 | EOD summaries (PCR, max-OI strikes, OHLC) | **live** |
 
 The per-minute snapshot is the asset. It is append-only, transaction-atomic,

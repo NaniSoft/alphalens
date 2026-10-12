@@ -21,6 +21,7 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   title: 'About',
+  alternates: { canonical: '/about' },
   description: DESCRIPTION,
 };
 

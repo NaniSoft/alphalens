@@ -11,7 +11,7 @@
  * defined every custom property the site's own CSS read - are gone rather than
  * reimplemented.
  *
- * **The ground is `blush` and it does not change.** A page's ground is stable for the
+ * **The ground is `gold` and it does not change.** A page's ground is stable for the
  * life of the page; it is a property of the page, not of the reader. It is applied
  * declaratively on the document element and never read back, so a stored theme can
  * repaint this site's mode and the marks on the page and cannot repaint the ground out
@@ -93,6 +93,8 @@ export const SITE_PRODUCT = {
 export const PRODUCTS: readonly SwitcherProduct[] = site.products.map((product) => ({
   id: product.id,
   name: product.name,
-  pack: pack(product.pack),
+  // Prism carries no pack, which is the one case `ProductMark` draws as the full
+  // spectrum: the system itself owns every hue the products wear.
+  pack: product.pack ? pack(product.pack) : undefined,
   href: product.href,
 }));

@@ -9,8 +9,8 @@ The claim sounds like a feature: *the full NIFTY and BANKNIFTY option chain,
 every market minute*. Every strike, CE and PE, with OI, IV and Greeks attached,
 plus index futures, index spot and India VIX, in the same sixty-second window.
 
-It is not a feature. It is a measurement with a timestamp on it — 26 August
-2026 — and it started as a suspicion that the claim was impossible.
+It is not a feature. It is a measurement with a timestamp on it (26 August
+2026), and it started as a suspicion that the claim was impossible.
 
 ## The assumption that was backwards
 
@@ -21,7 +21,7 @@ it.
 Reading the Fyers v3 API surface before writing code reversed all three:
 
 - **REST `/data/options-chain-v3` returns the entire per-minute snapshot per
-  index in about two calls** — per-leg OI, OI change, IV, Greeks, LTP, bid/ask
+  index in about two calls**: per-leg OI, OI change, IV, Greeks, LTP, bid/ask
   and volume, plus aggregate call/put OI and the expiry list.
 - **The WebSocket carries no OI, IV or Greeks.** The transport that looked
   mandatory is the one that cannot serve the fields that matter. It stays
@@ -36,9 +36,9 @@ Ran against the live market, one afternoon:
 | Measurement | Result |
 |---|---|
 | Full cycle | 12 calls in **3.46 s**, against a 60 s budget |
-| Rate budget | 12 calls/min against a 200/min cap — **~16× headroom** |
+| Rate budget | 12 calls/min against a 200/min cap, **~16× headroom** |
 | Chain scope | ~202 legs per index per expiry at the configured `strikecount` |
-| ATM legs | real OI, IV and Greeks — not placeholders |
+| ATM legs | real OI, IV and Greeks, not placeholders |
 
 Feasible, with room to spare. That verdict is why the collector exists; before
 it, the whole idea was speculative.
@@ -50,7 +50,7 @@ what happens on the 4,000th minute, when nobody is watching.
 
 Four decisions carry most of the weight:
 
-**A strict minute grid.** Snapshots land on `:00`, `:01`, `:02` — never
+**A strict minute grid.** Snapshots land on `:00`, `:01`, `:02`, never
 "roughly once a minute". A minute that cannot be captured in time is logged as
 missing and skipped. That is the difference between a gap you can see and a
 timestamp you cannot trust.
@@ -60,7 +60,7 @@ so a partial minute rolls back. No reader ever sees a chain with half its legs.
 
 **Failing loud about the token.** Fyers access tokens are daily and refresh
 tokens are not reliably available. Rather than store a PIN, the design accepts
-one ~30-second login each morning through a local callback — and if the token
+one ~30-second login each morning through a local callback, and if the token
 expires mid-session, the scheduler **stops and asks** rather than spinning on a
 dead credential.
 
@@ -70,8 +70,8 @@ are computed once at EOD. Capture raw; derive separately.
 ## Then Kubernetes
 
 On 8 September the collector moved from cron-over-WSL with a watchdog to
-**Kubernetes on Docker Desktop via Helm**: two always-on containers — the
-collector and the token OAuth callback service — over one shared persistent
+**Kubernetes on Docker Desktop via Helm**: two always-on containers (the
+collector and the token OAuth callback service) over one shared persistent
 volume.
 
 What the move actually bought was an answer to "what restarts it". A supervised
@@ -82,12 +82,12 @@ you had to remember to open.
 ## What it costs, and what it weighs
 
 A full snapshot is **11 option-chain calls plus 1 batched quotes call, about
-2.5 seconds** — 12 calls a minute, a fraction of the cap. Roughly **2,070
+2.5 seconds**: 12 calls a minute, a fraction of the cap. Roughly **2,070
 option-chain rows and 7 quote rows per minute**, compressing to about **4.5 MB
 a day**, roughly a gigabyte a year, archived as xz one day at a time.
 
-That ratio — an entire index option chain a minute, for the price of a photo a
-day — is the reason this is the foundation layer of everything else AlphaLens
+That ratio (an entire index option chain a minute, for the price of a photo a
+day) is the reason this is the foundation layer of everything else AlphaLens
 intends to build. A backtester over a feed this complete is a different
 proposition from a backtester over daily closes. The backtester does not exist
 yet. The feed does.
