@@ -34,21 +34,19 @@ const SPECTRUM =
   'linear-gradient(90deg, #ec88a0 0%, #bc97e7 25%, #73bf88 50%, #6cb2eb 75%, #e4965e 100%)'
 
 /**
- * The mark, as the card draws it: the reticle over the chain profile, painted in
- * the card's own literals and embedded as a data URI, because the renderer
- * paints a bitmap and cannot resolve cascade classes.
+ * The mark, as the card draws it: the lens bending the whole market to one
+ * point, painted in the card's own literals and embedded as a data URI, because
+ * the renderer paints a bitmap and cannot resolve cascade classes.
  */
 const MARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="150" height="150" fill="none">
-  <g stroke="#edc47d" stroke-width="1.8" stroke-linecap="round">
-    <path d="M3 21.5 H29" opacity="0.45"/>
-    <path d="M16 6 V26" opacity="0.3"/>
-    <circle cx="16" cy="21.5" r="6.4"/>
+  <g stroke-width="2.5" stroke-linecap="round" fill="none">
+    <path d="M4 12 L17.5 12" stroke="#f0ebec"/>
+    <path d="M4 20 L17.5 20" stroke="#f0ebec"/>
+    <path d="M17.5 12 L28 16" stroke="#edc47d"/>
+    <path d="M17.5 20 L28 16" stroke="#edc47d"/>
   </g>
-  <g fill="#edc47d">
-    <rect x="10" y="14" width="2.4" height="7.5" opacity="0.6"/>
-    <rect x="19.6" y="12" width="2.4" height="9.5" opacity="0.8"/>
-  </g>
-  <rect x="14.8" y="10.5" width="2.4" height="11" fill="#ffeac7"/>
+  <circle cx="17.5" cy="16" r="6.5" fill="none" stroke="#edc47d" stroke-width="2.5"/>
+  <circle cx="28" cy="16" r="1.9" fill="#ffeac7"/>
 </svg>`
 const MARK_URI = `data:image/svg+xml;base64,${Buffer.from(MARK_SVG).toString('base64')}`
 

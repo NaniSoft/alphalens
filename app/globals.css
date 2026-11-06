@@ -171,9 +171,10 @@ body {
 
 /*
  * The logo glyph is a site-authored drawing in currentColor, so it follows the
- * ink it sits beside through the cascade. The centre bar is the pack's own
- * primary, read as a variable rather than a resolved value, so the accent
- * follows the pack the way every other fill on the page does.
+ * ink it sits beside through the cascade. The bent rays and the lens are the
+ * pack's own primary and the point is the brand ink, read as variables rather
+ * than resolved values, so the accent follows the pack the way every other fill
+ * on the page does.
  */
 .site-logo {
   display: block;
@@ -183,6 +184,14 @@ body {
 
 .site-logo__accent {
   fill: var(--primary);
+}
+
+.site-logo__accent-stroke {
+  stroke: var(--primary);
+}
+
+.site-logo__point {
+  fill: var(--brand-ink);
 }
 
 /*

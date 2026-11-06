@@ -3,13 +3,13 @@ import type { ReactElement } from 'react';
 /**
  * The AlphaLens mark, at the sizes a page draws it.
  *
- * The lens over the open-interest profile the favicon carries, condensed to the
- * shapes that survive twenty-two pixels: the reticle, the axis, and three bars
- * of the chain. Every stroke is `currentColor`, so the mark follows the ink it
- * sits beside, and the centre bar is the pack's own primary through a token
- * class, so a pack boundary above it repaints the accent without touching this
- * file. A logo that named a hex would be the one element on the page a theme
- * could not reach.
+ * The lens over the whole market, condensed to the shapes that survive
+ * twenty-two pixels: the market in as parallel ink rays, the lens bending them,
+ * one point out. The arriving rays are `currentColor`, so the mark follows the
+ * ink it sits beside, and the bent rays and the lens are the pack's own primary
+ * through token classes, with the point in the brand ink, so a pack boundary
+ * above it repaints the accent without touching this file. A logo that named a
+ * hex would be the one element on the page a theme could not reach.
  */
 export function AlphaLensLogo({
   size = 24,
@@ -28,16 +28,14 @@ export function AlphaLensLogo({
       aria-label="AlphaLens"
       className={className ? `site-logo ${className}` : 'site-logo'}
     >
-      <g stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-        <path d="M3 21.5 H29" opacity="0.45" />
-        <path d="M16 6 V26" opacity="0.3" />
-        <circle cx="16" cy="21.5" r="6.4" />
+      <g strokeLinecap="round" strokeWidth="2.5">
+        <path d="M4 12 L17.5 12" stroke="currentColor" />
+        <path d="M4 20 L17.5 20" stroke="currentColor" />
+        <path d="M17.5 12 L28 16" className="site-logo__accent-stroke" />
+        <path d="M17.5 20 L28 16" className="site-logo__accent-stroke" />
       </g>
-      <g fill="currentColor">
-        <rect x="10" y="14" width="2.4" height="7.5" opacity="0.6" />
-        <rect x="19.6" y="12" width="2.4" height="9.5" opacity="0.8" />
-      </g>
-      <rect x="14.8" y="10.5" width="2.4" height="11" className="site-logo__accent" />
+      <circle cx="17.5" cy="16" r="6.5" className="site-logo__accent-stroke" />
+      <circle cx="28" cy="16" r="1.9" className="site-logo__point" />
     </svg>
   );
 }
