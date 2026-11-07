@@ -9,10 +9,10 @@ import {
   BAR_PRODUCT,
   COPY,
   CURRENT_SITE_ID,
-  FOOTER_COLUMNS,
   NAV,
   SITES,
 } from '@/lib/bar';
+import { AlphaLensLogo } from '@/components/logo';
 
 /**
  * The chrome, in one place, and the reason it is not in the root layout.
@@ -47,6 +47,15 @@ import {
  */
 export type SiteSection = '/docs' | '/blog' | '/about';
 
+/*
+ * The product, as the chrome draws it: the same three facts the bar and the
+ * footer have always read, plus the drawing. The mark is this site's own logo,
+ * and it is the sign in the row, in the mobile panel and at the foot of the
+ * page from this one fact, so a reader meets one sign three times rather than
+ * a disc twice and a drawing once.
+ */
+const PRODUCT = { ...BAR_PRODUCT, mark: <AlphaLensLogo className="site-product-mark" /> };
+
 export function SiteChrome({
   current,
   children,
@@ -58,7 +67,7 @@ export function SiteChrome({
   return (
     <>
       <SiteNavbar
-        product={BAR_PRODUCT}
+        product={PRODUCT}
         defaultPack={BAR_DEFAULT_PACK}
         defaultMode={BAR_DEFAULT_MODE}
         nav={NAV.map((link) => ({ ...link, current: current === link.href }))}
@@ -84,11 +93,38 @@ export function SiteChrome({
       />
       <main className="site-main">{children}</main>
       <SiteFooter
-        product={BAR_PRODUCT}
-        columns={FOOTER_COLUMNS.map((column) => ({
-          title: column.title,
-          links: [...column.links],
-        }))}
+        product={PRODUCT}
+        about={
+          // The one sentence a reader who reached the bottom has not been told
+          // yet, in this site's own words from its own share card.
+          <p className="site-footer-about">
+            AlphaLens is quantitative trading research for the Indian market:
+            intelligence, simulation and one data contract.
+          </p>
+        }
+        columns={[
+          {
+            title: 'This site',
+            links: [
+              { label: 'Landing', href: '/' },
+              ...NAV.map((link) => ({ label: link.label, href: link.href })),
+            ],
+          },
+          {
+            // The family, read from the same directory the bar's menu reads,
+            // minus the member the reader is already on. Every site in the
+            // family holds this same column to this same rule, so the foot of
+            // one site answers the same question the foot of every other one
+            // does: where else does this company go.
+            title: 'The family',
+            links: SITES.filter((site) => site.id !== BAR_PRODUCT.id).map((site) => ({
+              label: site.name,
+              href: site.href,
+              newTab: true,
+            })),
+          },
+        ]}
+        legal={'\u00a9 NaniSoft'}
       />
     </>
   );

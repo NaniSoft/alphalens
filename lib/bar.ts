@@ -67,28 +67,6 @@ export const SITES: readonly SwitcherProduct[] = PRODUCTS;
 /** The reader's own site, named so the menu can mark it. */
 export const CURRENT_SITE_ID = SITE_PRODUCT.id;
 
-/** The two columns the footer has always published, in the Block's own shape. */
-export const FOOTER_COLUMNS: readonly { title: string; links: readonly SiteNavLink[] }[] = [
-  {
-    title: 'Site',
-    links: [
-      { label: 'Landing', href: '/' },
-      { label: 'Docs', href: '/docs' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'About', href: '/about' },
-    ],
-  },
-  {
-    title: 'Docs',
-    links: [
-      { label: 'Introduction', href: '/docs' },
-      { label: 'Data platform', href: '/docs/data-platform' },
-      { label: 'Unified data contract', href: '/docs/data-contract' },
-      { label: 'Research pipeline', href: '/docs/research-pipeline' },
-    ],
-  },
-];
-
 /**
  * Every sentence the bar and the search dialog can say.
  *
