@@ -9,7 +9,10 @@ import { ProcessRail01 } from '@nanisoft/prism-ui/blocks/process-rail-01';
 import { ProductGrid01 } from '@nanisoft/prism-ui/blocks/product-grid-01';
 import { Stats01 } from '@nanisoft/prism-ui/blocks/stats-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
+import { AuroraWash } from '@nanisoft/prism-ui/components/aurora-wash';
+import { ParticleField } from '@nanisoft/prism-ui/components/particle-field';
 import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
+import { Reveal } from '@nanisoft/prism-ui/components/reveal';
 
 import { AnalystLoop } from '@/components/AnalystLoop';
 import { CaptureCalendar } from '@/components/CaptureCalendar';
@@ -200,7 +203,10 @@ export function Landing(): ReactElement {
         title={
           <>
             {HERO.h1Leading}
-            <em>{HERO.h1Em}</em>
+            {/* The emphasised word also carries the design system's spectrum
+                ink, the one motion on text it authors. The words stay the
+                content library's; only the ink is composed here. */}
+            <em className="prism-text-spectrum">{HERO.h1Em}</em>
             {HERO.h1Trailing}
           </>
         }
@@ -228,6 +234,12 @@ export function Landing(): ReactElement {
               />
             </div>
           </InstrumentPanel01>
+        }
+        backdrop={
+          <>
+            <AuroraWash />
+            <ParticleField count={44} />
+          </>
         }
       />
 
@@ -267,11 +279,16 @@ export function Landing(): ReactElement {
           a heading. It also put three cards in a two-column grid, so the third sat alone
           on the second row. The gap is filed against the design system rather than
           worked around: a feature grid whose heading can be aligned. */}
+      {/* The bands a reader scrolls to arrive on the design system's own
+          reveal; the hero, the status line, the figures, the strip and the
+          closing ask stay still. */}
+      <Reveal>
       <NoteGrid01
         title={sectionTitle(0)}
         description={CAPTURE_DESCRIPTION}
         notes={CAPTURE_CARDS.map((card) => ({ title: card.title, body: card.body }))}
       />
+      </Reveal>
 
       {/* 02, the live data path. Four stages, which is exactly what the catalogue's
           process rail admits: `steps` is a tuple of two, three or four and a fifth is a
@@ -281,12 +298,14 @@ export function Landing(): ReactElement {
           of six notes that used to follow it: the operations are documented in full under
           data platform, and a summary of a document next to the document is one more thing
           to keep in step. */}
+      <Reveal delay={1}>
       <ProcessRail01
         title={sectionTitle(1)}
         description={PATH_DESCRIPTION}
         steps={DATA_PATH_STEPS}
         finalLabel="verified"
       />
+      </Reveal>
 
       {/*
         The data path as a calendar. The dates are the site's own published
@@ -310,6 +329,7 @@ export function Landing(): ReactElement {
           six-column rail, which is the design system refusing the wrong shape rather than
           a gap this site is working around quietly. So it is a ledger, whose row shape
           carries a name, a state and a detail line, and the words are unchanged. */}
+      <Reveal>
       <StatusLedger01
         title={sectionTitle(3)}
         description={PIPELINE_DESCRIPTION}
@@ -322,6 +342,7 @@ export function Landing(): ReactElement {
         }))}
         caption={PIPELINE_NOTE}
       />
+      </Reveal>
 
       {/*
         The pipeline as a loop. The ledger above states the rows; this shows the
@@ -329,9 +350,11 @@ export function Landing(): ReactElement {
         part of the design that makes a second run different from the first. It
         has no heading of its own because it is evidence for the section above.
       */}
+      <Reveal delay={1}>
       <Section>
         <AnalystLoop />
       </Section>
+      </Reveal>
 
       {/* 05, where it goes. Three rows and the same `direction` tier the ledger drew
           for 04, which is a repeated shape on purpose: both sections are inventories of
@@ -339,6 +362,7 @@ export function Landing(): ReactElement {
           The blocker travels in the row's bullet, which is the only part of a research
           direction a reader can act on, and the tier stays in the section title rather
           than beside each row. */}
+      <Reveal delay={2}>
       <StatusLedger01
         title={sectionTitle(4)}
         description={DIRECTIONS_DESCRIPTION}
@@ -350,10 +374,12 @@ export function Landing(): ReactElement {
         }))}
         caption={DIRECTIONS_MORE}
       />
+      </Reveal>
 
       {/* 06, the platform story. One of the two regions that carry a pack: each row's
           mark is its own product's boundary, and a mark is a fully rounded disc, so the
           boundary moves nothing about its shape. */}
+      <Reveal delay={1}>
       <ProductGrid01
         title={sectionTitle(5)}
         description={BUILT_ON_NEXUS.lede}
@@ -366,6 +392,7 @@ export function Landing(): ReactElement {
         }))}
         caption={BUILT_ON_NEXUS.body}
       />
+      </Reveal>
 
       <Cta01
         headingLevel="h2"

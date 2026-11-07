@@ -142,7 +142,18 @@ describe('the alphalens landing', () => {
     for (const stage of HERO_STAGES) {
       expect(figure?.textContent ?? '').toContain(stage.name.toLowerCase());
     }
-    expect(document.querySelector('canvas')).toBeNull();
+    // The figure itself is vector markup, not a canvas, which is the whole of
+    // the difference the migration made: a canvas paints pixels it has already
+    // resolved, so a pack boundary landing above it would not re-ink it. The
+    // one canvas on the page is the design system's living field behind the
+    // band, whose palette is re-read when the pack changes and whose floor is
+    // server-rendered markup, so the objection is answered by the package
+    // rather than dodged.
+    expect(figure?.querySelector('canvas')).toBeNull();
+    for (const canvas of [...document.querySelectorAll('canvas')]) {
+      expect(canvas.getAttribute('data-slot')).toBe('particle-field-canvas');
+    }
+    expect(document.querySelector('[data-slot="particle-field-floor"]')).toBeTruthy();
 
     // The rail and its marker are the claim about order, and both are in the initial
     // HTML rather than drawn by a loop this page owns.
