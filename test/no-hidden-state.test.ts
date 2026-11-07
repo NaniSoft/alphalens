@@ -89,7 +89,9 @@ describe('this repository draws no client boundary of its own', () => {
     // JavaScript a reader downloads is unchanged by this being zero, and the claim "no
     // client runtime" is now true of this repository's source rather than true of three
     // siblings and not of this one.
-    const client = files.filter((file) => /^\s*['"]use client['"]/m.test(readFileSync(file, 'utf8')));
+    const client = files.filter((file) =>
+      /^\s*['"]use client['"]/m.test(readFileSync(file, 'utf8')),
+    );
     expect(
       client.map((file) => path.relative(ROOT, file).split(path.sep).join('/')),
       'a client boundary in this repository',

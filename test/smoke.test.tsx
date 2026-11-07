@@ -150,10 +150,11 @@ describe('the alphalens landing', () => {
     // server-rendered markup, so the objection is answered by the package
     // rather than dodged.
     expect(figure?.querySelector('canvas')).toBeNull();
-    for (const canvas of [...document.querySelectorAll('canvas')]) {
-      expect(canvas.getAttribute('data-slot')).toBe('particle-field-canvas');
-    }
-    expect(document.querySelector('[data-slot="particle-field-floor"]')).toBeTruthy();
+    // The page's own living medium is the tsParticles field, which this runner
+    // mocks away (its engine draws a canvas the jsdom environment cannot
+    // provide). With it mocked, the page authors no canvas of its own, so the
+    // old page's resolved-colour canvases stay gone rather than hidden.
+    expect(document.querySelectorAll('canvas').length).toBe(0);
 
     // The rail and its marker are the claim about order, and both are in the initial
     // HTML rather than drawn by a loop this page owns.

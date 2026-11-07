@@ -10,9 +10,11 @@ import { ProductGrid01 } from '@nanisoft/prism-ui/blocks/product-grid-01';
 import { Stats01 } from '@nanisoft/prism-ui/blocks/stats-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
 import { AuroraWash } from '@nanisoft/prism-ui/components/aurora-wash';
-import { ParticleField } from '@nanisoft/prism-ui/components/particle-field';
+import { HeaderTransparency } from '@nanisoft/prism-ui/components/header-transparency';
+import { AtlasMark, NexusMark, PrismMark } from '@nanisoft/prism-ui/components/product-marks';
 import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
 import { Reveal } from '@nanisoft/prism-ui/components/reveal';
+import { TsparticlesField } from '@nanisoft/prism-ui/components/tsparticles-field';
 
 import { AnalystLoop } from '@/components/AnalystLoop';
 import { CaptureCalendar } from '@/components/CaptureCalendar';
@@ -100,6 +102,13 @@ function markPack(productId: string) {
   return PRODUCTS.find((entry) => entry.id === productId)?.pack ?? GROUND_PACK;
 }
 
+/** The platform products' own marks, so the band draws logos rather than discs. */
+const PLATFORM_MARKS: Record<string, ReactElement> = {
+  nexus: <NexusMark className="site-product-mark" />,
+  atlas: <AtlasMark className="site-product-mark" />,
+  prism: <PrismMark className="site-product-mark" />,
+};
+
 /**
  * 03, the approved contract's eight external sources, as a survey.
  *
@@ -179,6 +188,14 @@ const DATA_PATH_STEPS = [
 export function Landing(): ReactElement {
   return (
     <>
+      <HeaderTransparency />
+      {/* The page's one continuous ground: light and a moving medium, fixed
+          behind every section so the whole page reads as one surface rather than
+          as a hero and a set of separate bands. */}
+      <div aria-hidden className="site-atmosphere">
+        <AuroraWash />
+        <TsparticlesField />
+      </div>
       {/* Hero: the thesis as the page's h1, then the panel carrying the one figure on
           the page.
 
@@ -234,12 +251,6 @@ export function Landing(): ReactElement {
               />
             </div>
           </InstrumentPanel01>
-        }
-        backdrop={
-          <>
-            <AuroraWash />
-            <ParticleField count={44} />
-          </>
         }
       />
 
@@ -387,6 +398,7 @@ export function Landing(): ReactElement {
           id: product.id,
           name: product.name,
           pack: markPack(product.id),
+          mark: PLATFORM_MARKS[product.id],
           tagline: product.tagline,
           href: product.url,
         }))}

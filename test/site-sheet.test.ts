@@ -94,7 +94,10 @@ describe('the document is a column, so a short page puts its footer on the scree
     expect(body, 'body is not at least one viewport tall').toMatch(/min-height:\s*100dvh/);
 
     const main = /\.site-main\s*\{([^}]*)\}/.exec(code)?.[1] ?? '';
-    expect(main.trim(), 'main does not grow into the slack').toBe('flex: 1 0 auto;');
+    // The block now also carries the page's stacking context for the fixed ground
+    // (`position: relative; z-index: 1`), so the assertion is the flex value rather
+    // than the exact block.
+    expect(main, 'main does not grow into the slack').toMatch(/flex:\s*1\s+0\s+auto/);
     expect(main, 'main is still padded to a whole viewport').not.toMatch(/min-height/);
   });
 
