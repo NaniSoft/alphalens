@@ -11,7 +11,10 @@ import { Stats01 } from '@nanisoft/prism-ui/blocks/stats-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
 import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
 
+import { AnalystLoop } from '@/components/AnalystLoop';
+import { CaptureCalendar } from '@/components/CaptureCalendar';
 import { AlphaLensLogo } from '@/components/logo';
+import { MarketSurface } from '@/components/MarketSurface';
 import {
   BUILT_ON_NEXUS,
   CAPTURE_CARDS,
@@ -215,12 +218,15 @@ export function Landing(): ReactElement {
             caption={HERO_FIGURE.aria}
             actions={<AlphaLensLogo size={22} className="site-panel-logo" />}
           >
-            <PulseGraph
-              nodes={HERO_FIGURE.nodes}
-              relations={HERO_FIGURE.relations}
-              label={HERO_FIGURE.aria}
-              className="w-full min-w-0"
-            />
+            <MarketSurface />
+            <div className="border-border mt-3 border-t pt-3">
+              <PulseGraph
+                nodes={HERO_FIGURE.nodes}
+                relations={HERO_FIGURE.relations}
+                label={HERO_FIGURE.aria}
+                className="w-full min-w-0"
+              />
+            </div>
           </InstrumentPanel01>
         }
       />
@@ -282,6 +288,16 @@ export function Landing(): ReactElement {
         finalLabel="verified"
       />
 
+      {/*
+        The data path as a calendar. The dates are the site's own published
+        facts: live since 26 August, on Kubernetes since 8 September, contract
+        approved 19 September. It has no heading of its own because it is evidence
+        for the section above it, not a second topic.
+      */}
+      <Section>
+        <CaptureCalendar />
+      </Section>
+
       {/* 03, the approved contract. Eight sources, each a name and a role, which is
           what the survey is for: a survey is a claim that a set of parts is sufficient,
           and both halves of that claim are the caller's. The grid's `own` arm is not
@@ -306,6 +322,16 @@ export function Landing(): ReactElement {
         }))}
         caption={PIPELINE_NOTE}
       />
+
+      {/*
+        The pipeline as a loop. The ledger above states the rows; this shows the
+        route between them, including the reflector's memory edge, which is the
+        part of the design that makes a second run different from the first. It
+        has no heading of its own because it is evidence for the section above.
+      */}
+      <Section>
+        <AnalystLoop />
+      </Section>
 
       {/* 05, where it goes. Three rows and the same `direction` tier the ledger drew
           for 04, which is a repeated shape on purpose: both sections are inventories of
