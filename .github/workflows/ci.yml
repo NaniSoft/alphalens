@@ -30,7 +30,7 @@ jobs:
       - run: pnpm check
       - name: Playwright visual + runtime (4 viewports x 2 modes)
         run: |
-          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright install --with-deps chromium webkit
           pnpm exec serve out -l 4173 &
           echo $! > /tmp/ds-serve.pid
           pnpm exec wait-on http://127.0.0.1:4173
