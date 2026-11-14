@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
 import { Cta01 } from '@nanisoft/prism-ui/blocks/cta-01';
 import { Hero01 } from '@nanisoft/prism-ui/blocks/hero-01';
+import { Ground01 } from '@nanisoft/prism-ui/blocks/ground-01';
 import { InstrumentPanel01 } from '@nanisoft/prism-ui/blocks/instrument-panel-01';
 import { LogoStrip01 } from '@nanisoft/prism-ui/blocks/logo-strip-01';
 import { NoteGrid01 } from '@nanisoft/prism-ui/blocks/note-grid-01';
@@ -9,16 +10,18 @@ import { ProcessRail01 } from '@nanisoft/prism-ui/blocks/process-rail-01';
 import { ProductGrid01 } from '@nanisoft/prism-ui/blocks/product-grid-01';
 import { Stats01 } from '@nanisoft/prism-ui/blocks/stats-01';
 import { StatusLedger01 } from '@nanisoft/prism-ui/blocks/status-ledger-01';
-import { AuroraWash } from '@nanisoft/prism-ui/components/aurora-wash';
-import { HeaderTransparency } from '@nanisoft/prism-ui/components/header-transparency';
-import { AtlasMark, NexusMark, PrismMark } from '@nanisoft/prism-ui/components/product-marks';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nanisoft/prism-ui/components/card';
+import { AlphaLensMark, AtlasMark, NexusMark, PrismMark } from '@nanisoft/prism-ui/components/product-marks';
+import { DSGrid } from '@nanisoft/prism-ui/components/ds-grid';
+import { DSStack } from '@nanisoft/prism-ui/components/ds-stack';
 import { PulseGraph } from '@nanisoft/prism-ui/components/pulse-graph';
 import { Reveal } from '@nanisoft/prism-ui/components/reveal';
-import { TsparticlesField } from '@nanisoft/prism-ui/components/tsparticles-field';
+import { Separator } from '@nanisoft/prism-ui/components/separator';
+import { Status } from '@nanisoft/prism-ui/components/status';
+import { Text } from '@nanisoft/prism-ui/components/typography';
 
 import { AnalystLoop } from '@/components/AnalystLoop';
 import { CaptureCalendar } from '@/components/CaptureCalendar';
-import { AlphaLensLogo } from '@/components/logo';
 import { MarketSurface } from '@/components/MarketSurface';
 import {
   BUILT_ON_NEXUS,
@@ -82,13 +85,15 @@ import { GROUND_PACK, PRODUCTS } from '@/lib/site';
  * title carries both and the eyebrow carries the index alone, so no Block is asked for
  * two eyebrows and the number is never doubled.
  *
- * **The hero dropped its eyebrow and its panel is dropped on a phone.** The eyebrow read
- * `nanisoft · alphalens` over a headline that already says what this is, and the
- * catalogue draws an eyebrow as a quiet pill, so the page opened on a badge. And the
- * panel's drawing is sized in its own user units, so at 390px its stage names render at
- * seven pixels: a picture too small to read is a picture that should not be on the page,
- * and the four stages are stated in words one section down. See `app/globals.css` for
- * the two site classes that do this.
+ * **The hero dropped its eyebrow, and the panel that replaced the profile stays on
+ * the phone.** The eyebrow read `nanisoft · alphalens` over a headline that already
+ * says what this is, and the catalogue draws an eyebrow as a quiet pill, so the page
+ * opened on a badge. The retired instrument's profile drawing was sized in its own
+ * user units, so at 390px its stage names rendered at seven pixels, and the narrow
+ * screen dropped the whole panel by a site rule; the replacement panel is measured
+ * in the design system's own type scale, and the measured render at 390px reads its
+ * stage names at 13px and its field rows at 14px, so the withdrawal the old drawing
+ * needed is retired with the drawing it was filed against.
  *
  * It is a server component, and it is a plain function: no hook, no context, no mode,
  * nothing read at runtime and no `'use client'` line anywhere in this repository's own
@@ -104,9 +109,9 @@ function markPack(productId: string) {
 
 /** The platform products' own marks, so the band draws logos rather than discs. */
 const PLATFORM_MARKS: Record<string, ReactElement> = {
-  nexus: <NexusMark className="site-product-mark" />,
-  atlas: <AtlasMark className="site-product-mark" />,
-  prism: <PrismMark className="site-product-mark" />,
+  nexus: <NexusMark className="block size-full" />,
+  atlas: <AtlasMark className="block size-full" />,
+  prism: <PrismMark className="block size-full" />,
 };
 
 /**
@@ -133,7 +138,9 @@ const PLATFORM_MARKS: Record<string, ReactElement> = {
  * word this section is for, so it is on the design system's reading scale at 12px and
  * weighted, and the role is at 11px and supporting. The dashed edge says the same state in
  * shape, so a reader who cannot separate two tints of the same neutral still has it twice.
- * `app/globals.css` owns the two sizes; `test/site-sheet.test.ts` holds the ordering.
+ * The two sizes are the design system's own `Status` and `Text` scales, which is what made
+ * the site sheet that used to size them deletable; `test/site-sheet.test.ts` holds the
+ * sheet's absence.
  *
  * The catalogue gap is filed rather than worked around silently: a survey grid that can
  * carry a per-item state. `StackGrid01` is the right block for a set of parts and it is
@@ -149,17 +156,25 @@ function FeedSources(): ReactElement {
         title={sectionTitle(2)}
         description={FEED_DESCRIPTION}
       />
-      <ul className="site-sources">
+      {/* DS-only survey: DSGrid + Card + Status. The status word stays in words
+          (Status label), never colour alone. Dashed-border shape is replaced by
+          the tone + words; the DS gap for a state-carrying survey grid is filed
+          in docs/DS_GAPS.md (GAP-05). */}
+      <DSGrid columns={4} gap="md">
         {FEED_SOURCES.map((source) => (
-          <li className="site-source" key={source.name} data-status={source.status}>
-            <span className="site-source__status">{source.status === 'live' ? 'live' : 'approved'}</span>
-            <span className="site-source__name">{source.name}</span>
-            <span className="site-source__role">{source.role}</span>
-            <span className="site-source__note">{source.note}</span>
-          </li>
+          <Card key={source.name} data-status={source.status}>
+            <CardHeader>
+              <Status tone={source.status === 'live' ? 'success' : 'neutral'} label={source.status === 'live' ? 'live' : 'approved'} size="sm" />
+              <CardTitle as="h3">{source.name}</CardTitle>
+              <CardDescription>{source.role}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Text tone="muted" size="sm">{source.note}</Text>
+            </CardContent>
+          </Card>
         ))}
-      </ul>
-      <p className="site-caption">{FEED_NOTE}</p>
+      </DSGrid>
+      <Text tone="muted" size="sm">{FEED_NOTE}</Text>
     </Section>
   );
 }
@@ -188,14 +203,13 @@ const DATA_PATH_STEPS = [
 export function Landing(): ReactElement {
   return (
     <>
-      <HeaderTransparency />
-      {/* The page's one continuous ground: light and a moving medium, fixed
-          behind every section so the whole page reads as one surface rather than
-          as a hero and a set of separate bands. */}
-      <div aria-hidden className="site-atmosphere">
-        <AuroraWash />
-        <TsparticlesField />
-      </div>
+      {/* The page's one continuous ground, as the catalogue's Block for it: the
+          fixed atmosphere layer, the aurora wash at the landing's full presence,
+          the particle field and the bar's scroll transparency are one composition
+          the design system owns, so the whole page reads as one surface and the
+          assembly cannot drift here. The content column above it holds the
+          stacking contract through the `site-main` slot on `SiteChrome`'s main. */}
+      <Ground01 />
       {/* Hero: the thesis as the page's h1, then the panel carrying the one figure on
           the page.
 
@@ -211,11 +225,8 @@ export function Landing(): ReactElement {
           container contract rather than four sites' four grids. The panel is the
           catalogue's too, so the bar, the state dot, the frame's edge and the
           footnote are its rules rather than this site's, and that frame's edge is one
-          of the fifteen that used to vanish. `site-hero` is the one class on it, and it
-          carries no visual property: it is the hook the narrow-screen rule in
-          `app/globals.css` needs to take the panel away. */}
+          of the fifteen that used to vanish. */}
       <Hero01
-        className="site-hero"
         headingLevel="h1"
         title={
           <>
@@ -239,17 +250,18 @@ export function Landing(): ReactElement {
             stateLabel={HERO_PANEL.mode}
             footnote={HERO_PANEL.footnote}
             caption={HERO_FIGURE.aria}
-            actions={<AlphaLensLogo size={22} className="site-panel-logo" />}
+            actions={<AlphaLensMark className="block size-5" />}
           >
-            <MarketSurface />
-            <div className="border-border mt-3 border-t pt-3">
+            <DSStack gap="md">
+              <MarketSurface />
+              <Separator />
               <PulseGraph
                 nodes={HERO_FIGURE.nodes}
                 relations={HERO_FIGURE.relations}
                 label={HERO_FIGURE.aria}
                 className="w-full min-w-0"
               />
-            </div>
+            </DSStack>
           </InstrumentPanel01>
         }
       />
@@ -258,9 +270,9 @@ export function Landing(): ReactElement {
           The section's worth of padding it used to carry gave a one-line claim the
           weight of a claim it is not making, and 4rem of it was followed by the strip's
           own padding, so a reader scrolled through two empty bands to reach the first
-          sentence of the page. */}
-      <Section className="site-status-band">
-        <p className="site-status">{HERO.status}</p>
+          sentence of the page. Compact band + DS Status (words carry the claim). */}
+      <Section size="compact">
+        <Status tone="info" label={HERO.status} />
       </Section>
 
       {/* The figures, as a band under the hero rather than a section. Four counts, each
@@ -276,7 +288,7 @@ export function Landing(): ReactElement {
           and the first numbered section. Left aligned by one site class: centred, five
           items of different lengths wrap into two ragged centred lines that read as a
           mistake, and a status band is a thing a reader scans from the left. */}
-      <LogoStrip01 className="site-tiers" items={[...TICKER]} label="What is running and what is design" />
+      <LogoStrip01 items={[...TICKER]} label="What is running and what is design" />
 
       {/* 01, what it captures. Live, and the only part of this page that is simply
           true. Three capture points, each a title and a sentence, which is what a

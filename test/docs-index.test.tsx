@@ -120,21 +120,28 @@ function renderIndex() {
   render(<DocsIndex tree={tree()} labels={LABELS} />);
 }
 
-/** The `<h2>` a section prints over its cards. */
+/** The `<h2>` a section prints over its cards. DSHeading (no site classes). */
 function headings(): string[] {
-  return [...document.querySelectorAll('.site-docs-section__title')].map((node) => node.textContent ?? '');
+  // DocsIndex renders Heading as h2 per section under DSStack; the DocsShell
+  // title is the h1. Collect h2s in document order.
+  return [...document.querySelectorAll('h2')].map((node) => node.textContent ?? '');
 }
 
 /** Every card's `href`, in the order the index prints them. */
 function cards(): Array<{ href: string; title: string; section: string }> {
-  return [...document.querySelectorAll('.site-docs-section')].flatMap((section) => {
-    const heading = section.querySelector('.site-docs-section__title')?.textContent ?? '';
-    return [...section.querySelectorAll('.site-docs-index__card')].map((card) => ({
-      href: card.getAttribute('href') ?? '',
-      title: card.querySelector('.site-docs-index__title')?.textContent ?? '',
-      section: heading,
-    }));
-  });
+  // DSGrid stacks are sections; each card holds a link. Walk in document order.
+  const out: Array<{ href: string; title: string; section: string }> = [];
+  let section = '';
+  for (const node of document.querySelectorAll('h2, [data-slot="ds-grid"], a')) {
+    if (node.tagName === 'H2') section = node.textContent ?? '';
+    if (node.getAttribute('data-slot') === 'ds-grid') {
+      for (const link of node.querySelectorAll('a')) {
+        const card = link.closest('[data-slot]') ?? link;
+        out.push({ href: link.getAttribute('href') ?? '', title: card.textContent ?? '', section });
+      }
+    }
+  }
+  return out;
 }
 
 /** A lowercase hyphenated token, which is what a URL slug is and a section name is not. */

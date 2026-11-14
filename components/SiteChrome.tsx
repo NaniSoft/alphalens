@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 
 import { SiteFooter } from '@nanisoft/prism-ui/blocks/site-footer';
 import { SiteNavbar } from '@nanisoft/prism-ui/blocks/site-navbar';
-import { AtlasMark, NaniSoftMark, NexusMark, PrismMark } from '@nanisoft/prism-ui/components/product-marks';
+import { AlphaLensMark, AtlasMark, NaniSoftMark, NexusMark, PrismMark } from '@nanisoft/prism-ui/components/product-marks';
+import { Text } from '@nanisoft/prism-ui/components/typography';
 
 import {
   BAR_DEFAULT_MODE,
@@ -13,7 +14,6 @@ import {
   NAV,
   SITES,
 } from '@/lib/bar';
-import { AlphaLensLogo } from '@/components/logo';
 
 /**
  * The chrome, in one place, and the reason it is not in the root layout.
@@ -55,18 +55,19 @@ export type SiteSection = '/docs' | '/blog' | '/about';
  * page from this one fact, so a reader meets one sign three times rather than
  * a disc twice and a drawing once.
  */
-const PRODUCT = { ...BAR_PRODUCT, mark: <AlphaLensLogo className="site-product-mark" /> };
+const PRODUCT = { ...BAR_PRODUCT, mark: <AlphaLensMark className="block size-full" /> };
 
 /**
  * The family's marks, as the bar's sites menu draws them: each member's own logo
- * rather than the two-colour disc.
+ * rather than the two-colour disc. Sizing is DS layout (`block size-full`, the
+ * emitted utilities that fill the ProductMark drawn slot) — no site stylesheet.
  */
 const SITE_MARKS: Record<string, ReactNode> = {
-  www: <NaniSoftMark className="site-product-mark" />,
-  nexus: <NexusMark className="site-product-mark" />,
-  atlas: <AtlasMark className="site-product-mark" />,
-  alphalens: <AlphaLensLogo className="site-product-mark" />,
-  prism: <PrismMark className="site-product-mark" />,
+  www: <NaniSoftMark className="block size-full" />,
+  nexus: <NexusMark className="block size-full" />,
+  atlas: <AtlasMark className="block size-full" />,
+  alphalens: <AlphaLensMark className="block size-full" />,
+  prism: <PrismMark className="block size-full" />,
 };
 
 /** The family, with each member's drawn mark attached to its directory entry. */
@@ -107,20 +108,24 @@ export function SiteChrome({
         mode={{ lightLabel: COPY.toDark, darkLabel: COPY.toLight }}
         mobileLabels={{ open: COPY.menuOpen, close: COPY.menuClose }}
       />
-      <main className="site-main">{children}</main>
+      {/* The content column carries the design system's `site-main` slot: the
+          ground contract (the fixed atmosphere behind, the column above it) is
+          held for a `main` wearing the slot, and 1.8 keys it on the slot rather
+          than a class. */}
+      <main data-slot="site-main">{children}</main>
       <SiteFooter
         product={PRODUCT}
         about={
           // The one sentence a reader who reached the bottom has not been told
           // yet, in this site's own words, under the page's claim in the ink of
-          // the brand.
-          <div className="site-footer-about">
-            <p className="site-footer-tagline">See the whole market, minute by minute.</p>
-            <p>
-              AlphaLens is quantitative trading research for the Indian market:
-              intelligence, simulation and one data contract.
-            </p>
-          </div>
+          // the brand. Typography is the DS Text primitive; the tagline class
+          // is DS-owned (.site-footer-tagline ships in prism-ui styles).
+          <Text tone="muted" size="sm">
+            <span className="site-footer-tagline">See the whole market, minute by minute.</span>
+            {' '}
+            AlphaLens is quantitative trading research for the Indian market:
+            intelligence, simulation and one data contract.
+          </Text>
         }
         columns={[
           {

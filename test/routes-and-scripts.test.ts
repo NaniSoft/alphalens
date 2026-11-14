@@ -103,7 +103,7 @@ describe('the check script runs the checks', () => {
     };
     const check = scripts.scripts.check ?? '';
     expect(check, 'the check script still doubles a run keyword').not.toMatch(/\bpnpm\s+pnpm\b/);
-    expect(check).toBe('pnpm check:prism-gates && pnpm check:routes');
+    expect(check).toBe('pnpm check:prism-gates && pnpm check:routes && pnpm ui:check');
 
     // And every name it invokes is a script that exists, which is the other half of the
     // same typo class: a name that has been renamed below the caller.

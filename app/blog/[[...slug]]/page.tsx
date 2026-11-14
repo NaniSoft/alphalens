@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { ReactElement } from 'react';
-import Link from 'next/link';
+import { ContentGrid01 } from '@nanisoft/prism-ui/blocks/content-grid-01';
+import { EmptyState01 } from '@nanisoft/prism-ui/blocks/empty-state-01';
+import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
 import { BlogPostPage } from '@nanisoft/prism-ui/pages';
 
 import { getMdxComponents } from '@/lib/mdx-components';
@@ -55,8 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  *
  * The index is a deliberate design rather than a default: the four blog lists in this
  * family are four designs and the design system deliberately ships no index, so the four
- * dates, the four titles and the tag runs are composed here in this repository's own
- * stylesheet.
+ * dates, the four titles and the tag runs are composed here from the design system's
+ * own primitives.
  *
  * The post moved because the frontmatter of a post is a contract and a contract belongs
  * to something that can be checked. `BlogPostPage` takes the title, the standfirst, the
@@ -84,32 +86,33 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
     const posts = published();
     return (
       <SiteChrome current="/blog">
-        <div className="site-catalog">
-          <h1 className="site-catalog__title">Blog</h1>
-          <p className="site-catalog__lede">
-            Notes from building AlphaLens: what a live market-data layer actually takes, and the
-            research design it makes possible. Every post states plainly what is running and what is
-            still design.
-          </p>
-          {posts.length === 0 ? (
-            <p className="site-empty">Nothing published yet. The first post is being written.</p>
-          ) : (
-            <ul className="site-blog-list">
-              {posts.map((post) => (
-                <li key={post.url}>
-                  <Link href={post.url} className="site-blog-list__title">
-                    {post.data.title}
-                  </Link>
-                  <p className="site-blog-list__description">{post.data.description}</p>
-                  <p className="site-mono site-blog-list__meta">
-                    <time dateTime={isoDate(post.data.date)}>{displayDate(post.data.date)}</time>
-                    {post.data.tags.length > 0 && <span>{post.data.tags.join(', ')}</span>}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <Section>
+          <SectionHeading
+            as="h1"
+            align="left"
+            title="Blog"
+            description={'Notes from building AlphaLens: what a live market-data layer actually takes, and the research design it makes possible. Every post states plainly what is running and what is still design.'}
+          />
+          <ContentGrid01
+            variant="rows"
+            entries={posts.map((post) => ({
+              id: post.url,
+              title: post.data.title,
+              summary: post.data.description,
+              at: displayDate(post.data.date),
+              category: post.data.tags.length > 0 ? post.data.tags.join(', ') : undefined,
+              href: post.url,
+              hrefLabel: 'Read post',
+            }))}
+            empty={
+              <EmptyState01
+                reason="first-run"
+                title="Nothing published yet."
+                body="The first post is being written."
+              />
+            }
+          />
+        </Section>
       </SiteChrome>
     );
   }

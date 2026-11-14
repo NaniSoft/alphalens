@@ -6,10 +6,9 @@ import { PrismThemeScript } from '@nanisoft/prism-ui/provider';
 import { DEFAULT_MODE, GROUND_PACK, THEME_ATTRIBUTES } from '@/lib/site';
 
 // The one stylesheet. Every token, every utility and every base rule on this site
-// arrives in this one import: the design system compiles its own source into it, and
-// a consumer adds its own sheet after it and nothing else.
+// arrives in this one import: the design system compiles its own source into it
+// (zero-custom-UI: no consumer stylesheet).
 import '@nanisoft/prism-ui/styles.css';
-import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://alphalens.nanisoft.com'),

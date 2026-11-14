@@ -14,7 +14,7 @@
 // markdown/MDX source and every landing copy module. A violation fails the build, which
 // is the only place a law is actually enforced.
 
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -233,8 +233,9 @@ describe('the honesty guard', () => {
     expect(about, '/about names itself above its own h1').not.toContain('nanisoft · alphalens · about');
     expect(about, '/about passes an eyebrow prop').not.toMatch(/eyebrow=/);
 
-    const sheet = stripComments(readFileSync(join(ROOT, 'app', 'globals.css'), 'utf8'));
-    expect(sheet, 'the sheet declares an eyebrow nothing renders').not.toContain('.site-eyebrow');
+    // Zero-custom-UI: the site sheet is deleted, so there is no sheet declaring .site-eyebrow.
+    // (Previously asserted the sheet did not declare it; now asserts the sheet does not exist.)
+    expect(existsSync(join(ROOT, 'app', 'globals.css')), 'site stylesheet exists').toBe(false);
   });
 
   it('adds no em dash, en dash or ellipsis to the copy this site authors', () => {

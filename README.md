@@ -5,9 +5,9 @@
 Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, one design language ([Prism](https://prism.nanisoft.com)).
 
 - **Live**: https://alphalens.nanisoft.com (Custom Domain, auto-created on deploy)
-- **Pack**: `blush` is the ground, on the document element, and it does not change. The platform product rows are the only region of a page carrying a pack that is not the ground, and in it the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape. The family's five marks live in the bar's menu now, and a closed menu paints nothing: a reader at first paint sees one pack, and the second packs reach them when they ask to leave
+- **Pack**: `gold` is the ground, on the document element, and it does not change. The platform product rows are the only region of a page carrying a pack that is not the ground, and in it the boundary lands on a `ProductMark`, which is a fully rounded disc, so it moves nothing about the mark's shape. The family's five marks live in the bar's menu now, and a closed menu paints nothing: a reader at first paint sees one pack, and the second packs reach them when they ask to leave
 - **Stack**: Next 16 static export · fumadocs-mdx · pnpm · TypeScript strict · oxlint · Vitest (jsdom + Testing Library) · Cloudflare Workers
-- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 1.2.0, pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write. This repository draws **no** client boundary of its own: the bar's own controls are client components inside the pinned package, and `test/no-hidden-state.test.ts` holds the count at zero
+- **Chrome and every section**: [@nanisoft/prism-ui](https://www.npmjs.com/package/@nanisoft/prism-ui) 1.8.0, pinned exactly. It brings [@nanisoft/prism-tokens](https://www.npmjs.com/package/@nanisoft/prism-tokens) at the exact version it was released against, so this repository declares one first-party dependency and cannot be handed a mismatched pair. There is no local component and no local override path: a section this site needs and the catalogue does not have is a finding to report, not a component to write. This repository draws **no** client boundary of its own: the bar's own controls are client components inside the pinned package, and `test/no-hidden-state.test.ts` holds the count at zero. Zero-custom-UI: no site stylesheet (see `docs/UI_GOVERNANCE.md`, `pnpm ui:check`).
 - **Typeface**: none of this site's own. Prism ships Inter as three static woff2 files under the OFL and declares the `@font-face` rules in its own emitted sheet, so `--font-sans` resolves as published and nothing here loads, re-declares or repoints a family. This site used to download Inter through `next/font/google` and override the token, on the fair ground that prism 0.7.0 shipped no face at all; that stopped being true at 0.10.2 and the workaround had been declaring the same family twice ever since
 
 ## What ships
@@ -16,7 +16,7 @@ Part of the [NaniSoft](https://www.nanisoft.com) web platform — five sites, on
   - **No section repeats another section's layout family**, which is the one rule the composition is built around and the reason the two grids of short points that used to sit under 02 and 03 are gone: the operations they summarised are documented in full under data platform and data contract, and a summary of a document next to the document is a second thing to keep in step.
   - **`FeatureGrid01` is the one Block the landing does not use.** It renders its heading with `SectionHeading`'s default alignment, which is centred, while every other section here sets `align="left"`, so on this page it put a centred title above a left-aligned two-column grid with the third card alone on the second row. Filed against the design system rather than worked around; the catalogue gap is a feature grid whose heading alignment the caller can choose.
 - **Docs** (`/docs`) — a section index over `content/docs/` — 27 documents in six sections separated by rules, each section named for subject matter and four of the six describing a pipeline rather than a topic. The index draws 20 cards: every document except the six that *are* a section, because a section's own page is the section and a card restating it as a page is a link to the heading above it. The section names, the section order and the documents inside each one are all read from the content pipeline's page tree, which is also what the rail on every documentation page is rendered from, so the two cannot disagree
-- **Blog** (`/blog`) — the four launch posts over `content/blog/` (folder-per-post, required date, drafts excluded). The index is this site's own composition and CSS, because the four blog lists in this family are four deliberate designs and the design system deliberately ships none. Each post is the design system's blog post Page.
+- **Blog** (`/blog`) — the four launch posts over `content/blog/` (folder-per-post, required date, drafts excluded). The index is this site's own composition from the design system's primitives, because the four blog lists in this family are four deliberate designs and the design system deliberately ships none. Each post is the design system's blog post Page.
 - **About** (`/about`) — the product's story: why the data layer leads, the three honesty tiers, and a dated fact list.
 - **Not found** — the design system's not-found Page: the code as the page's heading, the sentence under it, and three ways out.
 - **Search** (`/api/search`) — thirty-four entries as one JSON array, prerendered because the export has no server: the thirty-one documents with their section's declared title as a breadcrumb, and the three pages this site writes as React. `/docs` is one of the documents rather than a fourth hand-written entry, because `content/docs/index.mdx` is the Introduction and claiming `/docs` twice produced two results for one address. The bar's search control fetches it when it opens and filters in the browser, which is a static file of about 71 KB and no request per keystroke. It is not in the route inventory, because a search index is not a page a reader navigates to.
@@ -66,11 +66,8 @@ app/about/page.tsx    a section heading, the prose at the measure, the fact list
 app/blog/…            the blog index (site's own) and the blog post (the catalogue's)
 app/docs/…            the section index (site's own grid) and the doc page (the catalogue's)
 app/api/search/route.ts  the search index, prerendered because the export has no server
-app/globals.css       the site's own sheet: the document column that keeps the footer on a
-                      short page, the docs index, the blog index, the status device, the
-                      eight-source survey, the honesty strip's alignment, the hero's
-                      narrow-screen rule
-components/           SiteChrome, Landing, and the two docs templates
+                          (no site stylesheet: styling is DS-only; see docs/UI_GOVERNANCE.md)
+components/           SiteChrome, Landing, and the two docs templates (DS primitives only)
 lib/site.json         the ground, the default mode, the site directory
 lib/site.ts           those facts, typed by the design system's pack vocabulary
 lib/bar.ts            the bar's own data and every word it prints
@@ -85,15 +82,14 @@ Four things are worth knowing before changing anything here.
 **A consumer cannot write a design-system utility class.** The emitted stylesheet is
 compiled from the design system's own source, so a utility exists in it only if a Prism
 component uses it. `mb-12` is safe; a utility Prism happens not to use would do nothing
-and say nothing. Anything this site needs for itself goes in `app/globals.css` as a site
-class.
+and say nothing. This site ships **no site stylesheet** (zero-custom-UI): layout-only
+`className` (`size-full`, `mb-12`, `block`) is the DS API; anything else goes in a DS
+enhancement request (`docs/DS_GAPS.md`), never a local class.
 
-**The one stylesheet rule a site class may break is a Prism-owned visual property, and
-`className` is the one slot that is not layout.** The hero's band, the section rhythm and
-the strip's centring are the design system's, so this repository takes them as they come
-and spends its two overrides on the two things the catalogue cannot know: that the
-honesty strip is scanned from the left, and that the hero's figure is dropped on a screen
-where its type would be seven pixels tall.
+**`className` on DS components is layout only.** The hero's band, the section rhythm and
+the strip's centring are the design system's, so this repository takes them as they come.
+The two former overrides (honesty strip left-align, hero panel withdrawal) are DS gaps
+GAP-02/GAP-06, rendered as DS defaults.
 
 **The site stylesheet owns almost nothing.** It must not declare the page ground, the
 body ink, a focus outline or a hairline colour on a selector with no class in it, and
@@ -106,16 +102,10 @@ gate exists rather than the gate's rule; the rule is the failure message, and wh
 `pnpm check` is red the message says which of these it was and why it matters. The
 measurement is in the gate kit's own header.
 
-**The border token carries the whole border, not a colour.** The old sheet declared one
-alias and read it from fifteen border declarations, and an alias is a shorthand: with one
-dead operand, `border` is invalid at computed-value time, so `border-style` becomes
-`none` and the box loses its geometry rather than its colour. Measured on the deployed
-site in both modes, all fifteen read `1px solid` while the alias resolved and `0px none`
-the instant it did not, which is fifteen boxes losing their edges and the hero's right
-column becoming an empty rounded box. A screenshot sees none of it, because unstyled body
-text is a plausible design. So `--site-border` is `1px solid var(--border)`: the width is
-the measured one the boxes already had, and the only operand is the design system's own
-token, which is defined for every pack and both modes.
+**The border token is DS-owned.** The site sheet that declared `--site-border` (fifteen
+boxes losing edges when a `color-mix` operand died) is deleted. Edges are DS
+`border-border` via `Card` etc.; `scripts/check-ui-compliance.mjs` (UI003/UI006) and
+Playwright runtime assert DS edges in both modes.
 
 ## Develop
 
@@ -126,7 +116,9 @@ pnpm build        # static export to out/
 pnpm lint         # oxlint
 pnpm typecheck    # next typegen && tsc --noEmit
 pnpm test         # vitest
-pnpm check        # the routes gate and the consumer gate kit; run after pnpm build
+pnpm ui:check     # zero-custom-UI static gates (UI001-UI012, ASSET001-ASSET014)
+pnpm check        # prism gates + routes + ui:check; run after pnpm build
+pnpm ui:runtime   # Playwright 4 viewports x 2 modes (needs build + serve)
 ```
 
 `pnpm check` runs `prism-gates`, the gate kit in `@nanisoft/prism-ui/gates`, plus

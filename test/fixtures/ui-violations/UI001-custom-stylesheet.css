@@ -1,0 +1,2 @@
+/* UI001 negative fixture: custom stylesheet detected. */
+.site-bad { color: var(--foreground); }

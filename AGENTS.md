@@ -9,9 +9,9 @@ Part of the five-site Nanisoft web platform (www + nexus + atlas + alphalens + p
 ## How to build here
 
 - Items come from their own subpath, never the root barrel: `@nanisoft/prism-ui/blocks/<item>`, `/components/<item>`, `/pages/<page>`, and `/theming` for the pack and mode vocabulary.
-- `@nanisoft/prism-ui/styles.css` is imported once, in the root layout, before this site's own sheet. It carries every token, every utility and every base rule.
+- `@nanisoft/prism-ui/styles.css` is imported once, in the root layout, and is the **only** stylesheet. Zero-custom-UI: this site ships no stylesheet (see `docs/UI_GOVERNANCE.md`, enforced by `scripts/check-ui-compliance.mjs`). It carries every token, every utility and every base rule.
 - A Block takes data and content as props.
-- A consumer cannot write a Prism utility class: the consumer does not run Tailwind, so a utility exists in the emitted sheet only if a Prism component already uses it. Anything this site needs for itself goes in `app/globals.css` as a site class.
+- A consumer cannot write a Prism utility class: the consumer does not run Tailwind, so a utility exists in the emitted sheet only if a Prism component already uses it. Layout-only `className` (`size-full`, `mb-12`, `block`) is the DS API. Anything else is a `docs/DS_GAPS.md` enhancement request, never a local class.
 - Two attributes on `<html>`, from `lib/site.ts`: `data-pack` for the ground and `class="dark"` for the mode. A blocking `PrismThemeScript` in `<head>` applies a stored choice before first paint.
 - A pack boundary is an attribute on an element: it repoints that pack's colour **and** its corner radius beneath it, and it wears the mode of the nearest ancestor carrying `.dark`. On this site that is `ProductMark`, and the only region of a page that carries one is the platform product rows. The family's five marks are in the bar's menu, and a closed menu paints no mark, so the built export has none of them.
 - The bar is `@nanisoft/prism-ui/blocks/site-navbar` and this site supplies it data and copy only: `lib/bar.ts` holds the destinations, the family and every sentence the controls can say. Every `href` in `lib/site.json` is absolute, including this site's own, because the menu opens each row in a new tab.

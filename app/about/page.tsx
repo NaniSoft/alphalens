@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactElement } from 'react';
 import { CtaLink } from '@nanisoft/prism-ui/components/cta-link';
+import { DSGrid } from '@nanisoft/prism-ui/components/ds-grid';
 import { FactList } from '@nanisoft/prism-ui/components/fact-list';
 import { Prose } from '@nanisoft/prism-ui/components/prose';
 import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
@@ -75,7 +76,6 @@ export default function AboutPage(): ReactElement {
         <SectionHeading
           as="h1"
           align="left"
-          className="site-display"
           title="The market, as one feed."
           description={DESCRIPTION}
         />
@@ -160,14 +160,14 @@ export default function AboutPage(): ReactElement {
             together saying the same thing twice. At the foot the pair follows the argument
             it concludes, which is the only place a reader who came to `/about` deliberately
             is ready to act on it. */}
-        <div className="site-cta-row">
+        <DSGrid columns={2} gap="md">
           <CtaLink href="/docs" size="lg">
             Read the docs
           </CtaLink>
           <CtaLink href="/blog" size="lg" variant="outline">
             Read the blog
           </CtaLink>
-        </div>
+        </DSGrid>
       </Section>
     </SiteChrome>
   );

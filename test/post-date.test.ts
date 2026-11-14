@@ -101,10 +101,13 @@ describe('every post carries a date this site can publish in two forms', () => {
       /date(?:Time)?=\{page\.data\.date\}/,
     );
 
-    // The index's `<time>`: the `datetime` attribute is the value and the text is the
-    // reading. One element, two facts, which is what a `time` element is for.
-    expect(route, "the index's time element prints the machine value to a reader").toMatch(
-      /<time dateTime=\{isoDate\(post\.data\.date\)\}>\{displayDate\(post\.data\.date\)\}<\/time>/,
+    // The index is now ContentGrid01 (DS): `at` carries the display reading;
+    // the machine value remains in isoDate for the post Page. The DS renders
+    // `at` as text; the index no longer owns a <time> element. (DS gap: ContentGrid01
+    // takes no machine date; see docs/DS_GAPS.md. Filed, not worked around.)
+    expect(route, 'the index entry loses the display reading').toMatch(
+      /at:\s*displayDate\(post\.data\.date\)/,
     );
+    expect(route, 'a raw frontmatter value still reaches the grid').not.toMatch(/at:\s*post\.data\.date/);
   });
 });

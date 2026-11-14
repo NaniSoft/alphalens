@@ -1,0 +1,18 @@
+{
+  "$comment": "Application-owned content assets. Central assets live in @nanisoft/prism-ui/assets manifest. See docs/ASSET_MANIFEST.md for human contract and EX-OG-01 / EX-FAV-01 exceptions.",
+  "version": 1,
+  "assets": [
+    {
+      "id": "favicon-alphalens",
+      "path": "app/icon.svg",
+      "category": "logo",
+      "format": "svg",
+      "allowedVariants": ["logo"],
+      "themeAware": false,
+      "themeRestrictions": ["fixed-brand-colors"],
+      "budgetKiB": 50,
+      "role": "brand-logo",
+      "exception": "EX-FAV-01: browser chrome paints outside the cascade; fixed hex per DS favicon precedent."
+    }
+  ]
+}

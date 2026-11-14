@@ -269,9 +269,9 @@ const MEASURE = `(() => {
   }
 
   const probeEdge = document.createElement('div');
-  probeEdge.style.cssText = 'border: 1px solid var(--site-border); position: absolute;';
+  probeEdge.style.cssText = 'border: 1px solid var(--border); position: absolute;';
   document.body.appendChild(probeEdge);
-  const siteBorderColor = getComputedStyle(probeEdge).borderTopColor;
+  const designSystemBorderColor = getComputedStyle(probeEdge).borderTopColor;
   probeEdge.remove();
 
   return {
@@ -279,9 +279,8 @@ const MEASURE = `(() => {
       (document.documentElement.getAttribute('data-pack') ?? 'no pack') +
       '/' +
       (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
-    siteBorder: root.getPropertyValue('--site-border').trim(),
-    siteBorderColor,
     designSystemBorder: root.getPropertyValue('--border').trim(),
+    designSystemBorderColor,
     edgeCount: edges.length,
     edges,
     siteEdges,
@@ -388,37 +387,13 @@ try {
   await send('Page.enable');
   await send('Runtime.enable');
 
-  /* The selectors this repository's own sheet draws a border on, read from the sheet
-     rather than restated here. A list in the gate would be a second copy of the sheet's
-     decisions, and a copy is what rots: the sheet would gain a device and the gate would
-     keep checking the old eleven. `border` is matched rather than `border-color`, because
-     it is the shorthand a site class uses to draw a box's edge and a colour alone would
-     match the design system's own rules through the same file. */
-  const css = readFileSync(path.join(ROOT, 'app', 'globals.css'), 'utf8').replace(
-    /\/\*[\s\S]*?\*\//g,
-    (block) => block.replace(/[^\n]/g, ' '),
-  );
-  const siteBorderSelectors = [];
-  for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (!/(?:^|[;{\s])border(?:-top|-right|-bottom|-left|-block|-inline)?\s*:\s*var\(--site-border\)/.test(match[2] ?? '')) {
-      continue;
-    }
-    for (const selector of (match[1] ?? '').split(',')) {
-      const trimmed = selector.trim();
-      if (trimmed && !siteBorderSelectors.includes(trimmed)) siteBorderSelectors.push(trimmed);
-    }
-  }
-  if (siteBorderSelectors.length < 3) {
-    console.error(
-      `\n${NAME}: this repository's sheet declares a border on ${siteBorderSelectors.length} selector(s) and this\n` +
-        `  gate needs at least 3 to be reading it: ${siteBorderSelectors.join(', ') || 'none'}.\n` +
-        '  A renamed stylesheet path empties this run, and an emptied run reports a clean page.',
-    );
-    process.exit(1);
-  }
+  /* Zero-custom-UI: the site sheet is deleted. Site edges are now DS
+     `border-border` utility edges, attributed by the MEASURE probe. This gate
+     therefore reads no site sheet; it asserts DS edges render at 1px in both
+     modes and remain attributed to the DS utility. */
+  const siteBorderSelectors = ['[class*="border-border"]'];
   console.log(
-    `${NAME}: ${siteBorderSelectors.length} selector(s) in app/globals.css draw a border from --site-border: ` +
-      `${siteBorderSelectors.join(', ')}`,
+    `${NAME}: zero site sheet (DS-only). Attributing edges via DS border-border utility.`,
   );
 
   const recorded = [];
@@ -499,16 +474,13 @@ try {
             '      on the deployed site in both modes rather than chosen here.',
         );
       }
-      if (measurement.siteBorder === '') {
-        findings.push(
-          `${route}  [${mode}]  --site-border does not resolve on the document element in this mode, and no\n` +
-            `      element on the page carries a pack attribute (${measurement.mode}).\n` +
-            '      A token that does not resolve is the defect, not a cosmetic difference: every border shorthand\n' +
-            "      reading it is invalid at computed-value time and the boxes lose their geometry. A page with no\n" +
-            '      pack attribute is the other half of the same finding, so this check names both rather than\n' +
-            '      reporting a zero-edge count and leaving the cause to be guessed at.',
-        );
-      }
+      /* The site border token died with the site sheet: this repository declares no
+         --site-border any more, so an arm asserting its resolution would fail on every
+         route in every mode and hold the lane red forever. What the arm actually guarded
+         is held elsewhere now: the pack attribute is printed per row below and asserted
+         by the runtime suite (`html[data-pack="gold"]`), and the dead-token failure mode
+         (borders vanishing while the boxes survive) is exactly what the edge-count arm
+         above measures. */
       if (measurement.anchor.outline.startsWith('none')) {
         findings.push(
           `${route}  [${mode}]  a plain anchor has no focus indicator at all (outline: ${measurement.anchor.outline}).\n` +
@@ -571,9 +543,9 @@ try {
   for (const row of recorded) {
     console.log(
       `${NAME}: ${row.route.padEnd(26)}  ${row.mode.padEnd(11)}  ` +
-        `${String(row.siteEdges.length).padStart(3)} edge(s) declared by this repository's sheet, all ${MEASURED_WEIGHT}; ` +
+        `${String(row.siteEdges.length).padStart(3)} box edge(s) on DS border-border utilities, all ${MEASURED_WEIGHT}; ` +
         `${String(row.edgeCount - row.siteEdges.length).padStart(3)} more on the page from the design system  |  ` +
-        `--site-border "${row.siteBorder}" -> ${row.siteBorderColor}`,
+        `--border "${row.designSystemBorder}" -> ${row.designSystemBorderColor}`,
     );
   }
   console.log(

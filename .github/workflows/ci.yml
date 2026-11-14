@@ -1,16 +1,5 @@
 name: CI
 
-# The deploy lives in this workflow, as a job that needs `verify`, rather than in
-# a second workflow on the same push.
-#
-# Two separate workflows on `push: main` cannot be ordered against each other, so
-# a migration that breaks the site produced a green check run and a broken live
-# page simultaneously. Folding the deploy in makes the ordering a property of the
-# graph rather than a matter of two runs happening to race: a push that fails its
-# checks cannot deploy, because the deploy job is never reached.
-#
-# `workflow_dispatch` re-runs the same path rather than a shortcut, so a manual
-# deploy is gated by the same checks as an automatic one.
 on:
   pull_request:
   push:
@@ -33,13 +22,22 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm ui:check
+      - run: pnpm ui:check:fixtures
       - run: pnpm test
       - run: pnpm build
-      # The gate that holds the site's stylesheet to the design system's base
-      # rules. It reads source rather than the export, so it runs whether or not a
-      # build is needed; the gates that read the export run inside the same job
-      # after the build that produces it.
       - run: pnpm check
+      - name: Playwright visual + runtime (4 viewports x 2 modes)
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec serve out -l 4173 &
+          echo $! > /tmp/ds-serve.pid
+          pnpm exec wait-on http://127.0.0.1:4173
+          pnpm ui:runtime
+        env:
+          DS_SKIP_WEBSERVER: '1'
+          DS_BASE_URL: 'http://127.0.0.1:4173'
 
   deploy:
     needs: verify
@@ -54,8 +52,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      # Auth is the org-level CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID pair
-      # (visibility: all).
       - run: pnpm exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

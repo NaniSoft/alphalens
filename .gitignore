@@ -21,3 +21,7 @@ next-env.d.ts
 
 # misc
 .DS_Store
+
+# playwright run artifacts, never committed (baselines live in e2e/visual-baselines)
+test-results/
+playwright-report/

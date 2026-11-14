@@ -1,23 +1,26 @@
 {
   "$comment": [
     "This site's half of the cross-repository contract, and it is data only.",
+    "Zero-custom-UI: this site ships no stylesheet. The DS stylesheet is the only",
+    "styling entry point, enforced by scripts/check-ui-compliance.mjs (UI001).",
+    "The gates below stay listed and run; their sheet floors are zero because",
+    "there is no sheet left to read. The laws themselves are in",
+    "`@nanisoft/prism-ui/gates` and version with the pinned package, so the",
+    "generation declared below is the generation that pin's kit carries.",
     "",
-    "The laws are not here. They are the failure messages of the gates in",
-    "`@nanisoft/prism-ui/gates`, which this repository installs by pinning that",
-    "package exactly, so a change to a law lands once and reaches this repository",
-    "in one release and cannot be declined here. What is here is the set of facts",
-    "only this site knows: which stylesheets are its own, how much of them counts",
-    "as having read something, and that this repository ships no destination its",
-    "own corpus gets wrong.",
-    "",
-    "A line in this file that stated a rule would be the defect the file exists to",
-    "end, because a rule held in five repositories is five rules that will disagree."
+    "gateKit 2 (Prism 1.8). The view-only gate is not named, and the omission is",
+    "the decision: app/opengraph-image.tsx renders an ImageResponse, whose SVG",
+    "surface the one stylesheet cannot reach, so its inline style is the only",
+    "way that image can be drawn at all. A gate this site cannot meet without",
+    "deleting its own link-preview image is not a gate it can hold yet; the day",
+    "the catalogue publishes a drawn OG surface, that file goes and this site",
+    "names the gate in the same change."
   ],
-  "gateKit": 1,
+  "gateKit": 2,
   "gates": ["pin", "retired-line", "stylesheet-ownership", "links", "runtime-token-read", "hidden-state"],
   "stylesheet-ownership": {
-    "sheets": ["app/globals.css"],
-    "minDeclarations": 20
+    "sheets": [],
+    "minDeclarations": 0
   },
   "links": {
     "outDir": "out",
@@ -25,8 +28,8 @@
     "minAnchors": 900
   },
   "hidden-state": {
-    "sheets": ["app/globals.css"],
-    "minRules": 45,
+    "sheets": [],
+    "minRules": 0,
     "sourceRoots": ["app", "components", "lib"]
   }
 }

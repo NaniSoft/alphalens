@@ -39,16 +39,17 @@ describe('the About page carries one pair of calls to action', () => {
 
   it('closes the page with them, after the prose and the fact list', () => {
     const { container } = render(<AboutPage />);
-    const row = container.querySelector('.site-cta-row');
-    expect(row, 'the About page has no closing pair of calls to action').toBeTruthy();
+    // DSGrid holds the pair (no site class). Find its last link.
+    const docs = screen.getAllByRole('link', { name: 'Read the docs' })[0] as Element;
+    expect(docs, 'the About page has no closing pair of calls to action').toBeTruthy();
 
     // The order is asserted through the DOM rather than through a class, because the claim
     // is about where the pair sits in the page: after the fact list, not before the first
     // paragraph. `compareDocumentPosition` is a real DOM answer rather than a string
     // search over the rendered HTML.
     const main = container.querySelector('main') ?? container;
-    const elements = [...main.querySelectorAll('p, h1, h2, li, dl, .site-cta-row')];
-    const pairAt = elements.indexOf(row as Element);
+    const elements = [...main.querySelectorAll('p, h1, h2, li, dl, a')];
+    const pairAt = elements.indexOf(docs);
     const proseAt = elements.findIndex((node) => node.tagName === 'H2');
     expect(pairAt, 'the closing pair is above the page it closes').toBeGreaterThan(proseAt);
     expect(pairAt).toBeGreaterThan(-1);
