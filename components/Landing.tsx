@@ -151,7 +151,6 @@ function FeedSources(): ReactElement {
     <Section>
       <SectionHeading
         as="h2"
-        align="left"
         className="mb-12"
         title={sectionTitle(2)}
         description={FEED_DESCRIPTION}
@@ -285,23 +284,23 @@ export function Landing(): ReactElement {
       />
 
       {/* The honesty model as a strip, which is the transition band between the hero
-          and the first numbered section. Left aligned by one site class: centred, five
-          items of different lengths wrap into two ragged centred lines that read as a
-          mistake, and a status band is a thing a reader scans from the left. */}
+          and the first numbered section. The item row is centred by the Block itself:
+          an earlier site class left-aligned it, and that class went with the site
+          sheet, so what renders now is the Block's own arrangement. */}
       <LogoStrip01 items={[...TICKER]} label="What is running and what is design" />
 
       {/* 01, what it captures. Live, and the only part of this page that is simply
           true. Three capture points, each a title and a sentence, which is what a
           definition list is for.
 
-          **It was a `FeatureGrid01` and it is not any more.** That Block renders its
-          heading with `SectionHeading`'s default alignment, which is centred, while
-          every other section on this page sets `align="left"`; a centred title above a
-          left-aligned two-column grid is two unrelated pieces, which is the reason
-          `SectionHeading` documents the default as being right for a band that is only
-          a heading. It also put three cards in a two-column grid, so the third sat alone
-          on the second row. The gap is filed against the design system rather than
-          worked around: a feature grid whose heading can be aligned. */}
+          **It was a `FeatureGrid01` and it is not any more.** It put three cards in
+          a two-column grid, so the third sat alone on the second row, and
+          `NoteGrid01` draws the same three points as a definition list without the
+          orphan. The alignment half of this swap's reason is gone: the landing
+          blocks centre their headings together now, so a centred title no longer
+          arrives alone among left ones, and the design system answered the old
+          request for an alignable grid heading by making the landing roster centre
+          as a tier instead. */}
       {/* The bands a reader scrolls to arrive on the design system's own
           reveal; the hero, the status line, the figures, the strip and the
           closing ask stay still. */}
