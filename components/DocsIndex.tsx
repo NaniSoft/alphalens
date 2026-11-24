@@ -29,6 +29,10 @@ export function DocsIndex({ tree, labels }: { tree: Root; labels: DocsIndexLabel
       title="Docs"
       description="AlphaLens in full: the live data platform, the approved data contract, the designed research pipeline, and the engineering story. Every page carries its own status label."
       nav={toPrismTree(tree.children)}
+      // This page is the tree's own root (`index` at `/docs`), so the rail marks
+      // its Introduction link with `aria-current="page"` instead of publishing a
+      // first sidebar link that looks unvisited and reloads the page it is on.
+      currentHref="/docs"
       navLabel={labels.nav}
       tocLabel={labels.toc}
       pagerLabel={labels.pager}

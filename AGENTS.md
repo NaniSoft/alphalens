@@ -2,7 +2,7 @@
 
 ## Project
 
-**alphalens.nanisoft.com** — AlphaLens, quantitative trading research for the Indian market. Landing + full docs + blog, in the blush pack.
+**alphalens.nanisoft.com** — AlphaLens, quantitative trading research for the Indian market. Landing + full docs + blog, in the gold pack.
 
 Part of the five-site Nanisoft web platform (www + nexus + atlas + alphalens + prism), one design language: [Prism](https://prism.nanisoft.com).
 

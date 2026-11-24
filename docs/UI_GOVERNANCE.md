@@ -1,6 +1,6 @@
 # Zero-Custom-UI / Zero-Custom-Styling — Inventory (Phase 1)
 
-This document is the initial repository assessment required by the mission §1, written against `@nanisoft/prism-ui` **1.7.0**. The pin moved to **1.8.0** with the Prism 1.8 adoption (Ground01, the positioner z layer, the `site-main` slot contract, gate kit generation 2); the facts below were assessed at 1.7.0 and the version rows carry the move. The application owns business logic, data, routing and domain composition; all visual presentation is owned by the design system.
+This document is the initial repository assessment required by the mission §1, written against `@nanisoft/prism-ui` **1.7.0**. The pin moved to **1.8.0** with the Prism 1.8 adoption (Ground01, the positioner z layer, the `site-main` slot contract, gate kit generation 2) and has moved with each adoption since; it stands at **1.13.0**. The facts below were assessed at 1.7.0 and the version rows carry the moves. The application owns business logic, data, routing and domain composition; all visual presentation is owned by the design system.
 
 > **Scope decision (user):** delete all application CSS and use DS primitives exclusively. The previously governed `app/globals.css` site sheet is removed in Phase 7. Layout-only `className` on DS components (e.g. `size-full`, `mb-12`) remains the DS API and is not custom CSS.
 
@@ -9,12 +9,12 @@ This document is the initial repository assessment required by the mission §1, 
 | Fact | Evidence |
 |---|---|
 | Package | `@nanisoft/prism-ui` (components/blocks/pages/theming/assets/gates) |
-| Version | `1.8.0` exact pin in `package.json` (moved from the assessed `1.7.0` with the Prism 1.8 adoption); `pnpm-lock.yaml` resolves `1.8.0`; `@nanisoft/prism-tokens` `1.8.0` via `prism-ui` dependency (not a direct dep) |
+| Version | `1.12.0` exact pin in `package.json` (moved from the assessed `1.7.0` through the 1.8, 1.11 and 1.12 adoptions to the 1.13 one); `pnpm-lock.yaml` resolves `1.13.0`; `@nanisoft/prism-tokens` `1.10.0` via `prism-ui` dependency (not a direct dep) |
 | Entry points | `app/layout.tsx`: `import '@nanisoft/prism-ui/styles.css'` (only permitted stylesheet entry) |
 | Import rule | Subpath imports only (`/blocks/*`, `/components/*`, `/pages/*`, `/theming`). No private `dist/` or `src/` paths. Verified in `app/`, `components/`, `lib/` |
 | Competing UI deps | None. Direct deps: `next`, `react`, `react-dom`, `fumadocs-core`, `fumadocs-mdx`, `zod`. No Bootstrap, no styled-components/emotion/jss, no Tailwind config in this repo (Tailwind is inside the DS build) |
 
-**Upgrade:** at assessment, already at latest `1.7.0`; the Prism 1.8 adoption moved the pin to `1.8.0` in one change with the surface moves it enabled. `pnpm install --frozen-lockfile` verifies. No `^` range; pin exact per DS policy.
+**Upgrade:** at assessment, already at latest `1.7.0`; the Prism 1.8 adoption moved the pin to `1.8.0` in one change with the surface moves it enabled, and each adoption since has moved it the same way, one exact step at a time, standing at `1.13.0`. `pnpm install --frozen-lockfile` verifies. No `^` range; pin exact per DS policy.
 
 ## 1.2 Current violations inventory (before migration)
 
@@ -113,6 +113,6 @@ This document is the initial repository assessment required by the mission §1, 
 9. No competing styling deps — `package.json` has no tailwind/bootstrap/styled/emotion (tonly DS).
 10. All automated checks pass — `lint`, `typecheck`, `test` (83), `build` (41 routes), `check` (prism + routes + `ui:check`), `ui:runtime` (40).
 11. Negative fixtures prove rejection — `test/fixtures/ui-violations/` (UI001/UI002/UI003/UI004/UI005/ASSET001) + positive control.
-12. Production build works independently of DS source — `pnpm install --frozen-lockfile` + `next build` against the published pin only (`1.8.0` since the Prism 1.8 adoption).
+12. Production build works independently of DS source — `pnpm install --frozen-lockfile` + `next build` against the published pin only (`1.13.0`, exact).
 
 After every phase verify functionality: `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check` (routes + prism gates).

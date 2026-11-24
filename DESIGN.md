@@ -73,7 +73,7 @@ The whole market arrives in parallel; the lens bends it; everything the research
 
 AlphaLens is the measurement site of the family. Its visual ethic is diagrammatic and anti-fabricated: figures are drawn in token strokes so both modes repaint them, animations are priced on ambient tokens and stay true when stopped, and nothing that looks like market data is ever drawn without a disclosure saying there is no live feed behind it. Honesty is a visual system here, not a paragraph: three status words (live, designed not built, research direction) structure the whole page, and they are words first, color second.
 
-The site ships zero CSS of its own. Every value below arrives through the pinned `@nanisoft/prism-ui@1.11.0` stylesheet (`data-pack="gold"`), which is normative; these figures are a snapshot of that pin. Dark is the default rendering and the `-day` siblings are the light mode. Note: older prose in README and AGENTS says 1.8.0 or "blush"; `lib/site.json` and the lockfile are authoritative: the ground is gold at prism-ui 1.11.0.
+The site ships zero CSS of its own. Every value below arrives through the pinned `@nanisoft/prism-ui@1.13.0` stylesheet (`data-pack="gold"`), which is normative; these figures are a snapshot of that pin. Dark is the default rendering and the `-day` siblings are the light mode. `lib/site.json` and the lockfile are authoritative when prose and pin disagree: the ground is gold at prism-ui 1.13.0.
 
 **Key Characteristics:**
 - One warm gold beam on a near-black amber ground, dark first

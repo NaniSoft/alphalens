@@ -4,11 +4,11 @@
        reticle it replaced sat on a drawn profile that no longer reads at tab
        size; the point that profile was magnifying is now the mark's own end.
        Colours are the gold pack's own tokens (neutral-950 ground, brand-400
-       rays and lens, brand-100 point, `#F0EBEC` ink). -->
+       rays and lens, brand-100 point, `#EFECE9` ink). -->
   <rect width="32" height="32" rx="4" fill="#1A1815" />
   <g fill="none" stroke-linecap="round" stroke-width="2.5">
-    <path d="M4 12 L17.5 12" stroke="#F0EBEC" />
-    <path d="M4 20 L17.5 20" stroke="#F0EBEC" />
+    <path d="M4 12 L17.5 12" stroke="#EFECE9" />
+    <path d="M4 20 L17.5 20" stroke="#EFECE9" />
     <path d="M17.5 12 L28 16" stroke="#EDC47D" />
     <path d="M17.5 20 L28 16" stroke="#EDC47D" />
   </g>

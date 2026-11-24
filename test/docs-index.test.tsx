@@ -77,7 +77,12 @@ function tree(): Root {
   };
 
   const children: Root['children'] = rootMeta.pages.map((entry) => {
-    const separator = /^---(.*)---$/.exec(entry);
+    // The rule spelling is fumadocs' own: a named separator is `---Name---` and a
+    // bare `---` is the same node with no name. This corpus names its rules with
+    // nothing, because a named rule directly above a folder printed the folder's
+    // title twice in a row in the rail (once on the rule, once on the group), so
+    // the title belongs to the group and the rule is only a rule.
+    const separator = /^---(?:(.*)---)?$/.exec(entry);
     if (separator) return { type: 'separator', name: separator[1] ?? '' };
     if (entry === 'index') {
       const file = path.join(DOCS, 'index.mdx');

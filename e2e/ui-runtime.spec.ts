@@ -13,10 +13,37 @@ import { expect, test } from '@playwright/test';
  */
 const ROUTES = ['/', '/about', '/blog', '/docs'];
 
+/**
+ * The theme storage key PrismThemeScript reads, and the value shape it expects:
+ * a JSON `{ pack, mode }`. Spelled here rather than imported because e2e runs
+ * against the built export, but kept literal next to the comment that says what
+ * it must stay in step with.
+ */
+const THEME_KEY = 'prism-theme';
+
 for (const route of ROUTES) {
   test(`DS-only render ${route}`, async ({ page }) => {
+    // The site server-renders `class="dark"` as its default mode and
+    // PrismThemeScript respects that default when storage is empty, so a light
+    // project that only emulated the `color-scheme` media query captured dark
+    // pixels and filed them under a light name. The stored choice is set before
+    // load, on the key the theme script reads, so the mode is applied before
+    // first paint and the light projects capture real light mode.
+    const dark = test.info().project.name.endsWith('-dark');
+    await page.addInitScript(
+      ({ key, value }) => {
+        localStorage.setItem(key, value);
+      },
+      { key: THEME_KEY, value: JSON.stringify({ pack: 'gold', mode: dark ? 'dark' : 'light' }) },
+    );
     await page.goto(route);
     await expect(page.locator('html[data-pack="gold"]')).toBeAttached();
+
+    // And the document is in the mode the project means, asserted here so a
+    // capture whose mode failed to apply fails as a mode failure instead of as
+    // a pixel difference nobody can name.
+    const isDark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+    expect(isDark, `html.dark should be ${dark} for ${test.info().project.name}`).toBe(dark);
 
     // No site stylesheet: only DS styles.css may be present.
     const sheets = await page.evaluate(() =>

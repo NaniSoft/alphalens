@@ -21,10 +21,15 @@ export const contentType = 'image/png'
 
 export const dynamic = 'force-static'
 
+// The card paints literals because the renderer cannot resolve cascade classes,
+// so these are the gold pack's dark-mode neutral and brand values spelled out:
+// ground, ink, muted and hairline are the token snapshot DESIGN.md carries, and
+// the three neutrals below were left on the blush pack's values when the site
+// moved to gold, which read about two percent cool until they were aligned.
 const GROUND = '#1a1815'
-const INK = '#f0ebec'
-const MUTED = '#d0c8ca'
-const HAIRLINE = '#47403f'
+const INK = '#efece9'
+const MUTED = '#cecac4'
+const HAIRLINE = '#45423c'
 const GOLD = '#edc47d'
 const CYAN = '#7fdaf0'
 const MINT = '#9ddcad'
@@ -40,8 +45,8 @@ const SPECTRUM =
  */
 const MARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="150" height="150" fill="none">
   <g stroke-width="2.5" stroke-linecap="round" fill="none">
-    <path d="M4 12 L17.5 12" stroke="#f0ebec"/>
-    <path d="M4 20 L17.5 20" stroke="#f0ebec"/>
+    <path d="M4 12 L17.5 12" stroke="#efece9"/>
+    <path d="M4 20 L17.5 20" stroke="#efece9"/>
     <path d="M17.5 12 L28 16" stroke="#edc47d"/>
     <path d="M17.5 20 L28 16" stroke="#edc47d"/>
   </g>

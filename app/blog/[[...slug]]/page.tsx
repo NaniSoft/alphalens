@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import type { ReactElement } from 'react';
 import { ContentGrid01 } from '@nanisoft/prism-ui/blocks/content-grid-01';
 import { EmptyState01 } from '@nanisoft/prism-ui/blocks/empty-state-01';
-import { Section, SectionHeading } from '@nanisoft/prism-ui/components/section';
 import { BlogPostPage } from '@nanisoft/prism-ui/pages';
 
 import { getMdxComponents } from '@/lib/mdx-components';
@@ -86,33 +85,37 @@ export default async function BlogPage({ params }: PageProps): Promise<ReactElem
     const posts = published();
     return (
       <SiteChrome current="/blog">
-        <Section>
-          <SectionHeading
-            as="h1"
-            align="left"
-            title="Blog"
-            description={'Notes from building AlphaLens: what a live market-data layer actually takes, and the research design it makes possible. Every post states plainly what is running and what is still design.'}
-          />
-          <ContentGrid01
-            variant="rows"
-            entries={posts.map((post) => ({
-              id: post.url,
-              title: post.data.title,
-              summary: post.data.description,
-              at: displayDate(post.data.date),
-              category: post.data.tags.length > 0 ? post.data.tags.join(', ') : undefined,
-              href: post.url,
-              hrefLabel: 'Read post',
-            }))}
-            empty={
-              <EmptyState01
-                reason="first-run"
-                title="Nothing published yet."
-                body="The first post is being written."
-              />
-            }
-          />
-        </Section>
+        {/*
+          The Block owns its own section and its own heading, so the page names
+          itself through it: `headingLevel="h1"` makes "Blog" the page's h1 and
+          each post's title an h2, which is the outline a reader navigating by
+          heading expects. Wrapping the Block in a second section used to nest a
+          section inside a section and skip from h1 straight to h3, because the
+          Block derives every entry's heading from the level its own section
+          heading was given.
+        */}
+        <ContentGrid01
+          variant="rows"
+          headingLevel="h1"
+          title="Blog"
+          description={'Notes from building AlphaLens: what a live market-data layer actually takes, and the research design it makes possible. Every post states plainly what is running and what is still design.'}
+          entries={posts.map((post) => ({
+            id: post.url,
+            title: post.data.title,
+            summary: post.data.description,
+            at: displayDate(post.data.date),
+            category: post.data.tags.length > 0 ? post.data.tags.join(', ') : undefined,
+            href: post.url,
+            hrefLabel: 'Read post',
+          }))}
+          empty={
+            <EmptyState01
+              reason="first-run"
+              title="Nothing published yet."
+              body="The first post is being written."
+            />
+          }
+        />
       </SiteChrome>
     );
   }
